@@ -920,22 +920,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "سلكوا طريق السلف الصالح",
-        "textMalay": "Ahli Sunnah wal Jamaah"
+        "textMalay": "Mengikut jalan Salafussoleh"
       },
       {
         "id": "b",
         "textArabic": "مخالفة طريق السلف الصالح",
-        "textMalay": "Khawarij"
+        "textMalay": "Menyalahi jalan Salafussoleh"
       },
       {
         "id": "c",
         "textArabic": "طريق وجوب المعرفة العقل لا الشرع",
-        "textMalay": "Syi'ah"
+        "textMalay": "Jalan kewajipan mengenal Allah adalah akal bukan syarak"
       },
       {
         "id": "d",
         "textArabic": "كانوا يعتمدون في الاستدلال على عقائدهم العقلية",
-        "textMalay": "Mu'tazilah"
+        "textMalay": "Mereka bersandarkan kepada dalil akal dalam menetapkan akidah"
       }
     ],
     "correctAnswer": "a",
@@ -956,22 +956,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "سلكوا طريق السلف الصالح.",
-        "textMalay": "Mempunyai hujah yang lemah"
+        "textMalay": "Mengikut jalan Salafussoleh"
       },
       {
         "id": "b",
         "textArabic": "يجمعون بين العقل والنقل",
-        "textMalay": "Kelemahan hujah mereka dalam perbahasan"
+        "textMalay": "Menghimpunkan antara dalil akal dan naqli"
       },
       {
         "id": "c",
         "textArabic": "يعتمدون بالقضايا العقلية",
-        "textMalay": "Kefasihan hujah dan kekuatan dalil mereka"
+        "textMalay": "Bersandarkan kepada dalil-dalil akal semata-mata"
       },
       {
         "id": "d",
         "textArabic": "يلجؤون إلى القرآن في تعرف عقائدهم",
-        "textMalay": "Mereka mengasingkan diri daripada perbahasan"
+        "textMalay": "Merujuk kepada Al-Quran dalam mengenali akidah mereka"
       }
     ],
     "correctAnswer": "c",
@@ -992,22 +992,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "معنى الكسب",
-        "textMalay": "Membenci perselisihan dan menjauhkan diri daripada kedua-dua pihak"
+        "textMalay": "Makna al-Kasb (Usaha)"
       },
       {
         "id": "b",
         "textArabic": "مفهوم الإيمان والإسلام",
-        "textMalay": "Tidak meredhai tahkim dan memberontak terhadap Khalifah Ali"
+        "textMalay": "Konsep Iman dan Islam"
       },
       {
         "id": "c",
         "textArabic": "جواز عقاب العاصي شرعا",
-        "textMalay": "Berpandangan bahawa khilafah wajib dipilih secara bebas oleh umat Islam"
+        "textMalay": "Keharusan menyeksa orang derhaka pada syarak"
       },
       {
         "id": "d",
         "textArabic": "كون المعرفة واجبة بالشرع أو العقل",
-        "textMalay": "Berpandangan bahawa yang paling berhak terhadap khilafah selepas Rasulullah ﷺ ialah Ali bin Abi Talib"
+        "textMalay": "Sama ada mengenal Allah wajib melalui syarak atau akal"
       }
     ],
     "correctAnswer": "c",
@@ -1028,22 +1028,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "إنكار الحسن والقبح العقليين",
-        "textMalay": "Membenci perselisihan dan menjauhkan diri daripada kedua-dua pihak"
+        "textMalay": "Menafikan baik dan buruk menurut akal"
       },
       {
         "id": "b",
         "textArabic": "طريق وجوب المعرفة الشرع",
-        "textMalay": "Tidak meredhai tahkim dan memberontak terhadap Khalifah Ali"
+        "textMalay": "Jalan kewajipan mengenal Allah adalah syarak"
       },
       {
         "id": "c",
         "textArabic": "الإيمان تصديق والعمل كمال له",
-        "textMalay": "Berpandangan bahawa khilafah wajib dipilih secara bebas oleh umat Islam"
+        "textMalay": "Iman adalah tasdiq dan amal adalah pelengkapnya"
       },
       {
         "id": "d",
         "textArabic": "إنكار الشفاعة لمرتكب الكبيرة",
-        "textMalay": "Berpandangan bahawa yang paling berhak terhadap khilafah selepas Rasulullah ﷺ ialah Ali bin Abi Talib"
+        "textMalay": "Menafikan syafaat bagi pelaku dosa besar"
       }
     ],
     "correctAnswer": "d",
@@ -1064,22 +1064,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "فاسق",
-        "textMalay": "Membenci perselisihan dan menjauhkan diri daripada kedua-dua pihak"
+        "textMalay": "Fasiq"
       },
       {
         "id": "b",
         "textArabic": "منزلة بين منزلتين",
-        "textMalay": "Tidak meredhai tahkim dan memberontak terhadap Khalifah Ali"
+        "textMalay": "Kedudukan antara dua kedudukan"
       },
       {
         "id": "c",
         "textArabic": "أمره مفوض لله تعالى",
-        "textMalay": "Berpandangan bahawa khilafah tidak wajib dipilih secara bebas"
+        "textMalay": "Urusannya diserahkan kepada Allah Taala"
       },
       {
         "id": "d",
         "textArabic": "كفر نعمة لا كفر في ملة",
-        "textMalay": "Berpandangan bahawa yang paling berhak terhadap khilafah selepas Rasulullah ﷺ ialah Ali bin Abi Talib"
+        "textMalay": "Kufur nikmat bukan kufur millah"
       }
     ],
     "correctAnswer": "c",
@@ -1100,22 +1100,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "أفعال العباد مخلوقة لله إحداثا وإبداعا، مكتسبة للعبد حقيقة",
-        "textMalay": "Awal abad ke-2 Hijrah"
+        "textMalay": "Perbuatan hamba diciptakan Allah dari tiada, diusahakan hamba secara hakiki"
       },
       {
         "id": "b",
         "textArabic": "العبد يخلق أفعال نفسه الاختيارية بقدرة أودعها الله فيه",
-        "textMalay": "Akhir abad ke-2 dan awal abad ke-3 Hijrah"
+        "textMalay": "Hamba mencipta perbuatan ikhtiarinya dengan kuasa ciptaan Allah padanya"
       },
       {
         "id": "c",
         "textArabic": "الله يخلق أفعال العباد الاختيارية وللعبد فيها الكسب",
-        "textMalay": "Awal abad ke-3 Hijrah"
+        "textMalay": "Allah mencipta perbuatan ikhtiar hamba dan hamba mempunyai kasb padanya"
       },
       {
         "id": "d",
         "textArabic": "الإنسان مجبور في فعله، لا قدرة له ولا اختيار",
-        "textMalay": "Akhir abad ke-3 dan awal abad ke-4 Hijrah"
+        "textMalay": "Manusia dipaksa (majbur), tiada kuasa dan tiada pilihan"
       }
     ],
     "correctAnswer": "c",
@@ -1136,22 +1136,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "أتباع أبو حسن البصري",
-        "textMalay": "Wasil bin 'Ata'"
+        "textMalay": "Pengikut Abu al-Hasan al-Basri"
       },
       {
         "id": "b",
         "textArabic": "الجعد بن درهم عن يهودي",
-        "textMalay": "Abu al-Hasan al-Asy'ari"
+        "textMalay": "Al-Ja'd bin Dirham daripada seorang Yahudi"
       },
       {
         "id": "c",
         "textArabic": "هم أصحاب عبد الله بن إباض التميمي",
-        "textMalay": "Abu Mansur al-Maturidi"
+        "textMalay": "Mereka adalah pengikut Abdullah bin Ibadh al-Tamimi"
       },
       {
         "id": "d",
         "textArabic": "الجماعة التي أخرت الحكم على مرتكب الكبيرة",
-        "textMalay": "Al-Hasan al-Basri"
+        "textMalay": "Golongan yang menangguhkan hukum ke atas pelaku dosa besar"
       }
     ],
     "correctAnswer": "c",
@@ -1174,22 +1174,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الزيـدية",
-        "textMalay": "Wasil bin 'Ata'"
+        "textMalay": "Al-Zaidiyyah"
       },
       {
         "id": "b",
         "textArabic": "المـعـتـزلـة",
-        "textMalay": "Abu al-Hasan al-Asy'ari"
+        "textMalay": "Al-Mu'tazilah"
       },
       {
         "id": "c",
         "textArabic": "الإبـاضـيـة",
-        "textMalay": "Abu Mansur al-Maturidi"
+        "textMalay": "Al-Ibadiyyah"
       },
       {
         "id": "d",
         "textArabic": "القـديـانـيـة",
-        "textMalay": "Al-Hasan al-Basri"
+        "textMalay": "Al-Qadianiyyah"
       }
     ],
     "correctAnswer": "c",
@@ -1212,22 +1212,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الجبرية",
-        "textMalay": "Samarkand"
+        "textMalay": "Al-Jabariyyah"
       },
       {
         "id": "b",
         "textArabic": "الإباضية",
-        "textMalay": "Basrah"
+        "textMalay": "Al-Ibadiyyah"
       },
       {
         "id": "c",
         "textArabic": "القدرية",
-        "textMalay": "Kufah"
+        "textMalay": "Al-Qadariyyah"
       },
       {
         "id": "d",
         "textArabic": "المرجئة",
-        "textMalay": "Baghdad"
+        "textMalay": "Al-Murji'ah"
       }
     ],
     "correctAnswer": "b",
@@ -1248,22 +1248,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الجهاد",
-        "textMalay": "Maturid (Samarkand)"
+        "textMalay": "Jihad"
       },
       {
         "id": "b",
         "textArabic": "التسامح",
-        "textMalay": "Basrah"
+        "textMalay": "Toleransi"
       },
       {
         "id": "c",
         "textArabic": "تكفير مخالفيهم",
-        "textMalay": "Kufah"
+        "textMalay": "Mengkafirkan orang yang menyalahi mereka"
       },
       {
         "id": "d",
         "textArabic": "الأمر بالمعروف والنهي عن المنكر",
-        "textMalay": "Madinah"
+        "textMalay": "Amar makruf dan nahi mungkar"
       }
     ],
     "correctAnswer": "b",
@@ -1284,22 +1284,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "جواز رؤية الله",
-        "textMalay": "Kitab Al-Ibanah 'an Usul al-Diyanah"
+        "textMalay": "Harus melihat Allah (bagi mukmin di syurga)"
       },
       {
         "id": "b",
         "textArabic": "القول بخلق القران",
-        "textMalay": "Kitab Kitab al-Tauhid (Al-Maturidi)"
+        "textMalay": "Menafikan melihat Allah"
       },
       {
         "id": "c",
         "textArabic": "الإيمان تصديق والعمل كمال له",
-        "textMalay": "Kitab Maqalat al-Islamiyyin"
+        "textMalay": "Wajib melihat Allah"
       },
       {
         "id": "d",
         "textArabic": "الله يريد الخير ويأمر به ويريد الشر ولا ويأمر به",
-        "textMalay": "Kitab Al-Luma'"
+        "textMalay": "Mustahil melihat Allah"
       }
     ],
     "correctAnswer": "b",
@@ -1320,22 +1320,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "نفي رؤية الله",
-        "textMalay": "Al-Asya'irah"
+        "textMalay": "Menafikan melihat Allah (Nafi Ru'yatullah)"
       },
       {
         "id": "b",
         "textArabic": "القول بخلق القران",
-        "textMalay": "Al-Maturidiyyah"
+        "textMalay": "Harus melihat Allah"
       },
       {
         "id": "c",
         "textArabic": "الإيمان تصديق وعمل",
-        "textMalay": "Al-Mu'tazilah"
+        "textMalay": "Wajib melihat Allah"
       },
       {
         "id": "d",
         "textArabic": "يجوز شهادة المخالفين ومناكحتهم والتوارث معهم",
-        "textMalay": "Al-Khawarij"
+        "textMalay": "Mustahil melihat Allah"
       }
     ],
     "correctAnswer": "c",
@@ -1358,22 +1358,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الإيمان تصديق ومعرفة - المرجئة",
-        "textMalay": "Al-Asya'irah dan Al-Maturidiyyah"
+        "textMalay": "Iman ialah tasdiq dan ma'rifah - Murji'ah"
       },
       {
         "id": "b",
         "textArabic": "طريق وجوب المعرفة الشرع - البهائية",
-        "textMalay": "Al-Mu'tazilah dan Al-Khawarij"
+        "textMalay": "Jalan kewajipan ma'rifah ialah syarak - Baha'iyyah"
       },
       {
         "id": "c",
         "textArabic": "دماء مخالفيهم حرام في السر لا في العلانية - الإباضية",
-        "textMalay": "Al-Syi'ah dan Al-Murji'ah"
+        "textMalay": "Darah penentang haram secara rahsia bukan terang-terangan - Ibadiyyah"
       },
       {
         "id": "d",
         "textArabic": "وجوب الخروج على الإمام الجائر - الخوارج",
-        "textMalay": "Al-Jabariyyah dan Al-Qadariyyah"
+        "textMalay": "Wajib menentang pemerintah yang zalim - Khawarij"
       }
     ],
     "correctAnswer": "c",
@@ -1394,22 +1394,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "هم أتباع غلام أحمد",
-        "textMalay": "Menolak dalil akal secara mutlak"
+        "textMalay": "Mereka pengikut Ghulam Ahmad"
       },
       {
         "id": "b",
         "textArabic": "أتباع أبو منصور الماتريدي",
-        "textMalay": "Mengutamakan akal melebihi nas syarak"
+        "textMalay": "Pengikut Abu Mansur al-Maturidi"
       },
       {
         "id": "c",
         "textArabic": "أصحاب عبد الله بن إباض التميمي",
-        "textMalay": "Mengharmonikan antara dalil naqli (wahyu) yang sahih dan dalil aqli yang sarih"
+        "textMalay": "Pengikut Abdullah bin Ibadh al-Tamimi"
       },
       {
         "id": "d",
         "textArabic": "هم الجماعة التي أخّرت الحكم على مرتكب الكبيرة.",
-        "textMalay": "Hanya berpegang kepada zahir teks tanpa kefahaman"
+        "textMalay": "Jemaah yang menangguhkan hukum pelaku dosa besar kepada Allah"
       }
     ],
     "correctAnswer": "d",
@@ -1430,22 +1430,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "تصديق والعمل كمال له",
-        "textMalay": "Melihat Allah di akhirat adalah harus bagi orang beriman"
+        "textMalay": "Tasdiq dan amal adalah pelengkapnya"
       },
       {
         "id": "b",
         "textArabic": "تصديق ومعرفة",
-        "textMalay": "Melihat Allah di akhirat adalah mustahil"
+        "textMalay": "Tasdiq dan ma'rifah"
       },
       {
         "id": "c",
         "textArabic": "تصديق وعمل",
-        "textMalay": "Melihat Allah hanya dengan hati di dunia"
+        "textMalay": "Tasdiq dan amal"
       },
       {
         "id": "d",
         "textArabic": "المعرفة",
-        "textMalay": "Melihat Allah khusus untuk para nabi sahaja"
+        "textMalay": "Al-Ma'rifah (Pengenalan)"
       }
     ],
     "correctAnswer": "b",
@@ -1466,22 +1466,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "فاسق",
-        "textMalay": "Kekal dalam neraka selama-lamanya"
+        "textMalay": "Fasiq"
       },
       {
         "id": "b",
         "textArabic": "أنه كفر نعمة",
-        "textMalay": "Fasiq dan urusannya terserah kepada kehendak Allah Ta'ala"
+        "textMalay": "Kufur nikmat"
       },
       {
         "id": "c",
         "textArabic": "أمره مفوض لربه",
-        "textMalay": "Kafir murtad terkeluar dari Islam"
+        "textMalay": "Urusannya diserahkan kepada Allah Taala"
       },
       {
         "id": "d",
         "textArabic": "لا مؤمن ولا كافر",
-        "textMalay": "Berada di tempat antara syurga dan neraka (Al-Manzilah baina al-Manzilatain)"
+        "textMalay": "Bukan mukmin dan bukan kafir serta kekal di dalam neraka"
       }
     ],
     "correctAnswer": "c",
@@ -1502,22 +1502,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "هم أتباع غلام أحمد",
-        "textMalay": "Menafikan sifat-sifat ma'ani bagi Allah"
+        "textMalay": "Mereka pengikut Ghulam Ahmad"
       },
       {
         "id": "b",
         "textArabic": "أصحاب عبد الله بن إباض التميمي",
-        "textMalay": "Menetapkan sifat-sifat yang layak bagi keagungan Allah tanpa tasybih dan ta'thil"
+        "textMalay": "Pengikut Abdullah bin Ibadh al-Tamimi"
       },
       {
         "id": "c",
         "textArabic": "نفىي الفعل عن العبد وإضافته لله تعالى",
-        "textMalay": "Menyamakan sifat Allah dengan sifat makhluk"
+        "textMalay": "Menafikan perbuatan daripada hamba secara hakiki dan menyandarkannya kepada Tuhan"
       },
       {
         "id": "d",
         "textArabic": "هم الجماعة التي أخّرت الحكم على مرتكب الكبيرة.",
-        "textMalay": "Menyerahkan seluruh makna ayat tanpa tafsiran"
+        "textMalay": "Menetapkan perbuatan hakiki bagi hamba dan menafikannya daripada Tuhan"
       }
     ],
     "correctAnswer": "c",
@@ -1538,22 +1538,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "يهودي",
-        "textMalay": "Al-Tauhid, Al-'Adl, Al-Wa'd wa Al-Wa'id, Al-Manzilah baina al-Manzilatain, Al-Amr bi al-Ma'ruf wa al-Nahy 'an al-Munkar"
+        "textMalay": "Seorang Yahudi"
       },
       {
         "id": "b",
         "textArabic": "غلام أحمد",
-        "textMalay": "Al-Imamah, Al-'Ishmah, Al-Taqiyyah, Al-Raj'ah, Al-Bada'"
+        "textMalay": "Ghulam Ahmad"
       },
       {
         "id": "c",
         "textArabic": "الحسن البصري",
-        "textMalay": "Al-Qadha', Al-Qadar, Al-Jabr, Al-Kasb, Al-Iradah"
+        "textMalay": "Wasil bin 'Ata'"
       },
       {
         "id": "d",
         "textArabic": "الجعد بن درهم",
-        "textMalay": "Al-Tasdiq, Al-Iqrar, Al-'Amal, Al-Islam, Al-Ihsan"
+        "textMalay": "Abu al-Hasan al-Basri"
       }
     ],
     "correctAnswer": "d",
@@ -1574,22 +1574,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "مرزا علي محمد",
-        "textMalay": "Menafikan sifat-sifat Allah yang azali agar tidak berbilang yang qadim"
+        "textMalay": "Mirza Ali Muhammad"
       },
       {
         "id": "b",
         "textArabic": "عبدالله بن إباض",
-        "textMalay": "Menetapkan sifat-sifat Allah sebagaimana dalam nas"
+        "textMalay": "Abdullah bin Ibadh"
       },
       {
         "id": "c",
         "textArabic": "جهم بن صفوان",
-        "textMalay": "Menyifatkan Allah dengan jisim dan anggota"
+        "textMalay": "Wasil bin 'Ata'"
       },
       {
         "id": "d",
         "textArabic": "محمود بن غلام أحمد",
-        "textMalay": "Menganggap sifat Allah sama seperti sifat makhluk"
+        "textMalay": "Jahm bin Safwan"
       }
     ],
     "correctAnswer": "c",
@@ -1610,22 +1610,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "يعتبر أكبر دعاتها",
-        "textMalay": "Allah wajib memberi ganjaran kepada orang taat dan menyeksa orang derhaka"
+        "textMalay": "Beliau dianggap pendakwah terbesarnya"
       },
       {
         "id": "b",
         "textArabic": "يدافع رأيه بالحماسة",
-        "textMalay": "Ganjaran adalah kurniaan Allah dan azab adalah keadilan-Nya"
+        "textMalay": "Mempertahankan pandangannya dengan penuh bersemangat"
       },
       {
         "id": "c",
         "textArabic": "اعتزل عن مجلس استاذه",
-        "textMalay": "Allah tidak membalas amalan hamba sama sekali"
+        "textMalay": "Tidak menetapkan sifat-sifat Ma'ani"
       },
       {
         "id": "d",
         "textArabic": "القائل بأولوية آل بيت النبي",
-        "textMalay": "Semua manusia pasti masuk syurga tanpa hisab"
+        "textMalay": "Menafikan usaha (kasb) dan pilihan hamba"
       }
     ],
     "correctAnswer": "a",
@@ -1646,22 +1646,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "العصر العباسي",
-        "textMalay": "Wasil bin 'Ata' mengasingkan diri dari majlis pengajian Al-Hasan al-Basri"
+        "textMalay": "Zaman Abbasiyyah"
       },
       {
         "id": "b",
         "textArabic": "أول العصر الاموي",
-        "textMalay": "Pengasingan Khawarij daripada tentera Saidina Ali"
+        "textMalay": "Awal zaman Umayyah"
       },
       {
         "id": "c",
         "textArabic": "القرن الثالث الأول",
-        "textMalay": "Pengasingan Syi'ah daripada para sahabat lain"
+        "textMalay": "Akhir zaman Umayyah"
       },
       {
         "id": "d",
         "textArabic": "النصف الثاني من القرن الأول",
-        "textMalay": "Pengasingan diri para fuqaha daripada pemerintah"
+        "textMalay": "Zaman Fatimiyyah"
       }
     ],
     "correctAnswer": "b",
@@ -1682,22 +1682,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "استحالة رؤية الله",
-        "textMalay": "Al-Hasan al-Basri"
+        "textMalay": "Mustahil melihat Allah"
       },
       {
         "id": "b",
         "textArabic": "إثبات صفات المعاني",
-        "textMalay": "Amr bin Ubaid"
+        "textMalay": "Menetapkan sifat-sifat Ma'ani"
       },
       {
         "id": "c",
         "textArabic": "إنكار معجزات الأنبياء",
-        "textMalay": "Wasil bin 'Ata'"
+        "textMalay": "Menetapkan rukyah (dapat melihat Allah Taala)"
       },
       {
         "id": "d",
         "textArabic": "الإنسان مجبور فى فعله",
-        "textMalay": "Qatadah"
+        "textMalay": "Imam maksum daripada dosa besar dan dosa kecil"
       }
     ],
     "correctAnswer": "d",
@@ -1718,22 +1718,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الإيمان هو المعرفة",
-        "textMalay": "Al-Tauhid"
+        "textMalay": "Iman adalah sekadar makrifat (mengenal)"
       },
       {
         "id": "b",
         "textArabic": "نفي صفات المعاني",
-        "textMalay": "Al-'Adl"
+        "textMalay": "Menafikan sifat-sifat Ma'ani"
       },
       {
         "id": "c",
         "textArabic": "الإنسان مجبور فى فعله",
-        "textMalay": "Al-Wa'd wa Al-Wa'id"
+        "textMalay": "Mustahil melihat Allah Taala"
       },
       {
         "id": "d",
         "textArabic": "الإيمان تصديق وعمل",
-        "textMalay": "Al-Manzilah baina al-Manzilatain"
+        "textMalay": "Imam maksum daripada dosa besar dan dosa kecil"
       }
     ],
     "correctAnswer": "d",
@@ -1754,22 +1754,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "1 و 2",
-        "textMalay": "Hamba mencipta perbuatannya sendiri secara mandiri"
+        "textMalay": "1 dan 2"
       },
       {
         "id": "b",
         "textArabic": "2 و 3",
-        "textMalay": "Hamba dipaksa (majbur) tanpa sebarang pilihan"
+        "textMalay": "2 dan 3"
       },
       {
         "id": "c",
         "textArabic": "3 و 4",
-        "textMalay": "Allah yang mencipta perbuatan dan hamba melakukan kasb (usaha)"
+        "textMalay": "3 dan 4"
       },
       {
         "id": "d",
         "textArabic": "1 و 4",
-        "textMalay": "Perbuatan berlaku secara kebetulan semata-mata"
+        "textMalay": "1 dan 4"
       }
     ],
     "correctAnswer": "c",
@@ -1792,22 +1792,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الشيعة",
-        "textMalay": "Al-Quran adalah kalamullah yang qadim"
+        "textMalay": "Syi'ah"
       },
       {
         "id": "b",
         "textArabic": "البهائية",
-        "textMalay": "Al-Quran adalah makhluk (dicipta)"
+        "textMalay": "Baha'iyyah"
       },
       {
         "id": "c",
         "textArabic": "القديانية",
-        "textMalay": "Al-Quran adalah sebahagian daripada jisim"
+        "textMalay": "Khawarij"
       },
       {
         "id": "d",
         "textArabic": "المعتزلة",
-        "textMalay": "Al-Quran bukan kalamullah"
+        "textMalay": "Mu'tazilah"
       }
     ],
     "correctAnswer": "a",
@@ -1828,22 +1828,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الإمام معصوم من الكبائر والصغائر",
-        "textMalay": "Al-Ma'mun, Al-Mu'tasim, dan Al-Wathiq"
+        "textMalay": "Imam maksum daripada dosa besar dan dosa kecil"
       },
       {
         "id": "b",
         "textArabic": "إن الإمامة ليست من المصالح العامة",
-        "textMalay": "Harun al-Rasyid dan Al-Mahdi"
+        "textMalay": "Sesungguhnya al-Imamah bukan maslahat umum"
       },
       {
         "id": "c",
         "textArabic": "أصحاب الرأي القائل بأولوية آل بيت النبي بالخلافة",
-        "textMalay": "Abu Ja'far al-Mansur dan Al-Saffah"
+        "textMalay": "Golongan yang berpendapat Ahlul Bait Nabi paling berhak atas khilafah"
       },
       {
         "id": "d",
         "textArabic": "أن يحافظ المرء على عرضه ونفسه وماله مخافة عدوه",
-        "textMalay": "Al-Mutawakkil dan Al-Muntasir"
+        "textMalay": "Memelihara maruah, diri, dan harta kerana bimbang musuh"
       }
     ],
     "correctAnswer": "c",
@@ -1864,22 +1864,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "العصر الاموي",
-        "textMalay": "Al-Mutawakkil"
+        "textMalay": "Zaman Umayyah"
       },
       {
         "id": "b",
         "textArabic": "العصر العباسي",
-        "textMalay": "Al-Ma'mun"
+        "textMalay": "Zaman Abbasiyyah"
       },
       {
         "id": "c",
         "textArabic": "بعد التحكيم بين علي ومعاوية",
-        "textMalay": "Al-Mu'tasim"
+        "textMalay": "Selepas peristiwa Tahkim antara Ali dan Mu'awiyah"
       },
       {
         "id": "d",
         "textArabic": "آخر عصر سيدنا عثمان رضي الله عنه",
-        "textMalay": "Al-Wathiq"
+        "textMalay": "Akhir zaman Saidina Uthman r.a."
       }
     ],
     "correctAnswer": "d",
@@ -1900,22 +1900,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "معاوية",
-        "textMalay": "Imam Ahmad bin Hanbal"
+        "textMalay": "Mu'awiyah"
       },
       {
         "id": "b",
         "textArabic": "أبو بكر الصديق",
-        "textMalay": "Imam Al-Syafi'i"
+        "textMalay": "Abu Bakar al-Siddiq"
       },
       {
         "id": "c",
         "textArabic": "سيدنا عمر الخطاب",
-        "textMalay": "Imam Malik"
+        "textMalay": "Saidina Umar al-Khattab"
       },
       {
         "id": "d",
         "textArabic": "سيدنا على بن أبي طالب",
-        "textMalay": "Imam Abu Hanifah"
+        "textMalay": "Saidina Ali bin Abi Talib"
       }
     ],
     "correctAnswer": "d",
@@ -1936,22 +1936,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "إن الإمامة ركن من الدين",
-        "textMalay": "Fitnah khalqul Quran (dakwaan Al-Quran itu makhluk)"
+        "textMalay": "Sesungguhnya kepimpinan (al-Imamah) rukun agama"
       },
       {
         "id": "b",
         "textArabic": "إن الإمامة من المصالح العامة",
-        "textMalay": "Perang Siffin"
+        "textMalay": "Sesungguhnya kepimpinan (al-Imamah) urusan kemaslahatan umum"
       },
       {
         "id": "c",
         "textArabic": "الإمامة بالنص ولابد بالانتخاب",
-        "textMalay": "Perang Jamal"
+        "textMalay": "Al-Imamah dengan nas dan mestilah melalui pemilihan"
       },
       {
         "id": "d",
         "textArabic": "الإمامة ليست معصوما من الكبائر والصغائر",
-        "textMalay": "Peristiwa Tahkim"
+        "textMalay": "Al-Imamah tidak maksum daripada dosa besar dan kecil"
       }
     ],
     "correctAnswer": "a",
@@ -1972,22 +1972,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "\"لا حكم إلا لله\"",
-        "textMalay": "Al-Azariqah"
+        "textMalay": "\"Tiada hukum melainkan bagi Allah\""
       },
       {
         "id": "b",
         "textArabic": "\"لا قدر والأمر أنف\"",
-        "textMalay": "Al-Najdat"
+        "textMalay": "\"Tiada takdir dan urusan bermula baharu\""
       },
       {
         "id": "c",
         "textArabic": "\"لا دين لمن لا تقية له\"",
-        "textMalay": "Al-Ibadiyyah"
+        "textMalay": "\"Tiada agama bagi sesiapa yang tiada taqiyyah baginya\""
       },
       {
         "id": "d",
         "textArabic": "\"لا تضر مع الإيمان معصية\"",
-        "textMalay": "Al-Sufriyyah"
+        "textMalay": "\"Maksiat tidak memudaratkan bersama adanya iman\""
       }
     ],
     "correctAnswer": "c",
@@ -2008,22 +2008,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "استحالة رؤية الله",
-        "textMalay": "Nafi' bin al-Azraq"
+        "textMalay": "Mustahil melihat Allah"
       },
       {
         "id": "b",
         "textArabic": "إثبات صفات المعاني",
-        "textMalay": "Najdah bin 'Amir"
+        "textMalay": "Menetapkan sifat-sifat Ma'ani"
       },
       {
         "id": "c",
         "textArabic": "إنكار معجزات الأنبياء",
-        "textMalay": "Abdullah bin Ibadh"
+        "textMalay": "Menafikan mukjizat para nabi"
       },
       {
         "id": "d",
         "textArabic": "الإمام معصوم من الكبائر والصغائر",
-        "textMalay": "Ziyad bin al-Asfar"
+        "textMalay": "Imam maksum daripada dosa besar dan dosa kecil"
       }
     ],
     "correctAnswer": "d",
@@ -2044,22 +2044,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الإيمان هو المعرفة",
-        "textMalay": "Mengkafirkan semua yang menyalahi mereka dan menghalalkan darah serta harta mereka"
+        "textMalay": "Iman ialah ma'rifah"
       },
       {
         "id": "b",
         "textArabic": "الإمام يعلم الظاهر والباطن",
-        "textMalay": "Mengharamkan membunuh anak-anak orang musyrik"
+        "textMalay": "Imam mengetahui yang zahir dan batin"
       },
       {
         "id": "c",
         "textArabic": "إن الإمامة ليست من المصالح العامة",
-        "textMalay": "Menerima kesaksian orang Islam lain"
+        "textMalay": "Sesungguhnya al-Imamah bukan daripada maslahat umum"
       },
       {
         "id": "d",
         "textArabic": "الإمام معصوم من الكبائر والصغائر",
-        "textMalay": "Menganggap penentang mereka sebagai kafir nikmat bukan kafir syirik"
+        "textMalay": "Imam maksum daripada dosa besar dan dosa kecil"
       }
     ],
     "correctAnswer": "a",
@@ -2082,22 +2082,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "لم يرفعوه إلى مرتبة النبوة - رفعوه إلى مرتبة النبوة",
-        "textMalay": "Al-Ibadiyyah"
+        "textMalay": "Tidak mengangkatnya ke darjat kenabian - Mengangkatnya ke darjat kenabian"
       },
       {
         "id": "b",
         "textArabic": "رفعوه إلى مرتبة النبوة - لم يرفعوه إلى مرتبة النبوة",
-        "textMalay": "Al-Azariqah"
+        "textMalay": "Mengangkatnya ke darjat kenabian - Tidak mengangkatnya ke darjat kenabian"
       },
       {
         "id": "c",
         "textArabic": "تفضيل سيدنا علي بقية الصحابة - تفضيله على الخلفاء وعصمته",
-        "textMalay": "Al-Najdat"
+        "textMalay": "Mengutamakan Ali atas sahabat lain - Mengutamakannya atas khalifah lain dan kemaksumannya"
       },
       {
         "id": "d",
         "textArabic": "كل روح إمام حلت فيه الألوهية - زعم حلول الإله فيه",
-        "textMalay": "Al-Maymuniyyah"
+        "textMalay": "Roh setiap imam meresap ketuhanan padanya - Mendakwa ketuhanan meresap padanya"
       }
     ],
     "correctAnswer": "b",
@@ -2118,22 +2118,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "باسم البابية نسبة لأول زعيم لها",
-        "textMalay": "Abdullah bin Ibadh"
+        "textMalay": "Dengan nama Al-Babiyyah disandarkan kepada pemimpin pertamanya"
       },
       {
         "id": "b",
         "textArabic": "بعد الدعوة باسم المهدي المنتظر",
-        "textMalay": "Nafi' bin al-Azraq"
+        "textMalay": "Selepas seruan dakwah atas nama Imam Mahdi"
       },
       {
         "id": "c",
         "textArabic": "ترجع هذه الطائفة إلى فكرة الباطنية",
-        "textMalay": "Najdah bin 'Amir"
+        "textMalay": "Kumpulan ini kembali kepada fahaman Bathiniyyah"
       },
       {
         "id": "d",
         "textArabic": "في دولة إيران على يد المرزا علي محمد",
-        "textMalay": "Wasil bin 'Ata'"
+        "textMalay": "Di negara Iran melalui tangan Mirza Ali Muhammad"
       }
     ],
     "correctAnswer": "a",
@@ -2154,22 +2154,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الناسخ للكتب السابقة",
-        "textMalay": "Kafir nikmat (kufur nikmat bukan kufur syirik)"
+        "textMalay": "Pemansuh kitab-kitab terdahulu"
       },
       {
         "id": "b",
         "textArabic": "المدعي بالنبوة والرسالة",
-        "textMalay": "Kafir musyrik halal darahnya"
+        "textMalay": "Pendakwa kenabian dan kerasulan"
       },
       {
         "id": "c",
         "textArabic": "المبلغ عن المهدي المنتظر",
-        "textMalay": "Mukmin sejati yang sempurna"
+        "textMalay": "Penyampai bagi pihak Imam Mahdi yang dinanti"
       },
       {
         "id": "d",
         "textArabic": "العالم بظاهر القرآن وباظنه",
-        "textMalay": "Bukan mukmin dan bukan kafir"
+        "textMalay": "Mengetahui zahir dan batin Al-Quran"
       }
     ],
     "correctAnswer": "c",
@@ -2192,22 +2192,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "دولة إيران",
-        "textMalay": "Al-Kaisaniyyah, Al-Zaidiyyah, dan Al-Imamiyyah"
+        "textMalay": "Negara Iran"
       },
       {
         "id": "b",
         "textArabic": "دولة عراق",
-        "textMalay": "Al-Azariqah dan Al-Najdat"
+        "textMalay": "Negara Iraq"
       },
       {
         "id": "c",
         "textArabic": "مركز بنجاب بالهند",
-        "textMalay": "Al-Asya'irah dan Al-Maturidiyyah"
+        "textMalay": "Pusat Punjab di India"
       },
       {
         "id": "d",
         "textArabic": "في مدينة البصرة ببغداد",
-        "textMalay": "Al-Jahmiyyah dan Al-Jabariyyah"
+        "textMalay": "Di kota Basrah di Baghdad"
       }
     ],
     "correctAnswer": "a",
@@ -2228,22 +2228,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "مرزا علي محمد",
-        "textMalay": "Zaid bin Ali Zainal Abidin"
+        "textMalay": "Mirza Ali Muhammad"
       },
       {
         "id": "b",
         "textArabic": "غلام أحمد",
-        "textMalay": "Ja'far al-Sadiq"
+        "textMalay": "Ghulam Ahmad"
       },
       {
         "id": "c",
         "textArabic": "جهم بن صفوان",
-        "textMalay": "Muhammad al-Baqir"
+        "textMalay": "Jahm bin Safwan"
       },
       {
         "id": "d",
         "textArabic": "محمود بن غلام أحمد",
-        "textMalay": "Musa al-Kazim"
+        "textMalay": "Mahmud bin Ghulam Ahmad"
       }
     ],
     "correctAnswer": "a",
@@ -2264,22 +2264,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "إيران",
-        "textMalay": "Mengharuskan kepimpinan orang yang kurang utama (mafdhul) di samping adanya yang lebih utama (afkhal)"
+        "textMalay": "Iran"
       },
       {
         "id": "b",
         "textArabic": "عراق",
-        "textMalay": "Mencela Khalifah Abu Bakar dan Umar r.a."
+        "textMalay": "Iraq"
       },
       {
         "id": "c",
         "textArabic": "شيراز",
-        "textMalay": "Mendakwa para imam maksum daripada segala dosa"
+        "textMalay": "Syiraz"
       },
       {
         "id": "d",
         "textArabic": "مدينة البصرة",
-        "textMalay": "Meyakini kemunculan imam yang ghaib di dalam gua"
+        "textMalay": "Kota Basrah"
       }
     ],
     "correctAnswer": "c",
@@ -2300,22 +2300,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "١ و٢",
-        "textMalay": "Al-Zaidiyyah"
+        "textMalay": "1 dan 2"
       },
       {
         "id": "b",
         "textArabic": "٢ و٣",
-        "textMalay": "Al-Isma'iliyyah"
+        "textMalay": "2 dan 3"
       },
       {
         "id": "c",
         "textArabic": "٣ و٤",
-        "textMalay": "Al-Ithna 'Asyariyyah"
+        "textMalay": "3 dan 4"
       },
       {
         "id": "d",
         "textArabic": "١ و٤",
-        "textMalay": "Al-Nusairiyyah"
+        "textMalay": "1 dan 4"
       }
     ],
     "correctAnswer": "a",
@@ -2336,22 +2336,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "استحالة رؤية الله",
-        "textMalay": "Dua belas imam daripada keturunan Ali bin Abi Talib"
+        "textMalay": "Mustahil melihat Allah"
       },
       {
         "id": "b",
         "textArabic": "غلام أحمد هو المهدي",
-        "textMalay": "Tujuh imam sahaja"
+        "textMalay": "Ghulam Ahmad ialah Al-Mahdi"
       },
       {
         "id": "c",
         "textArabic": "إنكار معجزات الأنبياء",
-        "textMalay": "Empat imam mazhab fiqh"
+        "textMalay": "Menafikan mukjizat para nabi"
       },
       {
         "id": "d",
         "textArabic": "القول بعدم ختم النبوة",
-        "textMalay": "Para khalifah Bani Umayyah"
+        "textMalay": "Mendakwa kenabian tidak berakhir"
       }
     ],
     "correctAnswer": "c",
@@ -2372,22 +2372,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "إنكار معجزات الأنبياء",
-        "textMalay": "Muhammad bin al-Hasan al-'Askari (Imam Mahdi yang dinanti)"
+        "textMalay": "Menafikan mukjizat para nabi"
       },
       {
         "id": "b",
         "textArabic": "القول بموت عيسى صلبا",
-        "textMalay": "Ismail bin Ja'far"
+        "textMalay": "Mendakwa Nabi Isa mati disalib"
       },
       {
         "id": "c",
         "textArabic": "باب الوحي مفتوح للناس",
-        "textMalay": "Zaid bin Ali"
+        "textMalay": "Pintu wahyu terbuka untuk manusia"
       },
       {
         "id": "d",
         "textArabic": "نسخ جميع الأديان ورسوم عبادتها",
-        "textMalay": "Ali al-Hadi"
+        "textMalay": "Memansuhkan semua agama dan upacara ibadahnya"
       }
     ],
     "correctAnswer": "c",
@@ -2408,22 +2408,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الشيعة",
-        "textMalay": "Al-Isma'iliyyah (Al-Bathiniyyah)"
+        "textMalay": "Syi'ah"
       },
       {
         "id": "b",
         "textArabic": "المتطرفون الشيعة",
-        "textMalay": "Al-Zaidiyyah"
+        "textMalay": "Pelampau Syi'ah"
       },
       {
         "id": "c",
         "textArabic": "البابية",
-        "textMalay": "Al-Khawarij"
+        "textMalay": "Al-Babiyyah"
       },
       {
         "id": "d",
         "textArabic": "القديانية",
-        "textMalay": "Al-Maturidiyyah"
+        "textMalay": "Al-Qadianiyyah"
       }
     ],
     "correctAnswer": "c",
@@ -2444,22 +2444,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "أشهر أقسامها العباسيون والموحدون.",
-        "textMalay": "Ismail bin Ja'far al-Sadiq"
+        "textMalay": "Pecahannya yang masyhur ialah Al-Abbasiyyun dan Al-Muwahhidun"
       },
       {
         "id": "b",
         "textArabic": "ظهر في آخر عصر سيدنا عثمان رضي الله",
-        "textMalay": "Musa al-Kazim"
+        "textMalay": "Muncul pada akhir zaman Saidina Uthman r.a."
       },
       {
         "id": "c",
         "textArabic": "عنه طائفة في دولة إيران نشأت على يد المرزا علي محمد",
-        "textMalay": "Muhammad al-Baqir"
+        "textMalay": "Kumpulan di Iran yang diasaskan oleh Mirza Ali Muhammad"
       },
       {
         "id": "d",
         "textArabic": "هم أتباع غلام أحمد المولود في قديان مركز بنجاب بالهند",
-        "textMalay": "Zaid bin Ali"
+        "textMalay": "Pengikut Ghulam Ahmad yang dilahirkan di Qadian wilayah Punjab di India"
       }
     ],
     "correctAnswer": "d",
@@ -2482,22 +2482,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "زعيمهم محمود بن غلام أحمد - رغيمهم محمد علي",
-        "textMalay": "Menyatakan bahawa nas Al-Quran mempunyai makna zahir dan batin yang hanya diketahui imam mereka"
+        "textMalay": "Pemimpin mereka Mahmud bin Ghulam Ahmad - Pemimpin mereka Muhammad Ali"
       },
       {
         "id": "b",
         "textArabic": "أن غلام أحمد عيسى الموعود له - أن غلام أحمد مهدي",
-        "textMalay": "Berpegang kepada zahir nas semata-mata"
+        "textMalay": "Ghulam Ahmad ialah Isa yang dijanjikan - Ghulam Ahmad ialah al-Mahdi"
       },
       {
         "id": "c",
         "textArabic": "أن غلام أحمد مصلح - تدين بنبوة غلام أحمد",
-        "textMalay": "Menolak semua tafsiran batin"
+        "textMalay": "Ghulam Ahmad seorang pembaharu - Beriktikad dengan kenabian Ghulam Ahmad"
       },
       {
         "id": "d",
         "textArabic": "زعيمهم يعلم ظاهر القرآن وباطنه - زعيمهم ترجم القرآن إلى الإنجليزية",
-        "textMalay": "Menyerahkan makna kepada para sahabat"
+        "textMalay": "Pemimpin mereka tahu zahir dan batin Al-Quran - Pemimpin mereka terjemah Al-Quran ke bahasa Inggeris"
       }
     ],
     "correctAnswer": "c",
@@ -2518,22 +2518,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الشهور تسعة عشر شهرا",
-        "textMalay": "Al-Jahm bin Safwan"
+        "textMalay": "Setahun ada sembilan belas bulan"
       },
       {
         "id": "b",
         "textArabic": "القول بموت عيسى صلبا",
-        "textMalay": "Al-Ja'd bin Dirham"
+        "textMalay": "Mendakwa Nabi Isa mati disalib"
       },
       {
         "id": "c",
         "textArabic": "إنكار معجزات الأنبياء",
-        "textMalay": "Dirar bin Amr"
+        "textMalay": "Menafikan mukjizat para nabi"
       },
       {
         "id": "d",
         "textArabic": "القول بعدم ختم النبوة",
-        "textMalay": "Hafas al-Fard"
+        "textMalay": "Mendakwa kenabian tidak berakhir"
       }
     ],
     "correctAnswer": "d",
@@ -2554,22 +2554,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "تحريم الجهاد",
-        "textMalay": "Manusia dipaksa secara mutlak dan tidak mempunyai sebarang pilihan mahupun ikhtiar (seperti bulu diterbangkan angin)"
+        "textMalay": "Mengharamkan jihad"
       },
       {
         "id": "b",
         "textArabic": "القول بعدم ختم النبوة",
-        "textMalay": "Manusia mencipta perbuatannya sendiri dengan kehendak bebas"
+        "textMalay": "Mendakwa kenabian tidak berakhir"
       },
       {
         "id": "c",
         "textArabic": "القول بموت عيسى صلبا",
-        "textMalay": "Manusia mempunyai usaha dan pilihan (kasb) di bawah kehendak Allah"
+        "textMalay": "Mendakwa Nabi Isa mati disalib"
       },
       {
         "id": "d",
         "textArabic": "غلام أحمد هو المهدي المنتظر",
-        "textMalay": "Perbuatan manusia tidak dihisab sama sekali"
+        "textMalay": "Ghulam Ahmad ialah Imam Mahdi yang dinanti"
       }
     ],
     "correctAnswer": "c",
@@ -2590,22 +2590,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "البابية",
-        "textMalay": "Amalan tidak memberi kesan terhadap keimanan; maksiat tidak memudaratkan bersama iman sebagaimana ketaatan tidak memanfaatkan bersama kufur"
+        "textMalay": "Al-Babiyyah"
       },
       {
         "id": "b",
         "textArabic": "القديانية",
-        "textMalay": "Amal adalah rukun asas iman yang membatalkan keimanan jika ditinggalkan"
+        "textMalay": "Al-Qadianiyyah"
       },
       {
         "id": "c",
         "textArabic": "الشيعة",
-        "textMalay": "Pelaku dosa besar pasti kafir dan kekal dalam neraka"
+        "textMalay": "Al-Syi'ah"
       },
       {
         "id": "d",
         "textArabic": "المتطرفون الشيعة",
-        "textMalay": "Iman bertambah dengan ketaatan dan berkurang dengan maksiat"
+        "textMalay": "Pelampau Syi'ah"
       }
     ],
     "correctAnswer": "b",
@@ -2626,22 +2626,22 @@ export const FIRAQ_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "جواز",
-        "textMalay": "Menangguhkan hukuman pelaku dosa besar dan menyerahkan urusannya kepada Allah pada hari kiamat"
+        "textMalay": "Harus"
       },
       {
         "id": "b",
         "textArabic": "حرام",
-        "textMalay": "Mempercepatkan hukuman bunuh di dunia"
+        "textMalay": "Haram"
       },
       {
         "id": "c",
         "textArabic": "واجب",
-        "textMalay": "Menghukum kufur serta-merta"
+        "textMalay": "Wajib"
       },
       {
         "id": "d",
         "textArabic": "مندوب",
-        "textMalay": "Menjadikannya murtad secara rasmi"
+        "textMalay": "Sunat (Mandub)"
       }
     ],
     "correctAnswer": "b",

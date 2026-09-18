@@ -633,22 +633,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الكتبة",
-        "textMalay": "Munkar dan Nakir"
+        "textMalay": "Al-Katabah (Malaikat Pencatat)"
       },
       {
         "id": "b",
         "textArabic": "الحفظة",
-        "textMalay": "Raqib dan 'Atid"
+        "textMalay": "Al-Hafazah (Malaikat Penjaga)"
       },
       {
         "id": "c",
         "textArabic": "ملائكة الرحمة",
-        "textMalay": "Harut dan Marut"
+        "textMalay": "Malaikat Rahmat"
       },
       {
         "id": "d",
         "textArabic": "ملائكة الموت",
-        "textMalay": "Ridwan dan Malik"
+        "textMalay": "Malaikat Maut"
       }
     ],
     "correctAnswer": "a",
@@ -669,22 +669,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "واحدة بالليل ومثلهم بالنهار",
-        "textMalay": "Raqib mencatat kebaikan dan 'Atid mencatat keburukan"
+        "textMalay": "Seorang pada waktu malam dan seorang pada waktu siang"
       },
       {
         "id": "b",
         "textArabic": "ثلاثة بالليل ومثلهم بالنهار",
-        "textMalay": "Raqib mencatat keburukan dan 'Atid mencatat kebaikan"
+        "textMalay": "Tiga pada waktu malam dan tiga pada waktu siang"
       },
       {
         "id": "c",
         "textArabic": "خمسة بالليل ومثلهم بالنهار",
-        "textMalay": "Kedua-duanya mencatat amalan baik dan buruk secara bersama"
+        "textMalay": "Lima pada waktu malam dan lima pada waktu siang"
       },
       {
         "id": "d",
         "textArabic": "عشرة بالليل ومثلهم بالنهار",
-        "textMalay": "Keduanya hanya bertugas menjaga manusia"
+        "textMalay": "Sepuluh pada waktu malam dan sepuluh pada waktu siang"
       }
     ],
     "correctAnswer": "d",
@@ -707,22 +707,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "أصناف الملائكة",
-        "textMalay": "Empat pada waktu malam dan empat pada waktu siang"
+        "textMalay": "Kategori / Jenis-jenis Malaikat"
       },
       {
         "id": "b",
         "textArabic": "وظائف الملائكة",
-        "textMalay": "Dua pada waktu malam dan dua pada waktu siang"
+        "textMalay": "Tugas-tugas Malaikat"
       },
       {
         "id": "c",
         "textArabic": "صفات الملائكة",
-        "textMalay": "Satu malaikat untuk seluruh kehidupan manusia"
+        "textMalay": "Sifat-sifat Malaikat"
       },
       {
         "id": "d",
         "textArabic": "أسماء الملائكة",
-        "textMalay": "Malaikat berganti-ganti setiap bulan"
+        "textMalay": "Nama-nama Malaikat"
       }
     ],
     "correctAnswer": "a",
@@ -743,22 +743,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "زجر للناس عن السيئات",
-        "textMalay": "Malaikat Malik"
+        "textMalay": "Mencegah manusia daripada melakukan kejahatan"
       },
       {
         "id": "b",
         "textArabic": "ترغيب للناس في الحسنات",
-        "textMalay": "Malaikat Ridwan"
+        "textMalay": "Mendorong manusia kepada kebaikan"
       },
       {
         "id": "c",
         "textArabic": "إظهار تفاوت المراتب في الكمال",
-        "textMalay": "Malaikat Izrail"
+        "textMalay": "Menzahirkan perbezaan darjat kesempurnaan"
       },
       {
         "id": "d",
         "textArabic": "ليقيم الحجة على العبيد",
-        "textMalay": "Malaikat Israfil"
+        "textMalay": "Menegakkan hujah ke atas para hamba"
       }
     ],
     "correctAnswer": "d",
@@ -779,22 +779,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "ذكورا وإناثا",
-        "textMalay": "Menyampaikan wahyu kepada para Rasul"
+        "textMalay": "Lelaki dan perempuan"
       },
       {
         "id": "b",
         "textArabic": "يأكلون ويشربون",
-        "textMalay": "Meniup Sangkakala"
+        "textMalay": "Makan dan minum"
       },
       {
         "id": "c",
         "textArabic": "العبودية لله تعالى",
-        "textMalay": "Menguruskan hujan dan rezeki"
+        "textMalay": "Sentiasa beribadah (ubudiyyah) kepada Allah Taala"
       },
       {
         "id": "d",
         "textArabic": "القدرة على التشكل بأشكال قبيحة.",
-        "textMalay": "Mencabut nyawa"
+        "textMalay": "Mampu menjelma dalam rupa yang hodoh"
       }
     ],
     "correctAnswer": "c",
@@ -815,22 +815,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "ليسوا ذكورا ولا إناثا",
-        "textMalay": "Malaikat Israfil"
+        "textMalay": "Bukan lelaki dan bukan perempuan"
       },
       {
         "id": "b",
         "textArabic": "لا يأكلون ولا يشربون",
-        "textMalay": "Malaikat Mikail"
+        "textMalay": "Tidak makan dan tidak minum"
       },
       {
         "id": "c",
         "textArabic": "لم تركب فيهم الشهوة",
-        "textMalay": "Malaikat Jibril"
+        "textMalay": "Tidak diciptakan nafsu syahwat pada diri mereka"
       },
       {
         "id": "d",
         "textArabic": "القدرة على التشكل بأشكال قبيحة",
-        "textMalay": "Malaikat Maut (Izrail)"
+        "textMalay": "Mampu menjelma dalam rupa yang hodoh"
       }
     ],
     "correctAnswer": "d",
@@ -851,22 +851,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "العبودية لله",
-        "textMalay": "Menyampaikan wahyu kepada para Rasul"
+        "textMalay": "Sentiasa beribadah kepada Allah"
       },
       {
         "id": "b",
         "textArabic": "وجود الشهوة",
-        "textMalay": "Meniup sangkakala sebanyak dua kali"
+        "textMalay": "Mempunyai nafsu syahwat"
       },
       {
         "id": "c",
         "textArabic": "هم جنود الله تعالى",
-        "textMalay": "Menguruskan rezeki dan tumbuhan"
+        "textMalay": "Mereka adalah tentera Allah Taala"
       },
       {
         "id": "d",
         "textArabic": "القدرة على التشكل بأشكال حسنة.",
-        "textMalay": "Mencabut nyawa makhluk"
+        "textMalay": "Mampu menjelma dalam rupa bentuk yang elok"
       }
     ],
     "correctAnswer": "b",
@@ -887,22 +887,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "١ و ٢",
-        "textMalay": "Empat malaikat di dunia dan lapan pada hari kiamat"
+        "textMalay": "1 dan 2"
       },
       {
         "id": "b",
         "textArabic": "٢ و ٣",
-        "textMalay": "Lapan malaikat sentiasa"
+        "textMalay": "2 dan 3"
       },
       {
         "id": "c",
         "textArabic": "٣ و ٤",
-        "textMalay": "Dua belas malaikat"
+        "textMalay": "3 dan 4"
       },
       {
         "id": "d",
         "textArabic": "١ و ٤",
-        "textMalay": "Tujuh malaikat"
+        "textMalay": "1 dan 4"
       }
     ],
     "correctAnswer": "d",
@@ -923,22 +923,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "واجب",
-        "textMalay": "Sembilan belas malaikat Zabaniyah"
+        "textMalay": "Wajib"
       },
       {
         "id": "b",
         "textArabic": "كافر",
-        "textMalay": "Tujuh malaikat"
+        "textMalay": "Kafir"
       },
       {
         "id": "c",
         "textArabic": "حرام",
-        "textMalay": "Seratus malaikat"
+        "textMalay": "Haram"
       },
       {
         "id": "d",
         "textArabic": "جواز",
-        "textMalay": "Sepuluh malaikat"
+        "textMalay": "Harus"
       }
     ],
     "correctAnswer": "b",
@@ -959,22 +959,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الجن ولد الجان",
-        "textMalay": "Malaikat diciptakan daripada cahaya manakala jin daripada api yang menyala"
+        "textMalay": "Jin ialah anak cucu al-Jan"
       },
       {
         "id": "b",
         "textArabic": "الجن نسل الشياطين",
-        "textMalay": "Malaikat berhajat kepada makanan dan jin tidak"
+        "textMalay": "Jin ialah keturunan syaitan"
       },
       {
         "id": "c",
         "textArabic": "نسل الجن هو إبليس",
-        "textMalay": "Malaikat tidak maksum manakala jin maksum"
+        "textMalay": "Keturunan jin ialah Iblis"
       },
       {
         "id": "d",
         "textArabic": "الجن تناسلوا من إبليس.",
-        "textMalay": "Malaikat beranak-pinak manakala jin tidak"
+        "textMalay": "Jin berketurunan daripada Iblis"
       }
     ],
     "correctAnswer": "d",
@@ -995,22 +995,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "النار",
-        "textMalay": "Pucuk api yang menyala-nyala (Marij min Nar)"
+        "textMalay": "Api"
       },
       {
         "id": "b",
         "textArabic": "الطين",
-        "textMalay": "Cahaya (Nur)"
+        "textMalay": "Tanah liat"
       },
       {
         "id": "c",
         "textArabic": "النور",
-        "textMalay": "Tanah liat (Tin)"
+        "textMalay": "Cahaya"
       },
       {
         "id": "d",
         "textArabic": "الهواء",
-        "textMalay": "Air (Ma')"
+        "textMalay": "Udara"
       }
     ],
     "correctAnswer": "a",
@@ -1033,22 +1033,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "عدم القدرة على رؤيتنا",
-        "textMalay": "Jisim berapi yang halus, mampu menjelma pelbagai bentuk, berakal dan mempunyai taklif"
+        "textMalay": "Ketidakupayaan jin melihat kita"
       },
       {
         "id": "b",
         "textArabic": "فينا القدرة على رؤيتهم",
-        "textMalay": "Jisim nurani yang tidak boleh menjelma"
+        "textMalay": "Kita mempunyai kemampuan melihat mereka"
       },
       {
         "id": "c",
         "textArabic": "تستطيع التشكل بما تريد",
-        "textMalay": "Makhluk khayalan tanpa hakikat kewujudan"
+        "textMalay": "Mampu menjelma dalam rupa apa sahaja yang diingini"
       },
       {
         "id": "d",
         "textArabic": "قدرة التشكل بأشكال حسنة فقط.",
-        "textMalay": "Roh manusia yang telah mati"
+        "textMalay": "Kemampuan menjelma dalam rupa yang elok sahaja"
       }
     ],
     "correctAnswer": "c",
@@ -1071,22 +1071,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "يستمعون إلى القرآن",
-        "textMalay": "Kewujudan jin dan iblis serta taklif ke atas mereka"
+        "textMalay": "Mendengar Al-Quran"
       },
       {
         "id": "b",
         "textArabic": "يرون البشر دون أن يراهم البشر",
-        "textMalay": "Penciptaan para nabi"
+        "textMalay": "Melihat manusia dalam keadaan manusia tidak dapat melihat mereka"
       },
       {
         "id": "c",
         "textArabic": "أمة عاقلة مميزة أرسل إليهم رسول الله",
-        "textMalay": "Hukum melihat Allah"
+        "textMalay": "Umat yang berakal dan terpilih yang diutuskan Rasulullah kepada mereka"
       },
       {
         "id": "d",
         "textArabic": "أجسام شفافة تستطيع التشكل بما تريد.",
-        "textMalay": "Penciptaan Syurga dan Neraka"
+        "textMalay": "Jisim halus yang mampu menjelma dalam apa jua rupa"
       }
     ],
     "correctAnswer": "b",
@@ -1107,22 +1107,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "أجسام لطيفة نورانية",
-        "textMalay": "Kafir mutlak dan terkeluar dari agama Islam"
+        "textMalay": "Jisim halus daripada cahaya (nuraniyyah)"
       },
       {
         "id": "b",
         "textArabic": "لنا القدرة على رؤيتهم",
-        "textMalay": "Fasiq dan berdosa"
+        "textMalay": "Kita mempunyai kemampuan untuk melihat mereka"
       },
       {
         "id": "c",
         "textArabic": "عصاة الجن وجنود إبليس",
-        "textMalay": "Dimaafkan kerana perkara khilafiah"
+        "textMalay": "Golongan jin yang derhaka dan tentera Iblis"
       },
       {
         "id": "d",
         "textArabic": "تناسلوا من إبليس",
-        "textMalay": "Mendapat pahala ijtihad"
+        "textMalay": "Berketurunan daripada Iblis"
       }
     ],
     "correctAnswer": "d",
@@ -1143,22 +1143,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "ابن عباس",
-        "textMalay": "Ada yang beriman dan ada yang kafir (fasik)"
+        "textMalay": "Ibnu Abbas"
       },
       {
         "id": "b",
         "textArabic": "الحسن البصري",
-        "textMalay": "Semuanya beriman dan taat"
+        "textMalay": "Al-Hasan al-Basri"
       },
       {
         "id": "c",
         "textArabic": "الإمام الغزالي",
-        "textMalay": "Semuanya kafir tanpa terkecuali"
+        "textMalay": "Imam al-Ghazali"
       },
       {
         "id": "d",
         "textArabic": "العز بن عبد السلام",
-        "textMalay": "Tidak dihisab amalan mereka"
+        "textMalay": "Al-Izz bin Abd al-Salam"
       }
     ],
     "correctAnswer": "a",
@@ -1179,22 +1179,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الجن ولد الجان",
-        "textMalay": "Al-Qarin daripada kalangan malaikat dan jin"
+        "textMalay": "Jin anak cucu al-Jan"
       },
       {
         "id": "b",
         "textArabic": "الجن نسل الشياطين",
-        "textMalay": "Dua malaikat maut"
+        "textMalay": "Jin keturunan syaitan"
       },
       {
         "id": "c",
         "textArabic": "نسل الجن هو إبليس",
-        "textMalay": "Dua syaitan yang menyeksa"
+        "textMalay": "Keturunan jin ialah Iblis"
       },
       {
         "id": "d",
         "textArabic": "الجن تناسلوا من إبليس.",
-        "textMalay": "Dua qarin malaikat"
+        "textMalay": "Jin berketurunan daripada Iblis"
       }
     ],
     "correctAnswer": "a",
@@ -1215,22 +1215,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "خلق من مارج من نار",
-        "textMalay": "Malaikat menyeru kepada kebaikan dan jin menyeru kepada kejahatan"
+        "textMalay": "Dicipta daripada lidah api yang menyala"
       },
       {
         "id": "b",
         "textArabic": "تستطيع التشكل بما تريد",
-        "textMalay": "Kedua-duanya menyeru kepada kebaikan"
+        "textMalay": "Mampu menjelma dengan rupa yang dikehendaki"
       },
       {
         "id": "c",
         "textArabic": "منهم المؤمن ومنهم الكافر",
-        "textMalay": "Kedua-duanya menyeru kepada kemaksiatan"
+        "textMalay": "Ada yang beriman dan ada yang kafir"
       },
       {
         "id": "d",
         "textArabic": "قدرة الناس على رؤيتهم",
-        "textMalay": "Malaikat mencatat dosa dan jin mencatat pahala"
+        "textMalay": "Kemampuan manusia untuk melihat mereka"
       }
     ],
     "correctAnswer": "d",
@@ -1251,22 +1251,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "قال الله تعالى: ﴿لَّا يَعۡصُونَ ٱللَّهَ مَآ أَمَرَهُمۡ وَيَفۡعَلُونَ مَا يُؤۡمَرُونَ﴾",
-        "textMalay": "Iblis berasal daripada golongan malaikat"
+        "textMalay": "Firman Allah: (Mereka tidak menderhaka kepada Allah tentang apa yang diperintahkan...)"
       },
       {
         "id": "b",
         "textArabic": "قال الله تعالى: ﴿يُسَبِّحُونَ ٱلَّيۡلَ وَٱلنَّهَارَ لَا يَفۡتُرُونَ﴾",
-        "textMalay": "Iblis berasal daripada golongan jin berdasarkan nas Al-Quran (Surah Al-Kahf: 50)"
+        "textMalay": "Firman Allah: (Mereka bertasbih malam dan siang tidak henti-henti...)"
       },
       {
         "id": "c",
         "textArabic": "قال الله تعالى: ﴿لَا يَسۡبِقُونَهُۥ بِٱلۡقَوۡلِ وَهُم بِأَمۡرِهِۦ يَعۡمَلُونَ﴾",
-        "textMalay": "Iblis diciptakan daripada cahaya"
+        "textMalay": "Firman Allah: (Mereka tidak mendahului-Nya dengan perkataan...)"
       },
       {
         "id": "d",
         "textArabic": "قال الله تعالى: ﴿وَأَنَّا مِنَّا ٱلۡمُسۡلِمُونَ وَمِنَّا ٱلۡقَٰسِطُونَۖ﴾",
-        "textMalay": "Iblis adalah makhluk suci"
+        "textMalay": "Firman Allah: (Dan sesungguhnya di antara kami ada yang Islam dan ada yang zalim...)"
       }
     ],
     "correctAnswer": "d",
@@ -1289,22 +1289,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "تكليف الجن كالإنس",
-        "textMalay": "Kematian adalah kepupusan mutlak tanpa kebangkitan semula"
+        "textMalay": "Kewajipan taklif bagi jin sama seperti manusia"
       },
       {
         "id": "b",
         "textArabic": "تقرير الجن نسل من إبليس",
-        "textMalay": "Kematian adalah terputusnya hubungan roh dengan badan dan berpindahnya manusia dari dunia ke akhirat"
+        "textMalay": "Penetapan bahawa jin keturunan Iblis"
       },
       {
         "id": "c",
         "textArabic": "استماع الجن إلى دعوة الإسلام",
-        "textMalay": "Kematian hanya berlaku kepada jasad tanpa roh"
+        "textMalay": "Mendengarnya jin terhadap dakwah Islam"
       },
       {
         "id": "d",
         "textArabic": "قدرة الجن على التشكل بأشكال مختلفة.",
-        "textMalay": "Kematian adalah mimpi yang panjang"
+        "textMalay": "Kemampuan jin menjelma dalam pelbagai rupa"
       }
     ],
     "correctAnswer": "c",
@@ -1325,22 +1325,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "أجسام لطيفة نورانية",
-        "textMalay": "Ajal itu satu dan tidak bertambah atau berkurang daripada ketetapan Allah"
+        "textMalay": "Jisim halus daripada cahaya"
       },
       {
         "id": "b",
         "textArabic": "لنا القدرة على رؤيتهم",
-        "textMalay": "Orang yang dibunuh mati sebelum sampai ajalnya"
+        "textMalay": "Kemampuan kita melihat mereka"
       },
       {
         "id": "c",
         "textArabic": "عصاة الجن وجنود إبليس",
-        "textMalay": "Manusia mempunyai dua ajal: ajal semula jadi dan ajal bunuh"
+        "textMalay": "Golongan jin yang derhaka dan tentera-tentera Iblis"
       },
       {
         "id": "d",
         "textArabic": "من مخلوقات الله تناسلوا من إبليس.",
-        "textMalay": "Ajal berubah-ubah mengikut kehendak manusia"
+        "textMalay": "Makhluk Allah yang berketurunan daripada Iblis"
       }
     ],
     "correctAnswer": "c",
@@ -1363,22 +1363,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "إبعادُهم عن الجَادَّة",
-        "textMalay": "Dia mati dengan ajalnya yang telah ditetapkan oleh Allah"
+        "textMalay": "Menjauhkan manusia daripada jalan yang lurus"
       },
       {
         "id": "b",
         "textArabic": "أجسام هوائية لطيفة",
-        "textMalay": "Dia mati sebelum ajalnya sampai"
+        "textMalay": "Jisim halus daripada udara"
       },
       {
         "id": "c",
         "textArabic": "عصاة الجن وجنود إبليس",
-        "textMalay": "Pembunuh yang memotong ajalnya"
+        "textMalay": "Golongan jin yang derhaka dan tentera Iblis"
       },
       {
         "id": "d",
         "textArabic": "منهم المؤمن ومنهم الكافر",
-        "textMalay": "Dia tidak dianggap mati"
+        "textMalay": "Antara mereka ada yang beriman dan ada yang kafir"
       }
     ],
     "correctAnswer": "a",
@@ -1401,22 +1401,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "واحدة",
-        "textMalay": "Pembunuh memotong ajal mangsa"
+        "textMalay": "Satu hakikat yang sama"
       },
       {
         "id": "b",
         "textArabic": "متغايرة",
-        "textMalay": "Mangsa mempunyai dua ajal"
+        "textMalay": "Berbeza (dua hakikat berasingan)"
       },
       {
         "id": "c",
         "textArabic": "عجيبة",
-        "textMalay": "Ajalnya satu dan dia mati dengan ajalnya"
+        "textMalay": "Ajaib"
       },
       {
         "id": "d",
         "textArabic": "مختلفة",
-        "textMalay": "Mangsa mati tanpa ajal"
+        "textMalay": "Pelbagai"
       }
     ],
     "correctAnswer": "a",
@@ -1439,22 +1439,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "يأمره بالخير ويحثه عليه",
-        "textMalay": "Roh adalah jisim لطيف (halus) yang mengalir pada tubuh seperti mengalirnya air pada dahan basah"
+        "textMalay": "Menyuruhnya melakukan kebaikan dan menggalakkannya"
       },
       {
         "id": "b",
         "textArabic": "يأمره بالشر ويحثه عليه",
-        "textMalay": "Roh adalah jisim كثيف (padat) yang boleh disentuh"
+        "textMalay": "Menyuruhnya melakukan kejahatan dan mendorongnya"
       },
       {
         "id": "c",
         "textArabic": "يأمره بالحسنات",
-        "textMalay": "Roh adalah sebahagian daripada darah"
+        "textMalay": "Menyuruhnya berbuat pahala"
       },
       {
         "id": "d",
         "textArabic": "يأمره بطاعة الله.",
-        "textMalay": "Roh adalah fikiran manusia"
+        "textMalay": "Menyuruhnya mentaati Allah"
       }
     ],
     "correctAnswer": "b",
@@ -1475,22 +1475,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "مكان يضم جسد الميت",
-        "textMalay": "Roh itu baharu (dicipta oleh Allah)"
+        "textMalay": "Tempat yang menghimpunkan jasad orang mati"
       },
       {
         "id": "b",
         "textArabic": "سوق الناس جميعا إلى الموقف",
-        "textMalay": "Roh itu qadim (tiada permulaan)"
+        "textMalay": "Menggiring manusia sekalian ke padang Mahsyar"
       },
       {
         "id": "c",
         "textArabic": "إحياء الله الموتى وإخراجهم من قبورهم",
-        "textMalay": "Roh kekal azali bersama Allah"
+        "textMalay": "Allah menghidupkan orang mati dan mengeluarkan mereka dari kubur"
       },
       {
         "id": "d",
         "textArabic": "مرحلة فاصلة بين الحياة الدنيا والحياة الآخرة.",
-        "textMalay": "Roh tidak dicipta"
+        "textMalay": "Fasa pemisah antara kehidupan dunia dan akhirat"
       }
     ],
     "correctAnswer": "a",
@@ -1511,22 +1511,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الحشر",
-        "textMalay": "Menahan diri (tawaqquf) daripada membincangkan hakikat roh kerana ia urusan Allah"
+        "textMalay": "Al-Hasyar"
       },
       {
         "id": "b",
         "textArabic": "البعث",
-        "textMalay": "Mengharuskan perbahasan mendalam tentang zat roh"
+        "textMalay": "Al-Ba'th"
       },
       {
         "id": "c",
         "textArabic": "اليوم الآخر",
-        "textMalay": "Menyifatkan roh dengan sifat jisim"
+        "textMalay": "Hari Akhirat"
       },
       {
         "id": "d",
         "textArabic": "الحياة البرزخية",
-        "textMalay": "Menafikan kewujudan roh"
+        "textMalay": "Kehidupan Barzakh"
       }
     ],
     "correctAnswer": "d",
@@ -1547,22 +1547,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "نعيم القبر",
-        "textMalay": "Roh tidak binasa dengan kematian jasad"
+        "textMalay": "Nikmat kubur"
       },
       {
         "id": "b",
         "textArabic": "عذاب القبر",
-        "textMalay": "Roh hancur bersama jasad di dalam kubur"
+        "textMalay": "Azab kubur"
       },
       {
         "id": "c",
         "textArabic": "السؤال عن الأمور العامة",
-        "textMalay": "Roh bertukar menjadi malaikat"
+        "textMalay": "Soalan tentang perkara-perkara asas / umum"
       },
       {
         "id": "d",
         "textArabic": "السؤال عن تفاصيل الأمور",
-        "textMalay": "Roh berpindah ke jasad manusia lain (reinkarnasi)"
+        "textMalay": "Soalan tentang perincian amalan satu-persatu"
       }
     ],
     "correctAnswer": "d",
@@ -1585,22 +1585,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "منكر ونكير",
-        "textMalay": "Benar dan wajib diimani berdasarkan nas mutawatir al-Quran dan Sunnah"
+        "textMalay": "Munkar dan Nakir"
       },
       {
         "id": "b",
         "textArabic": "رقيب وعتيد",
-        "textMalay": "Perkara mustahil mengikut akal"
+        "textMalay": "Raqib dan 'Atid"
       },
       {
         "id": "c",
         "textArabic": "ملائكة الموت",
-        "textMalay": "Kiasan semata-mata untuk menakutkan manusia"
+        "textMalay": "Malaikat Maut"
       },
       {
         "id": "d",
         "textArabic": "عزرائيل وإسرافيل",
-        "textMalay": "Khusus untuk umat terdahulu sahaja"
+        "textMalay": "Izrail dan Israfil"
       }
     ],
     "correctAnswer": "a",
@@ -1621,22 +1621,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "ليحاسب في يوم القيامة",
-        "textMalay": "Kepada roh dan jasad secara bersama mengikut kehendak Allah"
+        "textMalay": "Untuk dihisab pada hari kiamat"
       },
       {
         "id": "b",
         "textArabic": "ليأخذ صحائف الأعمال",
-        "textMalay": "Kepada roh sahaja tanpa jasad"
+        "textMalay": "Untuk menerima suratan amalan"
       },
       {
         "id": "c",
         "textArabic": "لينظر إلى الأحوال البرزخية",
-        "textMalay": "Kepada jasad sahaja tanpa roh"
+        "textMalay": "Untuk melihat keadaan alam barzakh"
       },
       {
         "id": "d",
         "textArabic": "ليفهم السؤال ويجيب عنه",
-        "textMalay": "Hanya kepada organ pendengaran"
+        "textMalay": "Supaya memahami soalan dan menjawabnya"
       }
     ],
     "correctAnswer": "d",
@@ -1657,22 +1657,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "قال الله تعالى: ﴿يُسَبِّحُونَ ٱلَّيۡلَ وَٱلنَّهَارَ لَا يَفۡتُرُونَ﴾",
-        "textMalay": "Munkar dan Nakir"
+        "textMalay": "Orang mati lemas di laut"
       },
       {
         "id": "b",
         "textArabic": "قال الله تعالى: ﴿وَأَنَّا مِنَّا ٱلۡمُسۡلِمُونَ وَمِنَّا ٱلۡقَٰسِطُونَۖ﴾",
-        "textMalay": "Raqib dan 'Atid"
+        "textMalay": "Orang yang disalib"
       },
       {
         "id": "c",
         "textArabic": "قال الله تعالى: ﴿لَا يَسۡبِقُونَهُۥ بِٱلۡقَوۡلِ وَهُم بِأَمۡرِهِۦ يَعۡمَلُونَ﴾",
-        "textMalay": "Harut dan Marut"
+        "textMalay": "Orang yang dibakar hingga menjadi abu"
       },
       {
         "id": "d",
         "textArabic": "قال الله تعالى: ﴿يُثَبِّتُ ٱللَّهُ ٱلَّذِينَ ءَامَنُواْ بِٱلۡقَوۡلِ ٱلثَّابِتِ﴾",
-        "textMalay": "Jibril dan Mikail"
+        "textMalay": "Orang yang mati syahid di medan perang"
       }
     ],
     "correctAnswer": "d",
@@ -1695,22 +1695,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "١ و ٢",
-        "textMalay": "Hitam kebiru-biruan dengan suara laksana guruh dan mata laksana kilat"
+        "textMalay": "Tempat menghimpunkan jasad orang mati"
       },
       {
         "id": "b",
         "textArabic": "٢ و ٣",
-        "textMalay": "Putih berseri seperti cahaya matahari"
+        "textMalay": "Allah menghidupkan orang mati dan mengeluarkan mereka dari kubur"
       },
       {
         "id": "c",
         "textArabic": "٣ و ٤",
-        "textMalay": "Berwajah manusia biasa"
+        "textMalay": "Menghalau sekalian manusia ke mauqif"
       },
       {
         "id": "d",
         "textArabic": "١ و ٤",
-        "textMalay": "Rupa burung yang besar"
+        "textMalay": "Fasa pemisah antara kehidupan dunia dan akhirat"
       }
     ],
     "correctAnswer": "a",
@@ -1731,22 +1731,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "عن ربه ودينه",
-        "textMalay": "Siapakah Tuhanmu? Apakah agamamu? Siapakah nabimu?"
+        "textMalay": "Al-Hasyar"
       },
       {
         "id": "b",
         "textArabic": "عن ربه وقبلته",
-        "textMalay": "Berapakah hartamu? Apakah jawatanmu?"
+        "textMalay": "Al-Ba'th"
       },
       {
         "id": "c",
         "textArabic": "عن كتابه والنبي الذي أرسل إليه",
-        "textMalay": "Di manakah keluargamu? Ke manakah hartamu?"
+        "textMalay": "Al-Hisab"
       },
       {
         "id": "d",
         "textArabic": "عن إيمنه والنبي الذي أرسل إليه.",
-        "textMalay": "Apakah keturunanmu? Siapakah bangsamu?"
+        "textMalay": "Al-Mizan"
       }
     ],
     "correctAnswer": "a",
@@ -1767,22 +1767,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "نعيم القبر",
-        "textMalay": "Para nabi dan rasul"
+        "textMalay": "Hukum al-Ba'th menurut akal adalah harus"
       },
       {
         "id": "b",
         "textArabic": "عذاب القبر",
-        "textMalay": "Para syuhada"
+        "textMalay": "Hukum al-Ba'th menurut syarak adalah wajib"
       },
       {
         "id": "c",
         "textArabic": "يدخل الجنة",
-        "textMalay": "Kanak-kanak yang belum baligh"
+        "textMalay": "Mengeluarkan orang mati dari kubur"
       },
       {
         "id": "d",
         "textArabic": "يدخل النار",
-        "textMalay": "Semua jawapan di atas dikecualikan daripada soalan kubur"
+        "textMalay": "Menghimpunkan manusia di mahsyar"
       }
     ],
     "correctAnswer": "a",
@@ -1803,22 +1803,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "قال الله تعالى: ﴿يُثَبِّتُ ٱللَّهُ ٱلَّذِينَ ءَامَنُواْ بِٱلۡقَوۡلِ ٱلثَّابِتِ﴾",
-        "textMalay": "Tembok pemisah antara alam dunia dan alam akhirat bermula dari kematian hingga kebangkitan"
+        "textMalay": "Harus menurut akal, wajib menurut syarak"
       },
       {
         "id": "b",
         "textArabic": "قال الله تعالى: ﴿يُسَبِّحُونَ ٱلَّيۡلَ وَٱلنَّهَارَ لَا يَفۡتُرُونَ﴾",
-        "textMalay": "Tempat pembalasan terakhir manusia"
+        "textMalay": "Wajib menurut akal, harus menurut syarak"
       },
       {
         "id": "c",
         "textArabic": "قال الله تعالى: ﴿لَا يَسۡبِقُونَهُۥ بِٱلۡقَوۡلِ وَهُم بِأَمۡرِهِۦ يَعۡمَلُونَ﴾",
-        "textMalay": "Padang mahsyar perhimpunan makhluk"
+        "textMalay": "Mustahil menurut akal, harus menurut syarak"
       },
       {
         "id": "d",
         "textArabic": "قال الله تعالى: ﴿مِّمَّا خَطِيٓـَٰٔتِهِمۡ أُغۡرِقُواْ فَأُدۡخِلُواْ نَارٗا﴾",
-        "textMalay": "Nama lain bagi syurga"
+        "textMalay": "Wajib menurut akal dan syarak"
       }
     ],
     "correctAnswer": "d",
@@ -1839,22 +1839,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "مرحلة فاصلة بين الحياة الدنيا والآخرة",
-        "textMalay": "Benar dan berlaku kepada semua orang termasuk orang soleh melainkan golongan tertentu"
+        "textMalay": "Maha Berkuasa mengembalikan makhluk sebagaimana Dia memulakan penciptaan"
       },
       {
         "id": "b",
         "textArabic": "مكان يضم جسد الميت",
-        "textMalay": "Hanya berlaku kepada orang kafir sahaja"
+        "textMalay": "Maha Kuasa menahan langit daripada runtuh"
       },
       {
         "id": "c",
         "textArabic": "إحياء الله الموتى وإخراجهم من قبورهم",
-        "textMalay": "Hanya berlaku kepada orang munafik"
+        "textMalay": "Mengetahui segala yang tersembunyi dan nyata"
       },
       {
         "id": "d",
         "textArabic": "حياة قبل الحساب.",
-        "textMalay": "Tidak thabit dalam syarak"
+        "textMalay": "Memberi rezeki kepada sekalian hamba"
       }
     ],
     "correctAnswer": "c",
@@ -1875,22 +1875,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الحشر",
-        "textMalay": "Semua jasad hancur kecuali tulang sulbi ('ajb al-dzanab) dan jasad para nabi"
+        "textMalay": "Menghidupkan semula bahagian tubuh yang asal"
       },
       {
         "id": "b",
         "textArabic": "البرزخ",
-        "textMalay": "Semua jasad kekal utuh tidak hancur"
+        "textMalay": "Penciptaan semula tubuh badan yang baharu"
       },
       {
         "id": "c",
         "textArabic": "القبر",
-        "textMalay": "Semua jasad lenyap tanpa sebarang sisa"
+        "textMalay": "Pengembalian roh tanpa jasad"
       },
       {
         "id": "d",
         "textArabic": "السؤال.",
-        "textMalay": "Hanya jasad orang kaya terpelihara"
+        "textMalay": "Pengembalian jasad tanpa roh"
       }
     ],
     "correctAnswer": "a",
@@ -1911,22 +1911,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "ختر الدليل النقلي أن البعث لقد ثبت بالكتاب والسنة وإجماع الأمة. أقال الله تعالى:﴿يُثَبِّتُ ٱللَّهُ ٱلَّذِينَ ءَامَنُواْ بِٱلۡقَوۡلِ ٱلثَّابِتِ﴾",
-        "textMalay": "Tiupan Sangkakala oleh Malaikat Israfil"
+        "textMalay": "Firman Allah: (Allah meneguhkan orang-orang yang beriman dengan ucapan yang teguh...)"
       },
       {
         "id": "b",
         "textArabic": "قال الله تعالى:﴿أَفَحَسِبۡتُمۡ أَنَّمَا خَلَقۡنَٰكُمۡ عَبَثٗا وَأَنَّكُمۡ إِلَيۡنَا لَا تُرۡجَعُونَ﴾",
-        "textMalay": "Gempa bumi biasa"
+        "textMalay": "Firman Allah: (Maka adakah kamu menyangka Kami menciptakan kamu secara sia-sia...)"
       },
       {
         "id": "c",
         "textArabic": "قال الله تعالى:﴿لَا يَسۡبِقُونَهُۥ بِٱلۡقَوۡلِ وَهُم بِأَمۡرِهِۦ يَعۡمَلُونَ﴾",
-        "textMalay": "Bintang-bintang gugur"
+        "textMalay": "Firman Allah: (Mereka tidak mendahului-Nya dengan perkataan...)"
       },
       {
         "id": "d",
         "textArabic": "قال الله تعالى:﴿مِّمَّا خَطِيٓـَٰٔتِهِمۡ أُغۡرِقُواْ فَأُدۡخِلُواْ نَارٗا﴾",
-        "textMalay": "Matahari padam"
+        "textMalay": "Firman Allah: (Disebabkan kesalahan-kesalahan mereka, mereka ditenggelamkan lalu dimasukkan ke neraka...)"
       }
     ],
     "correctAnswer": "b",
@@ -1947,22 +1947,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "سوق الناس جميعا إلى الموقف",
-        "textMalay": "Dua tiupan: Tiupan Kematian (al-Sa'aq) dan Tiupan Kebangkitan (al-Ba'th)"
+        "textMalay": "Menggiring manusia sekalian ke Mauqif (tempat berhimpun)"
       },
       {
         "id": "b",
         "textArabic": "مكان يضم جسد الميت",
-        "textMalay": "Tiga tiupan: Tiupan Takut, Tiupan Kematian, dan Tiupan Kebangkitan"
+        "textMalay": "Tempat menghimpunkan jasad orang mati"
       },
       {
         "id": "c",
         "textArabic": "توقيف الله الناس على أعمالهم",
-        "textMalay": "Satu tiupan sahaja"
+        "textMalay": "Allah menghadapkan manusia untuk meneliti amalan mereka"
       },
       {
         "id": "d",
         "textArabic": "إحياء الله الموتى وإخراجهم من قبورهم",
-        "textMalay": "Empat tiupan berasingan"
+        "textMalay": "Allah menghidupkan orang mati dan mengeluarkan mereka dari kubur"
       }
     ],
     "correctAnswer": "a",
@@ -1983,22 +1983,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "قال الله تعالى:﴿أَفَحَسِبۡتُمۡ أَنَّمَا خَلَقۡنَٰكُمۡ عَبَثٗا وَأَنَّكُمۡ إِلَيۡنَا لَا تُرۡجَعُونَ﴾",
-        "textMalay": "Al-Ba'th (Kebangkitan semula dari kubur)"
+        "textMalay": "Firman Allah: (Maka adakah kamu menyangka Kami menciptakan kamu secara sia-sia...)"
       },
       {
         "id": "b",
         "textArabic": "قال الله تعالى:﴿يُثَبِّتُ ٱللَّهُ ٱلَّذِينَ ءَامَنُواْ بِٱلۡقَوۡلِ ٱلثَّابِتِ﴾",
-        "textMalay": "Al-Hasyr (Perhimpunan di Mahsyar)"
+        "textMalay": "Firman Allah: (Allah meneguhkan orang-orang yang beriman...)"
       },
       {
         "id": "c",
         "textArabic": "قال الله تعالى:﴿لَا يَسۡبِقُونَهُۥ بِٱلۡقَوۡلِ وَهُم بِأَمۡرِهِۦ يَعۡمَلُونَ﴾",
-        "textMalay": "Al-Hisab (Perhitungan)"
+        "textMalay": "Firman Allah: (Mereka tidak mendahului-Nya dengan perkataan...)"
       },
       {
         "id": "d",
         "textArabic": "قال الله تعالى:﴿يَوۡمَ تُبَدَّلُ ٱلۡأَرۡضُ غَيۡرَ ٱلۡأَرۡضِ وَٱلسَّمَٰوَٰتُۖ ﴾",
-        "textMalay": "Al-Mizan (Timbangan amalan)"
+        "textMalay": "Firman Allah: ((Iaitu) pada hari bumi digantikan dengan bumi yang lain dan (demikian pula) langit...)"
       }
     ],
     "correctAnswer": "d",
@@ -2019,22 +2019,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "سوق الناس جميعا إلى الموقف",
-        "textMalay": "Wajib diimani berdasarkan dalil qath'i daripada al-Quran, Sunnah, dan Ijma'"
+        "textMalay": "Menggiring manusia sekalian ke Mauqif"
       },
       {
         "id": "b",
         "textArabic": "صرف الناس من الموقف إلى الجنة أو النار",
-        "textMalay": "Harus diimani"
+        "textMalay": "Penyuraian manusia dari Mauqif ke syurga atau neraka"
       },
       {
         "id": "c",
         "textArabic": "إحياء الله الموتى وإخراجهم من قبورهم",
-        "textMalay": "Sunat diyakini"
+        "textMalay": "Allah menghidupkan orang mati dan mengeluarkan mereka dari kubur"
       },
       {
         "id": "d",
         "textArabic": "توقيف الله الناس على أعمالهم خيرا كانت أو شرا.",
-        "textMalay": "Perkara zanni"
+        "textMalay": "Allah menghadapkan manusia terhadap amalan mereka sama ada baik atau buruk"
       }
     ],
     "correctAnswer": "d",
@@ -2057,22 +2057,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "راكب",
-        "textMalay": "Allah mengembalikan jasad asal bersama rohnya"
+        "textMalay": "Berkenderaan"
       },
       {
         "id": "b",
         "textArabic": "زاحف على رجليه",
-        "textMalay": "Allah mencipta jasad baharu sepenuhnya"
+        "textMalay": "Merangkak di atas kakinya"
       },
       {
         "id": "c",
         "textArabic": "ماشي على بطنه",
-        "textMalay": "Hanya roh yang dibangkitkan tanpa jasad"
+        "textMalay": "Berjalan di atas perutnya"
       },
       {
         "id": "d",
         "textArabic": "توقف للحساب",
-        "textMalay": "Kebangkitan secara maknawi sahaja"
+        "textMalay": "Berhenti untuk dihisab"
       }
     ],
     "correctAnswer": "d",
@@ -2093,22 +2093,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "لكفرهم",
-        "textMalay": "Al-Hasyr (Perhimpunan makhluk di Padang Mahsyar)"
+        "textMalay": "Kerana kekufuran mereka yang melampau"
       },
       {
         "id": "b",
         "textArabic": "لتكريم لهم",
-        "textMalay": "Al-Nusyur"
+        "textMalay": "Sebagai penghormatan kepada mereka"
       },
       {
         "id": "c",
         "textArabic": "لشدة الغضب عليهم",
-        "textMalay": "Al-Hisab"
+        "textMalay": "Kerana kemurkaan Allah yang amat dahsyat terhadap mereka"
       },
       {
         "id": "d",
         "textArabic": "لإطلاع أعمالهم",
-        "textMalay": "Al-Sirat"
+        "textMalay": "Untuk memperlihatkan amalan mereka"
       }
     ],
     "correctAnswer": "c",
@@ -2129,22 +2129,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "اليسير والعسير",
-        "textMalay": "Bumi putih bersih seperti roti canai tanpa sebarang tanda sempadan"
+        "textMalay": "Mudah (yasir) dan sukar ('asir)"
       },
       {
         "id": "b",
         "textArabic": "السر والجهر",
-        "textMalay": "Bumi yang sama seperti dunia sekarang"
+        "textMalay": "Rahsia (sirran) dan terang-terangan (jahran)"
       },
       {
         "id": "c",
         "textArabic": "الحسنات والسيئات",
-        "textMalay": "Lautan yang luas"
+        "textMalay": "Kebaikan dan kejahatan"
       },
       {
         "id": "d",
         "textArabic": "العدل أو الفضل",
-        "textMalay": "Di atas awan"
+        "textMalay": "Keadilan ('adl) atau limpah kurnia (fadhl)"
       }
     ],
     "correctAnswer": "c",
@@ -2165,22 +2165,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "قال الله تعالى:﴿يُثَبِّتُ ٱللَّهُ ٱلَّذِينَ ءَامَنُواْ بِٱلۡقَوۡلِ ٱلثَّابِتِ﴾",
-        "textMalay": "Bertelanjang kaki, bertelanjang bulat, dan belum berkhatan"
+        "textMalay": "Firman Allah: (Allah meneguhkan orang-orang yang beriman...)"
       },
       {
         "id": "b",
         "textArabic": "قال الله تعالى:﴿أَفَحَسِبۡتُمۡ أَنَّمَا خَلَقۡنَٰكُمۡ عَبَثٗا وَأَنَّكُمۡ إِلَيۡنَا لَا تُرۡجَعُونَ﴾",
-        "textMalay": "Memakai pakaian indah serba putih"
+        "textMalay": "Firman Allah: (Maka adakah kamu menyangka Kami menciptakan kamu main-main...)"
       },
       {
         "id": "c",
         "textArabic": "قال الله تعالى:﴿لَا يَسۡبِقُونَهُۥ بِٱلۡقَوۡلِ وَهُم بِأَمۡرِهِۦ يَعۡمَلُونَ﴾",
-        "textMalay": "Memakai pakaian yang mereka mati dengannya"
+        "textMalay": "Firman Allah: (Mereka tidak mendahului-Nya dengan perkataan...)"
       },
       {
         "id": "d",
         "textArabic": "قال الله تعالى:﴿يَوۡمَ تَشۡهَدُ عَلَيۡهِمۡ أَلۡسِنَتُهُمۡ وَأَيۡدِيهِمۡ وَأَرۡجُلُهُم بِمَا     كَانُواْ يَعۡمَلُونَ﴾",
-        "textMalay": "Menaiki kenderaan masing-masing"
+        "textMalay": "Firman Allah: (Pada hari lidah, tangan, dan kaki mereka menjadi saksi atas apa yang mereka kerjakan)"
       }
     ],
     "correctAnswer": "d",
@@ -2201,22 +2201,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "إقامة الحجة على العبيد",
-        "textMalay": "Orang yang berkenderaan, orang yang berjalan kaki, dan orang yang berjalan dengan mukanya"
+        "textMalay": "Menegakkan hujah ke atas para hamba"
       },
       {
         "id": "b",
         "textArabic": "تعذيب الكفار في النار",
-        "textMalay": "Orang yang terbang dan orang yang berenang"
+        "textMalay": "Menyeksa orang kafir di neraka"
       },
       {
         "id": "c",
         "textArabic": "إظهار تفاوت المراتب في الكمال",
-        "textMalay": "Orang yang duduk dan orang yang berdiri"
+        "textMalay": "Menzahirkan perbezaan martabat kesempurnaan"
       },
       {
         "id": "d",
         "textArabic": "الاطلاع على أعمال الناس",
-        "textMalay": "Semua berkenderaan sama rata"
+        "textMalay": "Melihat amalan-amalan manusia"
       }
     ],
     "correctAnswer": "c",
@@ -2237,22 +2237,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "من وقت الحشر",
-        "textMalay": "Matahari didekatkan sejauh satu mil hingga manusia berpeluh mengikut kadar amalan mereka"
+        "textMalay": "Dari waktu perhimpunan di Mahsyar"
       },
       {
         "id": "b",
         "textArabic": "من وقت دخول الميت القبر",
-        "textMalay": "Cuaca menjadi sejuk beku"
+        "textMalay": "Dari waktu mayat masuk ke kubur"
       },
       {
         "id": "c",
         "textArabic": "من وقت قيام الناس من قبورهم",
-        "textMalay": "Hujan lebat berterusan"
+        "textMalay": "Dari waktu bangkitnya manusia dari kubur mereka"
       },
       {
         "id": "d",
         "textArabic": "من وقت ينال الناس فيه الشدائد",
-        "textMalay": "Tiada sebarang kepanasan"
+        "textMalay": "Dari waktu manusia ditimpa kedahsyatan huru-hara"
       }
     ],
     "correctAnswer": "a",
@@ -2273,22 +2273,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "لكثرة مافيه من أحداث",
-        "textMalay": "Tujuh golongan yang dinaungi Allah di bawah naungan 'Arasy-Nya"
+        "textMalay": "Kerana banyaknya peristiwa dahsyat padanya"
       },
       {
         "id": "b",
         "textArabic": "لقيام الحجة على الناس",
-        "textMalay": "Sepuluh golongan"
+        "textMalay": "Untuk menegakkan hujah ke atas manusia"
       },
       {
         "id": "c",
         "textArabic": "لقيام الناس من قبورهم",
-        "textMalay": "Tiga golongan"
+        "textMalay": "Kerana manusia bangkit dari kubur mereka"
       },
       {
         "id": "d",
         "textArabic": "لأنه متصل بآخر أيام الدنيا",
-        "textMalay": "Semua orang beriman tanpa kecuali"
+        "textMalay": "Kerana ia bersambung dengan hari-hari terakhir dunia"
       }
     ],
     "correctAnswer": "d",
@@ -2309,22 +2309,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "لكثرة مافيه من أحداث",
-        "textMalay": "Pemimpin yang adil dan pemuda yang membesar dalam ibadah kepada Allah"
+        "textMalay": "Kerana banyaknya peristiwa dan huru-hara yang berlaku padanya"
       },
       {
         "id": "b",
         "textArabic": "لقيام الحجة على الناس",
-        "textMalay": "Peniaga yang kaya"
+        "textMalay": "Untuk menegakkan hujah ke atas manusia"
       },
       {
         "id": "c",
         "textArabic": "لقيام الناس من قبورهم",
-        "textMalay": "Pahlawan yang berani semata-mata"
+        "textMalay": "Kerana manusia bangkit dari kubur mereka"
       },
       {
         "id": "d",
         "textArabic": "لأنه متصل بآخر أيام الدنيا",
-        "textMalay": "Orang yang mempunyai ramai anak"
+        "textMalay": "Kerana ia bersambung dengan hari terakhir dunia"
       }
     ],
     "correctAnswer": "a",
@@ -2345,22 +2345,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "اطلاع الله العباد على أعمالهم.",
-        "textMalay": "Al-Hisab (Pemeriksaan dan perhitungan amalan manusia)"
+        "textMalay": "Allah memperlihatkan kepada hamba tentang amalan mereka"
       },
       {
         "id": "b",
         "textArabic": "إحياء الله الموتى وإخراجهم من قبورهم",
-        "textMalay": "Al-Jaza'"
+        "textMalay": "Allah menghidupkan orang mati dan mengeluarkan mereka dari kubur"
       },
       {
         "id": "c",
         "textArabic": "سوق الناس إلى الموقف الذي يحاسبون فيه.",
-        "textMalay": "Al-Mizan"
+        "textMalay": "Menggiring manusia ke Mauqif tempat mereka dihisab"
       },
       {
         "id": "d",
         "textArabic": "ما ينال الناس فيه من الشدائد لطول الوقوف.",
-        "textMalay": "Al-Sirat"
+        "textMalay": "Kedahsyatan dan penderitaan yang menimpa manusia kerana terlalu lama berdiri di Mahsyar"
       }
     ],
     "correctAnswer": "d",
@@ -2383,22 +2383,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "طول المدة",
-        "textMalay": "Hisab mudah (al-'Ardh/pemeriksaan ringan) dan hisab sukar (munasyah)"
+        "textMalay": "Tempoh masa yang panjang"
       },
       {
         "id": "b",
         "textArabic": "مدة دخول النار",
-        "textMalay": "Hisab rahsia dan hisab terbuka"
+        "textMalay": "Tempoh masa masuk neraka"
       },
       {
         "id": "c",
         "textArabic": "قدر الحياة البرزخية",
-        "textMalay": "Hisab bertulis dan hisab lisan"
+        "textMalay": "Kadar kehidupan alam barzakh"
       },
       {
         "id": "d",
         "textArabic": "صحائف الأعمال",
-        "textMalay": "Hisab di dunia dan hisab di kubur"
+        "textMalay": "Buku-buku catatan amalan"
       }
     ],
     "correctAnswer": "a",
@@ -2419,22 +2419,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "أنه كألف سنة",
-        "textMalay": "Tujuh puluh ribu orang masuk syurga tanpa hisab dan tanpa azab"
+        "textMalay": "Bagaikan seribu tahun"
       },
       {
         "id": "b",
         "textArabic": "أنه فترة يسيرة",
-        "textMalay": "Seratus ribu orang"
+        "textMalay": "Tempoh yang sangat singkat"
       },
       {
         "id": "c",
         "textArabic": "أنه كخمسين ألف سنة",
-        "textMalay": "Semua umat terdahulu"
+        "textMalay": "Bagaikan lima puluh ribu tahun"
       },
       {
         "id": "d",
         "textArabic": "أنه أخف من صلاة المكتوبة",
-        "textMalay": "Para sahabat sahaja"
+        "textMalay": "Lebih ringan daripada solat fardu yang dikerjakan"
       }
     ],
     "correctAnswer": "d",
@@ -2455,22 +2455,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "قال تعالى :( يَوْمَ تَبْيَضُ وُجُوهٌ وَتَسْوَدُّ وُجُوهُ )",
-        "textMalay": "Al-Mizan (Penimbang amalan yang mempunyai dua piring dan lidah penimbang)"
+        "textMalay": "Firman Allah: (Pada hari ada wajah yang putih berseri dan ada wajah yang hitam muram...)"
       },
       {
         "id": "b",
         "textArabic": "قال تعالى : (يَوْمَ يَأْتِ لَا تَكَلَّمُ نَفْسُ إِلَّا بِإِذْنِهِ قَمِنْهُم شَقِيٌّ وَسَعِيد®)",
-        "textMalay": "Al-Sirat"
+        "textMalay": "Firman Allah: (Pada hari itu tidak ada sesiapa berkata-kata melainkan dengan izin-Nya, maka ada yang celaka dan ada yang berbahagia...)"
       },
       {
         "id": "c",
         "textArabic": "قال تعالى : (إِنَّ اللَّهَ لَا يَغْفِرُ أَن يُشْرَكَ بِهِ وَيَغْفِرُ مَادُونَ ذَٰلِكَ لِمَن  يَشَآءُ)",
-        "textMalay": "Al-Haudh"
+        "textMalay": "Firman Allah: (Sesungguhnya Allah tidak mengampuni dosa syirik dan mengampuni dosa selain itu bagi sesiapa yang dikehendaki-Nya...)"
       },
       {
         "id": "d",
         "textArabic": "قال تعالى : (يَأْيُّهَا النَّاسُ اتَّقُواْ رَبَّكُمْ وَاخْشَوْاْ يَوْمًا لَا يَجْزِى وَالِدٌ عَن وَلَدِهِ وَلَا  مَوْلُودُ هُوَ جَازٍ عَن وَالِدِهِ شَيْئًا)",
-        "textMalay": "Al-Kauthar"
+        "textMalay": "Firman Allah: (Wahai sekalian manusia bertakwalah kepada Tuhanmu dan takutilah suatu hari yang bapa tidak dapat menolong anaknya...)"
       }
     ],
     "correctAnswer": "c",
@@ -2491,22 +2491,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "بعثة النبي محمد (ص)",
-        "textMalay": "Amalan manusia diwujudkan dalam bentuk jisim atau buku catatan amalan yang ditimbang"
+        "textMalay": "Pengutusan Nabi Muhammad SAW"
       },
       {
         "id": "b",
         "textArabic": "طلوع الشمس من مغربها",
-        "textMalay": "Jasad manusia itu sendiri yang ditimbang"
+        "textMalay": "Terbit matahari dari arah barat"
       },
       {
         "id": "c",
         "textArabic": "ظهور المعاصي وانتشارها",
-        "textMalay": "Hanya niat yang ditimbang tanpa perbuatan"
+        "textMalay": "Munculnya maksiat dan berleluasa"
       },
       {
         "id": "d",
         "textArabic": "تطاول الحفاة العراة في البنيان",
-        "textMalay": "Pahala ditimbang secara simbolik sahaja"
+        "textMalay": "Orang berkaki ayam berlumba-lumba membina bangunan tinggi"
       }
     ],
     "correctAnswer": "b",
@@ -2527,22 +2527,22 @@ export const TAUHID_QUESTIONS_PART1: Question[] = [
       {
         "id": "a",
         "textArabic": "الدابة",
-        "textMalay": "Buku catatan amalan yang ditulis oleh Raqib dan 'Atid"
+        "textMalay": "Al-Dabbah (Binatang melata)"
       },
       {
         "id": "b",
         "textArabic": "الدخان",
-        "textMalay": "Taurat dan Injil"
+        "textMalay": "Al-Dukhan (Asap)"
       },
       {
         "id": "c",
         "textArabic": "الدجال",
-        "textMalay": "Buku catatan malaikat maut"
+        "textMalay": "Al-Dajjal"
       },
       {
         "id": "d",
         "textArabic": "بعثة النبي",
-        "textMalay": "Catatan para nabi"
+        "textMalay": "Pengutusan Nabi SAW (ini tanda kecil)"
       }
     ],
     "correctAnswer": "d",

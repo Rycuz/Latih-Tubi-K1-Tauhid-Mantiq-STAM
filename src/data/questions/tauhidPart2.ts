@@ -708,22 +708,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "قال تعالى : (وَتُوبُوا إِلَى اللَّهِ جَمِيعًا أَيُّهَ ٱلْمُؤْمِنُونَ لَعَلَّكُمْ تُفْلِحُونَ)",
-        "textMalay": "Al-Taubah (Kembali daripada maksiat kepada ketaatan)"
+        "textMalay": "Taubat diterima secara pasti"
       },
       {
         "id": "b",
         "textArabic": "قال تعالى : (فَأَمَّا مَنْ أُوتى كِتَٰبَهُ بِيَمِينِهِ فَيَقُولُ هَاؤْمُ ٱَقْرَءُواْ كِتَابِيَةُ)",
-        "textMalay": "Al-Inabah"
+        "textMalay": "Taubat tertolak"
       },
       {
         "id": "c",
         "textArabic": "قال تعالى : (مَالِ هَٰذَا الْكِتَبِ لَا يُغَادِرُ صَغِيرَةً وَلَا كَبِيرَةً إِلَّا أَحْصَىهَا وَوَجَدُواْ مَا عَملُوا حَاضِراً وَلَا يَظْلِمُ رَبُّكَ أَحَدًا)",
-        "textMalay": "Al-Istighfar"
+        "textMalay": "Diterima menurut ijmak"
       },
       {
         "id": "d",
         "textArabic": "قال تعالى : ولَيْسَتِ ٱلتَّوْبَةُ لِلَّذِينَ يَعْمَلُونَ السَّيِئَاتِ حَتَّى إِذَا حَضَرَ أَحَدَهُمُ",
-        "textMalay": "Al-I'tizar"
+        "textMalay": "Diterima menurut kehendak Allah Taala"
       }
     ],
     "correctAnswer": "d",
@@ -746,22 +746,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "عدم صحة توبتهما",
-        "textMalay": "Wajib secara serta-merta (fauran) atas setiap mukallaf daripada segala dosa"
+        "textMalay": "Wajib menurut akal"
       },
       {
         "id": "b",
         "textArabic": "توبة العاصي مقبولة، توبة الكافر غير مقبولة.",
-        "textMalay": "Sunat dilakukan apabila lapang"
+        "textMalay": "Wajib menurut syarak"
       },
       {
         "id": "c",
         "textArabic": "صحة توبتهما",
-        "textMalay": "Hanya wajib apabila sudah berusia lanjut"
+        "textMalay": "Harus menurut syarak"
       },
       {
         "id": "d",
         "textArabic": "توبة العاصي غير مقبولة، توبة الكافر مقبولة",
-        "textMalay": "Harus mengikut kemahuan diri"
+        "textMalay": "Sunat menurut syarak"
       }
     ],
     "correctAnswer": "a",
@@ -782,22 +782,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "قال تعالى : (إِنَّ اللَّهَ يُحِبُ التَّوَبِينَ وَيُحُبُّ ٱلْمُتَطَهِرِينَ)",
-        "textMalay": "Menyesal atas dosa, meninggalkan dosa serta-merta, dan berazam kukuh tidak akan mengulanginya"
+        "textMalay": "Firman Allah: (Sesungguhnya penerimaan taubat itu hanya bagi mereka yang melakukan kejahatan kerana jahil...)"
       },
       {
         "id": "b",
         "textArabic": "قال الله تعالى : (وَتُوبُوا إِلَى اللَّهِ جَمِيعًا أَيُّهَ ٱلْمُؤْمِنُونَ لَعَلَّكُمْ تُفْلِحُونَ)",
-        "textMalay": "Meminta maaf melalui tulisan sahaja"
+        "textMalay": "Firman Allah: (Dan bertaubatlah kamu sekalian kepada Allah wahai orang-orang beriman supaya kamu berjaya)"
       },
       {
         "id": "c",
         "textArabic": "قال تعالى : (ولَيْسَتِ ٱلتَّوْبَةُ لِلَّذِينَ يَعْمَلُونَ السَّيِئَاتِ حَتَّى إِذَا حَضَرَ  أَحَدَهُمُ ٱلْموتُ قَالَ إِنِى تُبْتُ الانَ)",
-        "textMalay": "Membayar denda wang ringgit kepada fakir miskin"
+        "textMalay": "Firman Allah: (Dan tidaklah taubat itu diterima bagi orang yang melakukan kejahatan hingga apabila datang ajal...)"
       },
       {
         "id": "d",
         "textArabic": "قال تعالى : (وَالَّذينَ إِذَا فَعَلوا فَحِشَةً أَوْظَلَمُوَا أَنَفُسَهُمْ ذَكَرُواْ اللَّهَ فاسْتَغْفَرُواْ لِذُنُوبِهِمْ)",
-        "textMalay": "Menunggu sehingga tiba bulan Ramadan"
+        "textMalay": "Firman Allah: (Dan orang-orang yang apabila melakukan perbuatan keji atau menzalimi diri sendiri segera mengingati Allah...)"
       }
     ],
     "correctAnswer": "b",
@@ -818,22 +818,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "هم الملائكة الكتبة",
-        "textMalay": "Mengembalikan hak kepada pemiliknya atau meminta dihalalkan (bermaafan)"
+        "textMalay": "Malaikat-malaikat pencatat amalan"
       },
       {
         "id": "b",
         "textArabic": "اطلاع الله العباد على أعمالهم",
-        "textMalay": "Cukup dengan beristighfar seratus kali"
+        "textMalay": "Allah memperlihatkan kepada hamba tentang amalan mereka"
       },
       {
         "id": "c",
         "textArabic": "جسم عظيم نوراني كتب فيه القلم",
-        "textMalay": "Solat taubat dua rakaat sahaja"
+        "textMalay": "Jisim agung bercahaya yang ditulis padanya oleh al-Qalam"
       },
       {
         "id": "d",
         "textArabic": "ما سطّرت فيها الملائكة كل ما يفعله المرء",
-        "textMalay": "Membina masjid di kampungnya"
+        "textMalay": "Buku yang disuratkan oleh para malaikat tentang segala amalan yang dilakukan manusia"
       }
     ],
     "correctAnswer": "d",
@@ -856,22 +856,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "إعطاء الكتب خاصًا بالأمة الإسلامية",
-        "textMalay": "Sebelum nyawa sampai ke halkum (ghargharah) dan sebelum matahari terbit dari sebelah barat"
+        "textMalay": "Pemberian buku catatan amalan khusus untuk umat Islam sahaja"
       },
       {
         "id": "b",
         "textArabic": "الصحيفة التي طويت فيها استغفار لها نور يتلألأ",
-        "textMalay": "Sehingga nafas terakhir hembusan maut"
+        "textMalay": "Buku catatan yang dilipat padanya istighfar mempunyai cahaya yang bersinar"
       },
       {
         "id": "c",
         "textArabic": "الصحيفة التي طويت ليس فيها استغفار وهي سوداء مظلمة",
-        "textMalay": "Sehingga dimasukkan ke dalam kubur"
+        "textMalay": "Buku catatan yang dilipat tanpa istighfar adalah hitam dan gelap"
       },
       {
         "id": "d",
         "textArabic": "وُصلت هذه الصحيفة بعضها ببعض حتى تكون صحيفة واحدة.",
-        "textMalay": "Tiada had masa penerimaan taubat"
+        "textMalay": "Lembaran-lembaran ini dicantumkan antara satu sama lain sehingga menjadi satu buku"
       }
     ],
     "correctAnswer": "a",
@@ -892,22 +892,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "يأخذ الكافر كتابه بيمينه",
-        "textMalay": "Titian yang terbentang merentasi atas permukaan Neraka Jahannam menuju ke Syurga"
+        "textMalay": "Orang kafir menerima buku amalannya dengan tangan kanan"
       },
       {
         "id": "b",
         "textArabic": "يأخذ المؤمن كتابه بشماله",
-        "textMalay": "Pintu gerbang istana Syurga"
+        "textMalay": "Orang mukmin menerima buku amalannya dengan tangan kiri"
       },
       {
         "id": "c",
         "textArabic": "هناك من ينسخ هذه الصحف المتعددة في كتب واحدة.",
-        "textMalay": "Jambatan di dunia antara dua kota"
+        "textMalay": "Ada malaikat yang menyalin semula lembaran-lembaran ini ke dalam satu buku"
       },
       {
         "id": "d",
         "textArabic": "وُصلت هذه الصحيفة بعضها ببعض حتى تكون صحيفة واحدة.",
-        "textMalay": "Sungai yang mengalir di Mahsyar"
+        "textMalay": "Lembaran-lembaran ini dicantumkan antara satu sama lain sehingga menjadi satu buku catatan yang satu"
       }
     ],
     "correctAnswer": "d",
@@ -928,22 +928,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "قال تعالى : (وَتُوبُوا إِلَى اللَّهِ جَمِيعًا أَيُّهَ ٱلْمُؤْمِنُونَ لَعَلَّكُمْ تُفْلِحُونَ)",
-        "textMalay": "Lebih halus daripada sehelai rambut dan lebih tajam daripada mata pedang"
+        "textMalay": "Firman Allah: (Dan bertaubatlah kamu sekalian kepada Allah wahai orang beriman...)"
       },
       {
         "id": "b",
         "textArabic": "قال تعالى : (فَأَمَّا مَنْ أُوتى كِتَٰبَهُ بِيَمِينِهِ فَيَقُولُ هَاؤْمُ ٱَقْرَءُواْ كِتَابِيَةُ)",
-        "textMalay": "Jalan raya yang sangat lebar dan rata"
+        "textMalay": "Firman Allah: (Adapun orang yang diberikan kitabnya dari sebelah kanannya, maka dia akan berkata: Ambillah, bacalah kitabku ini...)"
       },
       {
         "id": "c",
         "textArabic": "قال تعالى : (مَالِ هَٰذَا الْكِتَبِ لَا يُغَادِرُ صَغِيرَةً وَلَا كَبِيرَةً إِلَّا أَحْصَىهَا)",
-        "textMalay": "Laluan kayu yang terapung di atas air"
+        "textMalay": "Firman Allah: (Kitab apakah ini yang tidak meninggalkan perkara kecil mahupun besar melainkan dihitungnya semuanya...)"
       },
       {
         "id": "d",
         "textArabic": "قال تعالى : (وَأَمَّا مَنْ أُوتى كِتَبَهُ بِشِمَالِهِ فَيَقُولُ يَلَيْتَنِي لَم أُوتَ كِتَبِيَة)",
-        "textMalay": "Titian besi bertingkat-tingkat"
+        "textMalay": "Firman Allah: (Adapun orang yang diberikan kitabnya dari sebelah kirinya, maka dia berkata: Alangkah baiknya jika tidak diberikan kitabku ini...)"
       }
     ],
     "correctAnswer": "c",
@@ -966,22 +966,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "يأخذ المؤمن كتابه بيمينه - فَأَمَّا مَنْ أُوتى كِتَٰبَهُ بِيَمِينِهِ فَيَقُولُ هَاؤْمُ ٱَقْرَءُواْ كِتَابِيَهْ",
-        "textMalay": "Ada yang melintas sepantas kilat, sepantas angin, sepantas kuda lumba, ada yang berlari, berjalan, merangkak, dan ada yang tercampak ke dalam neraka"
+        "textMalay": "Orang mukmin menerima kitab dengan tangan kanannya - (Maka adapun orang yang diberikan kitabnya dari sebelah kanan...)"
       },
       {
         "id": "b",
         "textArabic": "يأخذه الكافر بشماله - وَأَمَّا مَنْ أُوتى كِتَبَهُ بِشِمَالِهِ فَيَقُولُ يَلَيْتَنِي لَم أُوتَ كِتَبِيَهْ",
-        "textMalay": "Semua manusia melintas dengan kelajuan yang sama"
+        "textMalay": "Orang kafir menerima kitab dengan tangan kirinya - (Adapun orang yang diberikan kitabnya dari sebelah kiri...)"
       },
       {
         "id": "c",
         "textArabic": "يأخذ المؤمن كتابه بيمينه - وَأَمَّا مَنْ أُوتى كِتَبَهُ بِشِمَالِهِ فَيَقُولُ يَلَيْتَنِي لَم أُوتَ كِتَبِيَة",
-        "textMalay": "Hanya orang kaya yang melintas pantas"
+        "textMalay": "Orang mukmin menerima dengan kanan - (Adapun orang yang diberi kitab dari sebelah kiri...)"
       },
       {
         "id": "d",
         "textArabic": "يأخذه الكافر من وراء ظهره - فَأَمَّا مَنْ أُوتى كِتَٰبَهُ بِيَمِينِهِ فَيَقُولُ هَاؤْمُ ٱَقْرَءُواْ كِتَابِيَةُ",
-        "textMalay": "Semua orang mukmin menaiki bahtera emas"
+        "textMalay": "Orang kafir menerima dari belakang - (Maka adapun orang yang diberi kitab dari sebelah kanan...)"
       }
     ],
     "correctAnswer": "a",
@@ -1002,22 +1002,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "إعطاء الكتب خاصّ بالأمة الإسلامية",
-        "textMalay": "Berdasarkan kadar keimanan dan amalan soleh mereka semasa di dunia"
+        "textMalay": "Pemberian kitab khusus untuk umat Islam sahaja"
       },
       {
         "id": "b",
         "textArabic": "لا يعطى الكتاب لمن عافاه اللّه من الحساب",
-        "textMalay": "Berdasarkan rupa paras dan keturunan"
+        "textMalay": "Kitab tidak diberikan kepada orang yang dibebaskan Allah daripada hisab"
       },
       {
         "id": "c",
         "textArabic": "أوتي الكتاب لمن يدخلون الجنة بغير حساب",
-        "textMalay": "Berdasarkan pangkat dan kedudukan sosial"
+        "textMalay": "Kitab diberikan kepada orang yang masuk syurga tanpa hisab"
       },
       {
         "id": "d",
         "textArabic": "عدم إعطاء الكتاب للمؤمن العاصي",
-        "textMalay": "Secara rawak tanpa perkiraan"
+        "textMalay": "Kitab tidak diberikan kepada mukmin yang berdosa"
       }
     ],
     "correctAnswer": "b",
@@ -1038,22 +1038,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "بيمينه",
-        "textMalay": "Al-Haudh (Kolam Nabi ﷺ di Padang Mahsyar)"
+        "textMalay": "Dengan tangan kanannya"
       },
       {
         "id": "b",
         "textArabic": "بشماله",
-        "textMalay": "Al-Kauthar di dalam Syurga"
+        "textMalay": "Dengan tangan kirinya"
       },
       {
         "id": "c",
         "textArabic": "من وراء ظهره",
-        "textMalay": "Sungai Nil"
+        "textMalay": "Dari arah belakang belakangnya"
       },
       {
         "id": "d",
         "textArabic": "التوقّف عن الحكم",
-        "textMalay": "Telaga Zamzam"
+        "textMalay": "Tawaqquf (menahan diri) daripada menetapkan hukum"
       }
     ],
     "correctAnswer": "a",
@@ -1074,22 +1074,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "قال تعالى : (وَتُوبُوا إِلَى اللَّهِ جَمِيعًا أَيُّهَ ٱلْمُؤْمِنُونَ لَعَلَّكُمْ تُفْلِحُونَ)",
-        "textMalay": "Airnya lebih putih daripada susu, lebih sejuk daripada salji, lebih manis daripada madu, dan baunya lebih harum daripada kasturi"
+        "textMalay": "Firman Allah: (Dan bertaubatlah kamu sekalian kepada Allah...)"
       },
       {
         "id": "b",
         "textArabic": "قال تعالى : (مَالِ هَٰذَا الْكِتَبِ لَا يُغَادِرُ صَغِيرَةً وَلَا كَبِيرَةً إِلَّا أَحْصَىهَا)",
-        "textMalay": "Air tawar biasa seperti air perigi"
+        "textMalay": "Firman Allah: (Kitab apakah ini yang tidak meninggalkan yang kecil mahupun besar...)"
       },
       {
         "id": "c",
         "textArabic": "قال تعالى : (فَأَمَّا مَنْ أُوتى كِتَبَهُ بِيَمِينِهِ فَسَوْفَ يُحَاسَبُ حِسَابًا يَسِيرًا)",
-        "textMalay": "Air zamzam yang suam"
+        "textMalay": "Firman Allah: (Maka adapun orang yang diberikan kitabnya dari sebelah kanannya, dia akan dihisab dengan hisab yang mudah)"
       },
       {
         "id": "d",
         "textArabic": "قال تعالى : (وَمَن يَغْفِرُ الْذُنُوُبَ إِلَّا ٱللَّهُ وَلَمْ يُصِرُّواْ عَلَى مَا فَعَلُواْ وَهُمْ يَعْلَمُونَ)",
-        "textMalay": "Air zamrud hijau berkilauan"
+        "textMalay": "Firman Allah: (Dan siapakah yang mengampuni dosa-dosa selain Allah...)"
       }
     ],
     "correctAnswer": "c",
@@ -1110,22 +1110,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "سوق الناس جميعا إلى الموقف",
-        "textMalay": "Tidak akan berasa dahaga selama-lamanya selepas meneguknya walau seteguk"
+        "textMalay": "Menggiring manusia sekalian ke Mauqif"
       },
       {
         "id": "b",
         "textArabic": "جسم عظيم نوراني خلقه الله",
-        "textMalay": "Boleh hidup seribu tahun lagi"
+        "textMalay": "Jisim agung bercahaya yang diciptakan Allah"
       },
       {
         "id": "c",
         "textArabic": "جسر ممدود على متن جهنم",
-        "textMalay": "Terbang ke angkasa raya"
+        "textMalay": "Jambatan yang terbentang di atas belakang neraka Jahannam"
       },
       {
         "id": "d",
         "textArabic": "دار العذاب المعدة للعصاة",
-        "textMalay": "Menjadi halimunan"
+        "textMalay": "Tempat azab yang disediakan untuk orang derhaka"
       }
     ],
     "correctAnswer": "c",
@@ -1148,22 +1148,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "النار",
-        "textMalay": "Setiap nabi mempunyai haudh (kolam) masing-masing, dan kolam Nabi Muhammad ﷺ adalah yang terbesar"
+        "textMalay": "Neraka"
       },
       {
         "id": "b",
         "textArabic": "الصراط",
-        "textMalay": "Hanya Nabi Muhammad ﷺ sahaja yang memiliki kolam"
+        "textMalay": "Al-Sirat"
       },
       {
         "id": "c",
         "textArabic": "السيئات",
-        "textMalay": "Kolam akhirat hanya untuk para malaikat"
+        "textMalay": "Kejahatan (Al-Sayyi'at)"
       },
       {
         "id": "d",
         "textArabic": "الحساب",
-        "textMalay": "Kolam akhirat berada di bawah bumi"
+        "textMalay": "Al-Hisab"
       }
     ],
     "correctAnswer": "b",
@@ -1184,22 +1184,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "الكفار",
-        "textMalay": "Orang yang menukar ganti ajaran agama (murtad atau membuat bid'ah dhalalah selepas kewafatan baginda)"
+        "textMalay": "Orang kafir (sebahagian mereka terus jatuh ke neraka sebelum lalu Sirat)"
       },
       {
         "id": "b",
         "textArabic": "الأنبياء",
-        "textMalay": "Orang miskin yang tidak berharta"
+        "textMalay": "Para Nabi"
       },
       {
         "id": "c",
         "textArabic": "الشهداء",
-        "textMalay": "Orang sakit yang tidak mampu berpuasa"
+        "textMalay": "Para Syuhada"
       },
       {
         "id": "d",
         "textArabic": "الجن",
-        "textMalay": "Kanak-kanak yang belum baligh"
+        "textMalay": "Golongan Jin"
       }
     ],
     "correctAnswer": "a",
@@ -1220,22 +1220,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "1, 2 و 3",
-        "textMalay": "Al-Jannah (Tempat kenikmatan abadi yang disediakan Allah untuk hamba-hamba-Nya yang beriman dan bertakwa)"
+        "textMalay": "1, 2 dan 3"
       },
       {
         "id": "b",
         "textArabic": "1 , 2 و 4",
-        "textMalay": "Taman rekreasi di puncak gunung"
+        "textMalay": "1, 2 dan 4"
       },
       {
         "id": "c",
         "textArabic": "1 , 3 و 4",
-        "textMalay": "Kehidupan duniawi yang mewah"
+        "textMalay": "1, 3 dan 4"
       },
       {
         "id": "d",
         "textArabic": "2 , 3 و 4",
-        "textMalay": "Alam khayalan roh"
+        "textMalay": "2, 3 dan 4"
       }
     ],
     "correctAnswer": "b",
@@ -1258,22 +1258,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "الشفاعة",
-        "textMalay": "Al-Nar (Tempat azab seksaan pedih yang disediakan Allah untuk orang-orang kafir dan penderhaka)"
+        "textMalay": "Al-Syafa'ah"
       },
       {
         "id": "b",
         "textArabic": "الحساب",
-        "textMalay": "Kawah gunung berapi di dunia"
+        "textMalay": "Al-Hisab"
       },
       {
         "id": "c",
         "textArabic": "الحشر",
-        "textMalay": "Penyakit panas dalam kubur"
+        "textMalay": "Al-Hasyar"
       },
       {
         "id": "d",
         "textArabic": "الصراط",
-        "textMalay": "Penderitaan batin semata-mata"
+        "textMalay": "Al-Sirat"
       }
     ],
     "correctAnswer": "d",
@@ -1294,22 +1294,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "جسم عظيم نوراني خلقه الله، وأمره أن يكتب ما كان وما يكون",
-        "textMalay": "Syurga dan Neraka telah pun diciptakan oleh Allah sekarang dan kekal wujud selama-lamanya"
+        "textMalay": "Jisim agung bercahaya dicipta Allah dan diperintahkan menulis apa yang telah dan akan berlaku"
       },
       {
         "id": "b",
         "textArabic": "جسم عظيم نوراني تحت العرش، فوق السماء السابعة",
-        "textMalay": "Syurga dan neraka hanya akan dicipta pada hari kiamat kelak"
+        "textMalay": "Jisim agung bercahaya di bawah Arasy di atas langit ketujuh"
       },
       {
         "id": "c",
         "textArabic": "جسم كتب فيه القلم بإذن الله ما كان وما يكون",
-        "textMalay": "Syurga kekal tetapi neraka akan musnah"
+        "textMalay": "Jisim yang ditulis padanya oleh pena (Qalam) dengan izin Allah tentang apa yang berlaku"
       },
       {
         "id": "d",
         "textArabic": "جسم عظيم نوراني علوي ، فوق العالم",
-        "textMalay": "Keduanya adalah perlambangan maknawi sahaja"
+        "textMalay": "Jisim agung bercahaya yang tinggi mengatasi seluruh alam"
       }
     ],
     "correctAnswer": "d",
@@ -1330,22 +1330,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "أربعة في الدنيا أربعة في الآخرة",
-        "textMalay": "Malaikat Ridwan"
+        "textMalay": "Empat di dunia dan empat di akhirat"
       },
       {
         "id": "b",
         "textArabic": "أربعة في الدنيا وثمانية في الآخرة",
-        "textMalay": "Malaikat Malik"
+        "textMalay": "Empat di dunia dan lapan di akhirat"
       },
       {
         "id": "c",
         "textArabic": "ثمانية في الدنيا وأربعة في الآخرة",
-        "textMalay": "Malaikat Jibril"
+        "textMalay": "Lapan di dunia dan empat di akhirat"
       },
       {
         "id": "d",
         "textArabic": "ثمانية في الدنيا وثمانية في الآخرة",
-        "textMalay": "Malaikat Mikail"
+        "textMalay": "Lapan di dunia dan lapan di akhirat"
       }
     ],
     "correctAnswer": "b",
@@ -1366,22 +1366,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "﴿ وَسِعَ كُرۡسِيُّهُ ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضَۖ ﴾",
-        "textMalay": "Malaikat Malik (bersama 19 malaikat Zabaniyah)"
+        "textMalay": "Firman Allah: (Luasnya Kursi Allah meliputi langit dan bumi...)"
       },
       {
         "id": "b",
         "textArabic": "﴿ وَكُلَّ شَيۡءٍ أَحۡصَيۡنَٰهُ فِيٓ إِمَامٖ مُّبِينٖ ﴾",
-        "textMalay": "Malaikat Ridwan"
+        "textMalay": "Firman Allah: (Dan segala sesuatu Kami hitung dalam kitab catatan yang nyata...)"
       },
       {
         "id": "c",
         "textArabic": "﴿يَوۡمَ تُبَدَّلُ ٱلۡأَرۡضُ غَيۡرَ ٱلۡأَرۡضِ وَٱلسَّمَٰوَٰتُۖ ﴾",
-        "textMalay": "Malaikat Izrail"
+        "textMalay": "Firman Allah: (Pada hari bumi diganti dengan bumi yang lain...)"
       },
       {
         "id": "d",
         "textArabic": "﴿ وَيَحۡمِلُ عَرۡشَ رَبِّكَ فَوۡقَهُمۡ يَوۡمَئِذٖ ثَمَٰنِيَةٞ ﴾",
-        "textMalay": "Malaikat Israfil"
+        "textMalay": "Firman Allah: (Dan Arasy Tuhanmu dipikul oleh lapan malaikat pada hari itu)"
       }
     ],
     "correctAnswer": "d",
@@ -1402,22 +1402,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "جسم عظيم نوراني خلقه الله، وأمره أن يكتب ما كان وما يكون",
-        "textMalay": "Harus pada akal dan wajib pada syarak bagi orang-orang beriman di Syurga"
+        "textMalay": "Jisim agung bercahaya dicipta Allah dan diperintahkan menulis apa yang telah dan akan berlaku"
       },
       {
         "id": "b",
         "textArabic": "جسم عظيم نوراني تحت العرش، فوق السماء السابعة",
-        "textMalay": "Mustahil pada akal dan syarak secara mutlak"
+        "textMalay": "Jisim agung bercahaya di bawah Arasy di atas langit ketujuh"
       },
       {
         "id": "c",
         "textArabic": "جسم كتب فيه القلم بإذن الله ما كان وما يكون",
-        "textMalay": "Wajib di dunia sebelum mati"
+        "textMalay": "Jisim yang ditulis padanya oleh Qalam dengan izin Allah"
       },
       {
         "id": "d",
         "textArabic": "جسم عظيم نوراني علوي ، فوق العالم",
-        "textMalay": "Hanya khusus untuk para Rasul sahaja"
+        "textMalay": "Jisim agung bercahaya yang berada tinggi di atas seluruh alam"
       }
     ],
     "correctAnswer": "b",
@@ -1438,22 +1438,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "تحت السماء السابعة فوق العرش",
-        "textMalay": "Tanpa kaifiyyat (bagaimana), tanpa arah (jihah), tanpa jarak (masafah), dan tanpa penyerupaan dengan makhluk"
+        "textMalay": "Di bawah langit ketujuh di atas Arasy"
       },
       {
         "id": "b",
         "textArabic": "تحت العرش فوق السماء السابعة",
-        "textMalay": "Dengan bertentang mata secara fizikal di satu arah tertentu"
+        "textMalay": "Di bawah Arasy di atas langit ketujuh"
       },
       {
         "id": "c",
         "textArabic": "فوق الأرض تحت السماء السابعة",
-        "textMalay": "Melalui bayang-bayang di cermin"
+        "textMalay": "Di atas bumi di bawah langit ketujuh"
       },
       {
         "id": "d",
         "textArabic": "فوق الأرض تحت العرش",
-        "textMalay": "Dengan perantaraan tabir cahaya semata-mata"
+        "textMalay": "Di atas bumi di bawah Arasy"
       }
     ],
     "correctAnswer": "b",
@@ -1474,22 +1474,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "﴿ وَسِعَ كُرۡسِيُّهُ ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضَۖ ﴾",
-        "textMalay": "Firman Allah: (Wajah-wajah pada hari itu berseri-seri, kepada Tuhannya mereka melihat - Surah Al-Qiyamah: 22-23)"
+        "textMalay": "Firman Allah: (Luasnya Kursi Allah meliputi langit dan bumi...)"
       },
       {
         "id": "b",
         "textArabic": "﴿ وَكُلَّ شَيۡءٍ أَحۡصَيۡنَٰهُ فِيٓ إِمَامٖ مُّبِينٖ ﴾",
-        "textMalay": "Firman Allah: (Dia tidak dapat dicapai oleh penglihatan mata - Surah Al-An'am: 103)"
+        "textMalay": "Firman Allah: (Dan segala sesuatu Kami hitung dalam kitab catatan yang nyata...)"
       },
       {
         "id": "c",
         "textArabic": "﴿يَوۡمَ تُبَدَّلُ ٱلۡأَرۡضُ غَيۡرَ ٱلۡأَرۡضِ وَٱلسَّمَٰوَٰتُۖ ﴾",
-        "textMalay": "Firman Allah: (Engkau sekali-kali tidak akan sanggup melihat-Ku - Surah Al-A'raf: 143)"
+        "textMalay": "Firman Allah: (Pada hari bumi digantikan dengan bumi yang lain...)"
       },
       {
         "id": "d",
         "textArabic": "﴿ وَيَحۡمِلُ عَرۡشَ رَبِّكَ فَوۡقَهُمۡ يَوۡمَئِذٖ ثَمَٰنِيَةٞ ﴾",
-        "textMalay": "Firman Allah: (Tiada sesuatu pun yang serupa dengan-Nya - Surah Asy-Syura: 11)"
+        "textMalay": "Firman Allah: (Dan Arasy Tuhanmu dipikul oleh lapan malaikat...)"
       }
     ],
     "correctAnswer": "a",
@@ -1510,22 +1510,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "جسم عظيم نوراني خلقه الله، وأمره أن يكتب ما كان وما يكون",
-        "textMalay": "Al-Mu'tazilah, Khawarij, dan sebahagian Syi'ah"
+        "textMalay": "Jisim agung bercahaya dicipta Allah dan diperintahkan menulis segala apa yang telah dan akan terjadi"
       },
       {
         "id": "b",
         "textArabic": "جسم عظيم نوراني تحت العرش، فوق السماء السابعة",
-        "textMalay": "Al-Asya'irah dan Al-Maturidiyyah"
+        "textMalay": "Jisim agung bercahaya di bawah Arasy di atas langit ketujuh"
       },
       {
         "id": "c",
         "textArabic": "جسم كتب فيه القلم بإذن الله ما كان وما يكون",
-        "textMalay": "Ahl al-Hadis dan para imam empat mazhab"
+        "textMalay": "Jisim yang ditulis padanya oleh al-Qalam dengan izin Allah segala apa yang telah dan akan berlaku"
       },
       {
         "id": "d",
         "textArabic": "جسم عظيم نوراني علوي ، فوق العالم",
-        "textMalay": "Para sahabat Rasulullah ﷺ"
+        "textMalay": "Jisim agung bercahaya yang tinggi di atas seluruh alam"
       }
     ],
     "correctAnswer": "a",
@@ -1546,22 +1546,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "جسم عظيم نوراني خلقه الله، وأمره أن يكتب ما كان وما يكون",
-        "textMalay": "Kerana melihat pada pandangan mereka melazimkan adanya jisim, arah, dan tempat bagi Allah"
+        "textMalay": "Jisim agung bercahaya dicipta Allah dan diperintahkan menulis apa yang telah dan akan berlaku"
       },
       {
         "id": "b",
         "textArabic": "جسم عظيم نوراني تحت العرش، فوق السماء السابعة",
-        "textMalay": "Kerana tiada dalil nas yang menyebutnya"
+        "textMalay": "Jisim agung bercahaya di bawah Arasy di atas langit ketujuh"
       },
       {
         "id": "c",
         "textArabic": "جسم كتب فيه القلم بإذن الله ما كان وما يكون",
-        "textMalay": "Kerana syurga tiada cahaya"
+        "textMalay": "Jisim yang ditulis padanya oleh al-Qalam dengan izin Allah segala apa yang telah dan akan berlaku"
       },
       {
         "id": "d",
         "textArabic": "جسم عظيم نوراني علوي ، فوق العالم",
-        "textMalay": "Kerana manusia tidak mempunyai mata di akhirat"
+        "textMalay": "Jisim agung bercahaya tinggi di atas alam"
       }
     ],
     "correctAnswer": "c",
@@ -1584,22 +1584,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "الكاتبون",
-        "textMalay": "Kenikmatan melihat Allah Ta'ala (Ru'yatullah) dan keredhaan-Nya yang agung"
+        "textMalay": "Al-Katibun (Malaikat Pencatat)"
       },
       {
         "id": "b",
         "textArabic": "اللوح المحفوظ",
-        "textMalay": "Istana-istana emas dan perak"
+        "textMalay": "Al-Lauh al-Mahfuz"
       },
       {
         "id": "c",
         "textArabic": "صحائف الأعمال",
-        "textMalay": "Bidadari-bidadari syurga"
+        "textMalay": "Buku-buku catatan amalan"
       },
       {
         "id": "d",
         "textArabic": "الحساب",
-        "textMalay": "Makanan dan minuman yang lazat"
+        "textMalay": "Al-Hisab"
       }
     ],
     "correctAnswer": "b",
@@ -1620,22 +1620,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "﴿ وَسِعَ كُرۡسِيُّهُ ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضَۖ ﴾",
-        "textMalay": "Terhalang daripada melihat wajah Allah dan kemurkaan-Nya yang amat dahsyat"
+        "textMalay": "Firman Allah: (Luasnya Kursi Allah meliputi langit dan bumi...)"
       },
       {
         "id": "b",
         "textArabic": "﴿ وَكُلَّ شَيۡءٍ أَحۡصَيۡنَٰهُ فِيٓ إِمَامٖ مُّبِينٖ ﴾",
-        "textMalay": "Kepanasan api yang membakar"
+        "textMalay": "Firman Allah: (Dan segala sesuatu telah Kami catatkan dalam Kitab yang terang dan nyata / Lauh Mahfuz)"
       },
       {
         "id": "c",
         "textArabic": "﴿يَوۡمَ تُبَدَّلُ ٱلۡأَرۡضُ غَيۡرَ ٱلۡأَرۡضِ وَٱلسَّمَٰوَٰتُۖ ﴾",
-        "textMalay": "Minuman nanah yang mendidih"
+        "textMalay": "Firman Allah: (Pada hari bumi digantikan dengan selain bumi...)"
       },
       {
         "id": "d",
         "textArabic": "﴿ وَيَحۡمِلُ عَرۡشَ رَبِّكَ فَوۡقَهُمۡ يَوۡمَئِذٖ ثَمَٰنِيَةٞ ﴾",
-        "textMalay": "Rantai dan belenggu besi"
+        "textMalay": "Firman Allah: (Dan Arasy Tuhanmu dipikul oleh lapan malaikat...)"
       }
     ],
     "correctAnswer": "b",
@@ -1656,22 +1656,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "الكتابة في اللوح المحفوظ",
-        "textMalay": "Kekal di dalam Syurga selama-lamanya tanpa kematian dan tanpa kesudahan"
+        "textMalay": "Penulisan di Lauh al-Mahfuz"
       },
       {
         "id": "b",
         "textArabic": "كتابة أفعال العباد",
-        "textMalay": "Tinggal selama seribu tahun kemudian keluar"
+        "textMalay": "Penulisan amalan-amalan para hamba"
       },
       {
         "id": "c",
         "textArabic": "صحائف الأعمال",
-        "textMalay": "Berpindah ke alam lain selepas tempoh tertentu"
+        "textMalay": "Buku-buku catatan amalan"
       },
       {
         "id": "d",
         "textArabic": "الملائكة الكتبة",
-        "textMalay": "Lenyap menjadi debu"
+        "textMalay": "Malaikat-malaikat pencatat (Al-Katabah)"
       }
     ],
     "correctAnswer": "d",
@@ -1692,22 +1692,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "ما يمدح فاعلها شرعا",
-        "textMalay": "Kekal di dalam Neraka selama-lamanya tanpa diringankan azab mereka sedikit pun"
+        "textMalay": "Amalan yang pelakunya dipuji oleh syarak"
       },
       {
         "id": "b",
         "textArabic": "سؤال الخير من الغير",
-        "textMalay": "Akan keluar selepas selesai tempoh hukuman"
+        "textMalay": "Memohon kebaikan daripada pihak lain"
       },
       {
         "id": "c",
         "textArabic": "جسم عظيم نوراني علوي",
-        "textMalay": "Azab mereka menjadi sejuk seperti salji"
+        "textMalay": "Jisim agung bercahaya yang tinggi"
       },
       {
         "id": "d",
         "textArabic": "دار الثواب التي أعدها الله للمؤمنين",
-        "textMalay": "Jasad mereka menjadi kebal daripada api"
+        "textMalay": "Negeri ganjaran pahala yang disediakan Allah untuk hamba-hamba-Nya yang beriman"
       }
     ],
     "correctAnswer": "d",
@@ -1730,22 +1730,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "الجنة",
-        "textMalay": "Tidak kekal di dalam neraka; mereka akan dikeluarkan dengan rahmat Allah dan syafaat hingga dimasukkan ke Syurga"
+        "textMalay": "Syurga (Al-Jannah)"
       },
       {
         "id": "b",
         "textArabic": "الصراط",
-        "textMalay": "Kekal di dalam neraka selama-lamanya seperti orang kafir"
+        "textMalay": "Al-Sirat"
       },
       {
         "id": "c",
         "textArabic": "الشفاعة",
-        "textMalay": "Dihapuskan kewujudan mereka daripada alam"
+        "textMalay": "Syafaat"
       },
       {
         "id": "d",
         "textArabic": "الحسنات",
-        "textMalay": "Ditempatkan di antara syurga dan neraka selama-lamanya"
+        "textMalay": "Kebaikan (Al-Hasanat)"
       }
     ],
     "correctAnswer": "a",
@@ -1766,22 +1766,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "ما يذم فاعلها شرعا",
-        "textMalay": "Tempat tinggi antara Syurga dan Neraka bagi mereka yang sama berat timbangan kebaikan dan keburukannya"
+        "textMalay": "Perkara yang pelakunya dicela oleh syarak"
       },
       {
         "id": "b",
         "textArabic": "جسم لطيف محرق",
-        "textMalay": "Pintu masuk ke neraka paling bawah"
+        "textMalay": "Jisim halus yang membakar"
       },
       {
         "id": "c",
         "textArabic": "دار العذاب المعدّة للعصاة",
-        "textMalay": "Nama salah sebuah sungai di syurga"
+        "textMalay": "Negeri azab yang disediakan untuk orang yang menderhaka dan ingkar"
       },
       {
         "id": "d",
         "textArabic": "جسم عظيم نوراني تحت العرش",
-        "textMalay": "Pasar perniagaan di Padang Mahsyar"
+        "textMalay": "Jisim agung bercahaya di bawah Arasy"
       }
     ],
     "correctAnswer": "c",
@@ -1804,22 +1804,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "القبر",
-        "textMalay": "Akhirnya mereka akan dimasukkan ke dalam Syurga dengan rahmat dan keampunan Allah Ta'ala"
+        "textMalay": "Kubur"
       },
       {
         "id": "b",
         "textArabic": "النار",
-        "textMalay": "Mereka kekal di atas Al-A'raf selamanya"
+        "textMalay": "Neraka"
       },
       {
         "id": "c",
         "textArabic": "الصراط",
-        "textMalay": "Mereka dicampakkan ke dalam neraka"
+        "textMalay": "Al-Sirat"
       },
       {
         "id": "d",
         "textArabic": "السيئات",
-        "textMalay": "Mereka dihantar semula ke dunia"
+        "textMalay": "Kejahatan (Al-Sayyi'at)"
       }
     ],
     "correctAnswer": "b",
@@ -1840,22 +1840,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "الحطمة",
-        "textMalay": "Wajib disabitkan berdasarkan nas sahih daripada Sunnah Nabawiyyah dan Ijma' Salaf"
+        "textMalay": "Al-Hutamah"
       },
       {
         "id": "b",
         "textArabic": "الهاوية",
-        "textMalay": "Hukumnya makruh dibahaskan"
+        "textMalay": "Al-Hawiyah"
       },
       {
         "id": "c",
         "textArabic": "جهنم",
-        "textMalay": "Perkara khilafiah yang harus diingkari"
+        "textMalay": "Jahannam"
       },
       {
         "id": "d",
         "textArabic": "سقر",
-        "textMalay": "Mempunyai hukum bidaah"
+        "textMalay": "Saqar"
       }
     ],
     "correctAnswer": "c",
@@ -1876,22 +1876,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "الحطمة",
-        "textMalay": "Dosa-dosa yang berkaitan dengan hak-hak sesama hamba (Mazhalim al-'Ibad)"
+        "textMalay": "Al-Hutamah"
       },
       {
         "id": "b",
         "textArabic": "الهاوية",
-        "textMalay": "Dosa meninggalkan solat sunat"
+        "textMalay": "Al-Hawiyah"
       },
       {
         "id": "c",
         "textArabic": "جهنم",
-        "textMalay": "Dosa makan makanan syubhah secara tidak sengaja"
+        "textMalay": "Jahannam"
       },
       {
         "id": "d",
         "textArabic": "سقر",
-        "textMalay": "Dosa berangan-angan kosong"
+        "textMalay": "Saqar"
       }
     ],
     "correctAnswer": "b",
@@ -1912,22 +1912,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "الهاوية – الحطمة – سقر - جهنم",
-        "textMalay": "Kebaikan orang yang zalim diambil dan diberikan kepada mangsa zalim, jika habis kebaikan maka keburukan mangsa dipindahkan kepadanya lalu dicampak ke neraka"
+        "textMalay": "Al-Hawiyah - Al-Hutamah - Saqar - Jahannam"
       },
       {
         "id": "b",
         "textArabic": "الهاوية – سقر – الحطمة - جهنم",
-        "textMalay": "Ditebus dengan emas dan perak"
+        "textMalay": "Al-Hawiyah - Saqar - Al-Hutamah - Jahannam"
       },
       {
         "id": "c",
         "textArabic": "جهنم – الحطمة - سقر - الهاوية",
-        "textMalay": "Mangsa memaafkan secara paksa"
+        "textMalay": "Jahannam - Al-Hutamah - Saqar - Al-Hawiyah"
       },
       {
         "id": "d",
         "textArabic": "جهنم - سقر– الحطمة – الهاوية",
-        "textMalay": "Diselesaikan oleh mahkamah dunia"
+        "textMalay": "Jahannam - Saqar - Al-Hutamah - Al-Hawiyah"
       }
     ],
     "correctAnswer": "c",
@@ -1948,22 +1948,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "١ – ٣ – ٤ - ٢",
-        "textMalay": "Orang yang muflis (Al-Muflis) pada hari kiamat"
+        "textMalay": "1 - 3 - 4 - 2"
       },
       {
         "id": "b",
         "textArabic": "٢ – ٣ - ٤  - ١",
-        "textMalay": "Orang yang paling bahagia"
+        "textMalay": "2 - 3 - 4 - 1"
       },
       {
         "id": "c",
         "textArabic": "٣ – ٤ – ٢ - ١",
-        "textMalay": "Orang yang syahid"
+        "textMalay": "3 - 4 - 2 - 1"
       },
       {
         "id": "d",
         "textArabic": "١ – ٤ – ٣ – ٢",
-        "textMalay": "Orang yang dermawan"
+        "textMalay": "1 - 4 - 3 - 2"
       }
     ],
     "correctAnswer": "a",
@@ -1984,22 +1984,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "﴿ وَكُلَّ شَيۡءٍ أَحۡصَيۡنَٰهُ فِيٓ إِمَامٖ مُّبِينٖ ﴾",
-        "textMalay": "Syafaat para nabi, para rasul, para malaikat, para syuhada, dan orang-orang soleh"
+        "textMalay": "Firman Allah: (Dan segala sesuatu Kami catatkan dalam Imam yang nyata...)"
       },
       {
         "id": "b",
         "textArabic": "﴿ٱلنَّارُ يُعۡرَضُونَ عَلَيۡهَا غُدُوّٗا وَعَشِيّٗاۚ ﴾",
-        "textMalay": "Syafaat berhala dan patung sembahan"
+        "textMalay": "Firman Allah: (Neraka diperlihatkan kepada mereka pagi dan petang...)"
       },
       {
         "id": "c",
         "textArabic": "﴿ وَمَن جَآءَ بِٱلسَّيِّئَةِ فَلَا يُجۡزَىٰٓ إِلَّا مِثۡلَهَا﴾",
-        "textMalay": "Syafaat jin-jin yang kafir"
+        "textMalay": "Firman Allah: (Dan sesiapa membawa kejahatan tidak dibalas melainkan setimpal dengannya...)"
       },
       {
         "id": "d",
         "textArabic": "﴿إِنَّ ٱللَّهَ لَعَنَ ٱلۡكَٰفِرِينَ وَأَعَدَّ لَهُمۡ سَعِيرًا ﴾",
-        "textMalay": "Syafaat harta benda dunia"
+        "textMalay": "Firman Allah: (Sesungguhnya Allah melaknat orang kafir dan menyediakan bagi mereka neraka Sa'ir)"
       }
     ],
     "correctAnswer": "d",
@@ -2022,22 +2022,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "عذاب القبر",
-        "textMalay": "Izin daripada Allah Ta'ala dan keredhaan-Nya terhadap orang yang diberi syafaat"
+        "textMalay": "Azab kubur"
       },
       {
         "id": "b",
         "textArabic": "وجود النار",
-        "textMalay": "Hubungan persaudaraan atau kekeluargaan di dunia"
+        "textMalay": "Kewujudan neraka"
       },
       {
         "id": "c",
         "textArabic": "معنى السيئات",
-        "textMalay": "Bayaran tebusan wang perak"
+        "textMalay": "Makna kejahatan (Al-Sayyi'at)"
       },
       {
         "id": "d",
         "textArabic": "ثبوت اليوم الآخر",
-        "textMalay": "Surat akuan daripada pemerintah dunia"
+        "textMalay": "Pensabitan hari akhirat"
       }
     ],
     "correctAnswer": "b",
@@ -2058,22 +2058,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "ما يمدح فاعلها شرعا",
-        "textMalay": "Orang yang mati dalam keadaan syirik dan kufur kepada Allah"
+        "textMalay": "Perkara yang dipuji pelakunya oleh syarak"
       },
       {
         "id": "b",
         "textArabic": "جسم عظيم نوراني علوي",
-        "textMalay": "Orang mukmin yang melakukan dosa kecil"
+        "textMalay": "Jisim agung bercahaya yang tinggi"
       },
       {
         "id": "c",
         "textArabic": "دار الثواب التي أعدها الله للمؤمنين",
-        "textMalay": "Orang mukmin yang bertaubat nasuha"
+        "textMalay": "Negeri ganjaran yang disediakan untuk orang beriman"
       },
       {
         "id": "d",
         "textArabic": "الأمور التي قد أوجب الشارع حفظها",
-        "textMalay": "Orang miskin yang sabar"
+        "textMalay": "Perkara-perkara asas (maslahat) yang diwajibkan oleh syarak untuk menjaganya"
       }
     ],
     "correctAnswer": "d",
@@ -2094,22 +2094,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "لحفظ الدين",
-        "textMalay": "Nabi kita Muhammad ﷺ sujud di bawah 'Arasy memuji Allah dengan pujian yang diilhamkan, lalu Allah berfirman: Angkatlah kepalamu, mintalah nescaya diberi..."
+        "textMalay": "Untuk memelihara agama"
       },
       {
         "id": "b",
         "textArabic": "ليتفرع عليها أحكام كثيرة",
-        "textMalay": "Baginda terus membuka pintu neraka sendiri"
+        "textMalay": "Kerana daripadanya berpecah banyak hukum-hakam"
       },
       {
         "id": "c",
         "textArabic": "بحفظه صيانته عن الكفر",
-        "textMalay": "Baginda berhujah dengan para malaikat"
+        "textMalay": "Dengan memeliharanya ia terpelihara daripada kekufuran"
       },
       {
         "id": "d",
         "textArabic": "الثواب التي أعدها الله للمؤمنين",
-        "textMalay": "Baginda memanggil umatnya berkumpul di bukit"
+        "textMalay": "Ganjaran pahala yang disediakan untuk orang beriman"
       }
     ],
     "correctAnswer": "b",
@@ -2130,22 +2130,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "١ و٢",
-        "textMalay": "Syafaat untuk memulakan hisab bagi seluruh makhluk kerana penderitaan yang terlalu lama di Mahsyar"
+        "textMalay": "1 dan 2"
       },
       {
         "id": "b",
         "textArabic": "٢ و٣",
-        "textMalay": "Syafaat untuk orang kafir keluar dari neraka"
+        "textMalay": "2 dan 3"
       },
       {
         "id": "c",
         "textArabic": "٣ و٤",
-        "textMalay": "Syafaat untuk melambatkan hari kiamat"
+        "textMalay": "3 dan 4"
       },
       {
         "id": "d",
         "textArabic": "١ و٤",
-        "textMalay": "Syafaat untuk menurunkan hujan di akhirat"
+        "textMalay": "1 dan 4"
       }
     ],
     "correctAnswer": "b",
@@ -2166,22 +2166,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "مناط التكليف",
-        "textMalay": "Seluruh manusia dari sekelian umat sejak Nabi Adam a.s. hingga manusia terakhir"
+        "textMalay": "Asas kelayakan taklif (tanggungjawab syarak)"
       },
       {
         "id": "b",
         "textArabic": "كل ما يحل تملكه شرعا",
-        "textMalay": "Khusus untuk penduduk Madinah sahaja"
+        "textMalay": "Setiap perkara yang halal dimiliki pada syarak"
       },
       {
         "id": "c",
         "textArabic": "ما شرع الله لعباده من الأحكام",
-        "textMalay": "Khusus untuk orang-orang Quraisy sahaja"
+        "textMalay": "Hukum-hakam yang disyariatkan Allah kepada hamba-hamba-Nya"
       },
       {
         "id": "d",
         "textArabic": "موضع المدح والذم من الإنسان",
-        "textMalay": "Khusus untuk orang kaya yang bersedekah"
+        "textMalay": "Tempat pujian dan celaan bagi manusia"
       }
     ],
     "correctAnswer": "c",
@@ -2202,22 +2202,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "القتال",
-        "textMalay": "Kedudukan yang terpuji (Al-Maqam al-Mahmud) yang dijanjikan oleh Allah kepada baginda"
+        "textMalay": "Peperangan (al-Qital)"
       },
       {
         "id": "b",
         "textArabic": "القصاص",
-        "textMalay": "Kekuasaan politik dunia"
+        "textMalay": "Hukuman Qisas"
       },
       {
         "id": "c",
         "textArabic": "حد القذف",
-        "textMalay": "Harta perbendaharaan bumi"
+        "textMalay": "Hukuman Qazaf (menuduh zina)"
       },
       {
         "id": "d",
         "textArabic": "حد السرقة",
-        "textMalay": "Mahkota emas bertatah berlian"
+        "textMalay": "Hukuman potong tangan kerana mencuri"
       }
     ],
     "correctAnswer": "b",
@@ -2238,22 +2238,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "حد الزنا",
-        "textMalay": "Menerima dengan tangan kanan dari arah hadapan wajah mereka"
+        "textMalay": "Hukuman Zina"
       },
       {
         "id": "b",
         "textArabic": "القتال",
-        "textMalay": "Menerima dengan tangan kiri dari arah belakang"
+        "textMalay": "Peperangan (al-Qital)"
       },
       {
         "id": "c",
         "textArabic": "القصاص",
-        "textMalay": "Buku mereka tercampak ke dalam laut"
+        "textMalay": "Hukuman Qisas"
       },
       {
         "id": "d",
         "textArabic": "حد القذف",
-        "textMalay": "Buku mereka dibakar api"
+        "textMalay": "Hukuman Qazaf"
       }
     ],
     "correctAnswer": "a",
@@ -2274,22 +2274,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "مناط التكليف",
-        "textMalay": "Menerima dengan tangan kiri dari arah belakang punggung mereka"
+        "textMalay": "Asas tanggungan taklif syarak"
       },
       {
         "id": "b",
         "textArabic": "كل ما يحل تملكه شرعًا",
-        "textMalay": "Menerima dengan tangan kanan sambil tersenyum"
+        "textMalay": "Setiap yang halal dimiliki secara syarak"
       },
       {
         "id": "c",
         "textArabic": "موضع المدح والذم من الإنسان",
-        "textMalay": "Buku amalan mereka diserahkan oleh malaikat rahmat"
+        "textMalay": "Tempat pujian dan celaan bagi manusia"
       },
       {
         "id": "d",
         "textArabic": "الارتباط الذي يكون بين الوالد وولده",
-        "textMalay": "Buku mereka disimpan di dalam peti emas"
+        "textMalay": "Hubungan pertalian antara bapa dan anaknya"
       }
     ],
     "correctAnswer": "a",
@@ -2310,22 +2310,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "رئاسة عامة في الدين والدنيا",
-        "textMalay": "Kulit, tangan, kaki, mata, telinga, dan lidah mereka menjadi saksi atas segala yang pernah mereka lakukan"
+        "textMalay": "Kepimpinan umum dalam urusan agama dan dunia"
       },
       {
         "id": "b",
         "textArabic": "رئاسة خاصة في الدين والدنيا",
-        "textMalay": "Hanya saksi manusia lain yang bercakap"
+        "textMalay": "Kepimpinan khusus dalam urusan agama dan dunia"
       },
       {
         "id": "c",
         "textArabic": "دار العذاب المعدة للعصاة",
-        "textMalay": "Tiada saksi yang dibenarkan bersuara"
+        "textMalay": "Negeri azab yang disediakan untuk orang ingkar"
       },
       {
         "id": "d",
         "textArabic": "دار الثواب التي أعدها الله للمؤمنين",
-        "textMalay": "Mereka mampu berbohong untuk melepaskan diri"
+        "textMalay": "Negeri pahala yang disediakan Allah untuk orang beriman"
       }
     ],
     "correctAnswer": "a",
@@ -2346,22 +2346,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "١ و٢",
-        "textMalay": "Dapat menyelamatkan manusia daripada azab Allah dan menjadi punca kebahagiaan abadi"
+        "textMalay": "1 dan 2"
       },
       {
         "id": "b",
         "textArabic": "٢ و٣",
-        "textMalay": "Dapat dijadikan kebanggaan sesama kawan"
+        "textMalay": "2 dan 3"
       },
       {
         "id": "c",
         "textArabic": "٣ و٤",
-        "textMalay": "Menghapuskan keperluan mentaati syariat"
+        "textMalay": "3 dan 4"
       },
       {
         "id": "d",
         "textArabic": "١ و٤",
-        "textMalay": "Menjamin kekayaan di dunia"
+        "textMalay": "1 dan 4"
       }
     ],
     "correctAnswer": "d",
@@ -2382,22 +2382,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "مستحقر في أعين الناس",
-        "textMalay": "Beriman kepada rukun iman yang enam dan melaksanakan rukun Islam yang lima serta ihsan"
+        "textMalay": "Dihina dan dipandang rendah pada pandangan manusia"
       },
       {
         "id": "b",
         "textArabic": "الفاسق لا يوثق به في أمره ونهيه",
-        "textMalay": "Hanya mengucapkan syahadah tanpa sebarang amalan"
+        "textMalay": "Orang fasiq tidak boleh dipercayai dalam suruhan dan larangannya"
       },
       {
         "id": "c",
         "textArabic": "يجب على الأمة طاعة الإمام في حدود الشرع",
-        "textMalay": "Mencari falsafah logik semata-mata"
+        "textMalay": "Umat wajib mentaati pemimpin dalam batasan syarak"
       },
       {
         "id": "d",
         "textArabic": "الكافر لا يراعي مصالح المسلمين الدينية والدنيوية",
-        "textMalay": "Mengasingkan diri di dalam hutan tanpa beramal"
+        "textMalay": "Orang kafir tidak akan menjaga kepentingan agama dan dunia umat Islam"
       }
     ],
     "correctAnswer": "d",
@@ -2418,22 +2418,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "تجب طاعته",
-        "textMalay": "Wajib secara ijma' dan menafikannya membawa kepada kekufuran"
+        "textMalay": "Wajib mentaatinya"
       },
       {
         "id": "b",
         "textArabic": "لا تجب طاعته",
-        "textMalay": "Perkara sunat yang boleh ditinggalkan"
+        "textMalay": "Tidak wajib mentaatinya (bahkan haram mentaati dalam perkara haram)"
       },
       {
         "id": "c",
         "textArabic": "يجب خلعه",
-        "textMalay": "Hukum harus yang tidak berdosa jika diingkari"
+        "textMalay": "Wajib melucutkan jawatannya"
       },
       {
         "id": "d",
         "textArabic": "لا تجب خلعه",
-        "textMalay": "Pandangan peribadi sebahagian ahli kalam"
+        "textMalay": "Tidak wajib melucutkannya"
       }
     ],
     "correctAnswer": "b",
@@ -2454,22 +2454,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "١ و٢",
-        "textMalay": "Menjadikan manusia sentiasa berwaspada, menjauhi maksiat, memperbanyak amal soleh, dan bersiap sedia menghadapi kematian"
+        "textMalay": "1 dan 2"
       },
       {
         "id": "b",
         "textArabic": "٢ و٣",
-        "textMalay": "Menjadikan manusia berputus asa daripada kehidupan dunia"
+        "textMalay": "2 dan 3"
       },
       {
         "id": "c",
         "textArabic": "٣ و٤",
-        "textMalay": "Menyebabkan manusia menjadi malas bekerja"
+        "textMalay": "3 dan 4"
       },
       {
         "id": "d",
         "textArabic": "١ و٤",
-        "textMalay": "Menghilangkan minat terhadap ilmu pengetahuan"
+        "textMalay": "1 dan 4"
       }
     ],
     "correctAnswer": "a",
