@@ -30,7 +30,7 @@ import { subscribeToCloudStudents, subscribeToCloudSubmissions, CloudQuizSubmiss
 
 const STORAGE_KEY_STATS = 'al_dirasat_stats_v1';
 const STORAGE_KEY_BADGES = 'al_dirasat_badges_v1';
-const STORAGE_KEY_QUESTIONS = 'al_dirasat_custom_questions_v5';
+const STORAGE_KEY_QUESTIONS = 'al_dirasat_custom_questions_v6';
 const STORAGE_KEY_STUDENTS = 'stam_students_roster_v3';
 const STORAGE_KEY_TOPICS = 'al_dirasat_custom_topics_v3';
 
@@ -94,45 +94,60 @@ export default function App() {
       localStorage.removeItem('al_dirasat_custom_questions_v1');
       localStorage.removeItem('al_dirasat_custom_questions_v2');
       localStorage.removeItem('al_dirasat_custom_questions_v3');
+      localStorage.removeItem('al_dirasat_custom_questions_v4');
 
+      const officialMap = new Map(QUESTIONS_DATA.map((q) => [q.id, q]));
       const saved = localStorage.getItem(STORAGE_KEY_QUESTIONS);
+      let parsed: Question[] = [];
+
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(sanitizeQuestion);
-        }
-      }
-
-      // First time loading v5: check if user had custom-added questions in v4
-      const v4Saved = localStorage.getItem('al_dirasat_custom_questions_v4');
-      const officialIds = new Set(QUESTIONS_DATA.map((q) => q.id));
-      const customQuestionsFromV4: Question[] = [];
-
-      if (v4Saved) {
         try {
-          const v4Parsed = JSON.parse(v4Saved);
-          if (Array.isArray(v4Parsed)) {
-            v4Parsed.forEach((q: Question) => {
-              if (q && q.id && !officialIds.has(q.id)) {
-                customQuestionsFromV4.push(sanitizeQuestion(q));
-              }
-            });
-          }
+          parsed = JSON.parse(saved);
         } catch {
           // ignore
         }
+      } else {
+        // Migration from v5
+        const v5Saved = localStorage.getItem('al_dirasat_custom_questions_v5');
+        if (v5Saved) {
+          try {
+            parsed = JSON.parse(v5Saved);
+          } catch {
+            // ignore
+          }
+          localStorage.removeItem('al_dirasat_custom_questions_v5');
+        }
       }
 
-      // Remove legacy v4
-      localStorage.removeItem('al_dirasat_custom_questions_v4');
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Merge official questions to ensure bilingual options from code are always fresh
+        const merged = parsed.map((q) => {
+          const official = officialMap.get(q.id);
+          if (official) {
+            return {
+              ...official,
+              difficulty: q.difficulty || official.difficulty,
+              learningStandard: q.learningStandard || official.learningStandard,
+            };
+          }
+          return sanitizeQuestion(q);
+        });
 
-      const initialList = [...QUESTIONS_DATA.map(sanitizeQuestion), ...customQuestionsFromV4];
-      try {
-        localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(initialList));
-      } catch {
-        // ignore
+        // Ensure any newly added official questions are present
+        const existingIds = new Set(merged.map((q) => q.id));
+        for (const official of QUESTIONS_DATA) {
+          if (!existingIds.has(official.id)) {
+            merged.push(official);
+          }
+        }
+
+        try {
+          localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(merged));
+        } catch {
+          // ignore
+        }
+        return merged;
       }
-      return initialList;
     } catch {
       // fallback
     }

@@ -323,12 +323,16 @@ export const SubjectPracticeView: React.FC<SubjectPracticeViewProps> = ({
                 <span className="text-[11px] font-semibold text-slate-300">
                   Jumlah: <span className="text-white font-bold">40 Soalan</span>
                 </span>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1 shadow-sm">
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  Jam Detik: 1 Jam 15 Minit
+                </span>
               </div>
               <h4 className="text-sm font-bold text-white">
                 Set 40 Soalan Campuran Rawak
               </h4>
               <p className="text-[11px] text-slate-300 leading-relaxed">
-                Gabungan seimbang 40 soalan mengikut format Kertas 1:
+                Simulasi Kertas 1 sebenar dengan had masa 1 jam 15 minit (countdown timer). Gabungan seimbang mengikut format STAM:
               </p>
               <div className="flex items-center gap-2 flex-wrap pt-0.5">
                 <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-emerald-950 border border-emerald-600/40 text-emerald-300 flex items-center gap-1">
@@ -352,8 +356,8 @@ export const SubjectPracticeView: React.FC<SubjectPracticeViewProps> = ({
               onClick={handleStartRandom40Quiz}
               className="py-3 px-4 sm:px-5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 transition-all active:scale-95 shrink-0"
             >
-              <Shuffle className="w-4 h-4" />
-              <span>Jawab Set 40 Soalan Rawak</span>
+              <Clock className="w-4 h-4 fill-slate-950/20" />
+              <span>Jawab 40 Soalan (1j 15m)</span>
             </button>
           </div>
         </div>

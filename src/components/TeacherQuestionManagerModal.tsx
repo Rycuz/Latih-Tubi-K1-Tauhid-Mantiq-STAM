@@ -30,6 +30,7 @@ import { Question, SubjectId, TopicInfo, Difficulty, StudentRecord } from '../ty
 import { TOPICS_DATA } from '../data/questions';
 import { soundEffects } from '../utils/audio';
 import { cleanRepeatedText, sanitizeQuestion } from '../utils/sanitizeText';
+import { autoTranslateArabicOption } from '../utils/bilingualTranslator';
 import { FormattedQuestionStem } from './FormattedQuestionStem';
 import { QuestionDiagramRenderer } from './QuestionDiagramRenderer';
 import { TeacherDashboard } from './TeacherDashboard';
@@ -217,6 +218,46 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
     setFormExplanationArabic('');
     setFormExplanationMalay('');
     setFormDifficulty('sederhana');
+  };
+
+  const handleAutoTranslateOptions = () => {
+    soundEffects.playClick();
+    let updatedCount = 0;
+    if (formOptAArabic.trim() && !formOptAMalay.trim()) {
+      const tr = autoTranslateArabicOption(formOptAArabic);
+      if (tr) {
+        setFormOptAMalay(tr);
+        updatedCount++;
+      }
+    }
+    if (formOptBArabic.trim() && !formOptBMalay.trim()) {
+      const tr = autoTranslateArabicOption(formOptBArabic);
+      if (tr) {
+        setFormOptBMalay(tr);
+        updatedCount++;
+      }
+    }
+    if (formOptCArabic.trim() && !formOptCMalay.trim()) {
+      const tr = autoTranslateArabicOption(formOptCArabic);
+      if (tr) {
+        setFormOptCMalay(tr);
+        updatedCount++;
+      }
+    }
+    if (formOptDArabic.trim() && !formOptDMalay.trim()) {
+      const tr = autoTranslateArabicOption(formOptDArabic);
+      if (tr) {
+        setFormOptDMalay(tr);
+        updatedCount++;
+      }
+    }
+
+    if (updatedCount > 0) {
+      setSuccessNotice(`Berjaya mencadangkan ${updatedCount} terjemahan dwi bahasa secara automatik!`);
+    } else {
+      setSuccessNotice('Tiada terjemahan baharu yang dicadangkan atau terjemahan telah pun diisi.');
+    }
+    setTimeout(() => setSuccessNotice(null), 3000);
   };
 
   const handleSaveQuestionForm = (e: React.FormEvent) => {
@@ -702,28 +743,39 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                           />
                         </div>
 
-                        {/* Options preview summary */}
+                        {/* Options preview summary (Dwi Bahasa: Bahasa Arab & Bahasa Melayu) */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                           {q.options.map((opt) => {
                             const isCorrect = opt.id === q.correctAnswer;
                             return (
                               <div
                                 key={opt.id}
-                                className={`p-2 rounded-xl border flex items-start gap-2 ${
+                                className={`p-2.5 rounded-xl border flex items-start gap-2.5 transition-all ${
                                   isCorrect
-                                    ? 'bg-emerald-950/50 border-emerald-500 text-emerald-200 font-semibold'
-                                    : 'bg-slate-800/40 border-slate-800 text-slate-400'
+                                    ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200 shadow-sm'
+                                    : 'bg-slate-800/50 border-slate-800/90 text-slate-300'
                                 }`}
                               >
-                                <span className="font-bold shrink-0">
-                                  ({opt.id.toUpperCase()} - {labelArabicMap[opt.id]}):
+                                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-lg shrink-0 mt-0.5 ${
+                                  isCorrect ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-700/70 text-slate-300'
+                                }`}>
+                                  {opt.id.toUpperCase()} ({labelArabicMap[opt.id]})
                                 </span>
-                                <span className="font-arabic text-right flex-1 truncate" dir="rtl">
-                                  {opt.textArabic || opt.textMalay}
-                                </span>
+                                <div className="flex-1 min-w-0">
+                                  {opt.textArabic && (
+                                    <div className="font-arabic text-right font-medium text-slate-100 text-xs leading-relaxed" dir="rtl">
+                                      {opt.textArabic}
+                                    </div>
+                                  )}
+                                  {opt.textMalay && opt.textMalay !== opt.textArabic && (
+                                    <div className="text-[11px] text-teal-300/90 leading-snug mt-1 italic">
+                                      {opt.textMalay}
+                                    </div>
+                                  )}
+                                </div>
                                 {isCorrect && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-bold shrink-0">
-                                    BOLD
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold shrink-0">
+                                    JAWAPAN
                                   </span>
                                 )}
                               </div>
@@ -944,11 +996,37 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                   )}
                 </div>
 
-                {/* 4 Options (أ, ب, ج, د) with Correct Answer Selector */}
+                {/* 4 Options (أ, ب, ج, د) with Correct Answer Selector & Bilingual Columns */}
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
-                    Pilihan Jawapan (Tandakan Radio Jawapan Yang Betul):
-                  </label>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <label className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
+                        Pilihan Jawapan (4 Pilihan Dwi Bahasa):
+                      </label>
+                      <span className="text-[11px] text-slate-400 block">
+                        Kolum Kiri: Bahasa Arab | Kolum Kanan: Terjemahan Bahasa Melayu
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAutoTranslateOptions}
+                      className="px-3 py-1.5 rounded-xl bg-teal-900/60 hover:bg-teal-800/80 border border-teal-500/40 text-teal-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm self-start sm:self-auto"
+                      title="Isi terjemahan Bahasa Melayu secara automatik daripada Glosari STAM"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-teal-300" />
+                      <span>⚡ Cadang Terjemahan BM</span>
+                    </button>
+                  </div>
+
+                  {/* Header labels for the two columns */}
+                  <div className="hidden sm:grid sm:grid-cols-2 gap-2 text-[11px] font-bold text-slate-400 px-3">
+                    <div className="text-right text-emerald-300 font-arabic" dir="rtl">
+                      الخيار باللغة العربية (Kolum Arab)
+                    </div>
+                    <div className="text-teal-300">
+                      Terjemahan Bahasa Melayu (Kolum BM)
+                    </div>
+                  </div>
 
                   {/* Option A */}
                   <div className={`p-3 rounded-2xl border transition-all ${
@@ -988,7 +1066,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                         type="text"
                         value={formOptAMalay}
                         onChange={(e) => setFormOptAMalay(e.target.value)}
-                        placeholder="Huraian/Terjemahan Melayu (Pilihan)..."
+                        placeholder="Terjemahan Bahasa Melayu (Pilihan A)..."
                         className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />
                     </div>
@@ -1032,7 +1110,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                         type="text"
                         value={formOptBMalay}
                         onChange={(e) => setFormOptBMalay(e.target.value)}
-                        placeholder="Huraian/Terjemahan Melayu (Pilihan)..."
+                        placeholder="Terjemahan Bahasa Melayu (Pilihan B)..."
                         className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />
                     </div>
@@ -1075,7 +1153,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                         type="text"
                         value={formOptCMalay}
                         onChange={(e) => setFormOptCMalay(e.target.value)}
-                        placeholder="Huraian/Terjemahan Melayu (Pilihan)..."
+                        placeholder="Terjemahan Bahasa Melayu (Pilihan C)..."
                         className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />
                     </div>
@@ -1118,7 +1196,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                         type="text"
                         value={formOptDMalay}
                         onChange={(e) => setFormOptDMalay(e.target.value)}
-                        placeholder="Huraian/Terjemahan Melayu (Pilihan)..."
+                        placeholder="Terjemahan Bahasa Melayu (Pilihan D)..."
                         className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />
                     </div>

@@ -22,7 +22,9 @@ import {
   Share2,
   School,
   User,
-  Check
+  Check,
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Question, QuestionAttempt, SubjectId } from '../types';
@@ -91,6 +93,50 @@ export const QuizModal: React.FC<QuizModalProps> = ({
     title.toLowerCase().includes('rawak') ||
     (subjectName && subjectName.toLowerCase().includes('rawak'))
   );
+
+  // 40-Question Exam Countdown Timer (1 hour 15 minutes = 75 minutes = 4500 seconds)
+  // ONLY active for the 40-question set as requested: "fitur jam detik untuk set 40 soalan sahaja"
+  const is40QuestionsQuiz = questions.length === 40 && !initialReviewMode;
+  const TOTAL_EXAM_SECONDS = 4500; // 1 Jam 15 Minit
+  const [timeLeft, setTimeLeft] = useState<number>(TOTAL_EXAM_SECONDS);
+  const [isTimeUp, setIsTimeUp] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!is40QuestionsQuiz || quizCompleted) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setIsTimeUp(true);
+          setQuizCompleted(true);
+          soundEffects.playWrong();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [is40QuestionsQuiz, quizCompleted]);
+
+  const formatCountdown = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
+
+  const formatTimeSpent = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) {
+      return `${hours} jam ${minutes} minit ${seconds} saat`;
+    }
+    return `${minutes} minit ${seconds} saat`;
+  };
 
   useEffect(() => {
     setQuizQuestions(questions);
@@ -320,12 +366,20 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           <h2 className="text-2xl font-bold text-white mb-1">
             Tahniah! Sesi Selesai
           </h2>
-          <p className="text-sm text-slate-400 mb-6 font-arabic text-base">
+          <p className="text-sm text-slate-400 mb-4 font-arabic text-base">
             مَا شَاءَ الله! أَحْسَنْتَ يَا طَالِبَ العِلْمِ
           </p>
 
+          {/* Time's Up Notice (for 40 Questions Exam Set) */}
+          {is40QuestionsQuiz && isTimeUp && (
+            <div className="mb-4 p-3 rounded-2xl bg-rose-950/80 border border-rose-500/60 text-rose-200 text-xs font-semibold flex items-center justify-center gap-2 shadow-lg">
+              <Clock className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>Masa Peperiksaan Telah Tamat! (Had masa 1 jam 15 minit)</span>
+            </div>
+          )}
+
           {/* Results Summary Bento */}
-          <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
               <span className="text-[11px] text-slate-400 block mb-0.5">Markah</span>
               <span className="text-xl font-bold text-white">
@@ -345,6 +399,19 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               </span>
             </div>
           </div>
+
+          {/* Time Spent Display for 40-Question Exam Set */}
+          {is40QuestionsQuiz && (
+            <div className="mb-4 p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-slate-400 font-medium">
+                <Clock className="w-4 h-4 text-teal-400" />
+                <span>Masa Menjawab:</span>
+              </span>
+              <span className="font-mono font-bold text-teal-300">
+                {formatTimeSpent(TOTAL_EXAM_SECONDS - timeLeft)} <span className="text-slate-500 text-[11px]">/ 1j 15m</span>
+              </span>
+            </div>
+          )}
 
           {/* Repeated Questions Completed Notice */}
           {skippedIndices.length > 0 && (
@@ -457,16 +524,16 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       <div className="bg-slate-900 border-b border-slate-800 px-4 py-2.5 shrink-0">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
           {/* Back button & Title */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={onClose}
-              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors shrink-0"
               title="Kembali"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <div>
-              <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wide block truncate max-w-[170px] sm:max-w-xs">
+            <div className="min-w-0">
+              <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wide block truncate max-w-[130px] sm:max-w-xs">
                 {subjectName || currentQ.topicTitleMalay}
               </span>
               <div className="flex items-center gap-1.5">
@@ -488,8 +555,27 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             </div>
           </div>
 
+          {/* Jam Detik Countdown (KHAS UNTUK SET 40 SOALAN SAHAJA: 1 JAM 15 MINIT) */}
+          {is40QuestionsQuiz && (
+            <div
+              className={`px-2.5 py-1 rounded-xl border flex items-center gap-1.5 font-mono text-xs sm:text-sm font-extrabold shadow-sm tracking-wider transition-all shrink-0 ${
+                timeLeft <= 300
+                  ? 'bg-rose-950/90 border-rose-500 text-rose-200 ring-1 ring-rose-500/50 animate-pulse'
+                  : timeLeft <= 900
+                  ? 'bg-amber-950/80 border-amber-500/60 text-amber-300'
+                  : 'bg-slate-800/90 border-teal-500/50 text-teal-300'
+              }`}
+              title={`Masa Peperiksaan Berbaki: ${formatCountdown(timeLeft)} (Had: 1 Jam 15 Minit)${timeLeft <= 300 ? ' - Perhatian: Masa hampir tamat!' : ''}`}
+            >
+              <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${
+                timeLeft <= 300 ? 'text-rose-400' : timeLeft <= 900 ? 'text-amber-400' : 'text-teal-400'
+              }`} />
+              <span>{formatCountdown(timeLeft)}</span>
+            </div>
+          )}
+
           {/* Quick Controls: Jump Previous / Next + Review Mode + Bookmarks */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             {/* Quick Prev Question */}
             <button
               onClick={handlePrevQuestion}
@@ -566,6 +652,14 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* 5-Minute Warning Banner for 40 Questions Set */}
+      {is40QuestionsQuiz && timeLeft <= 300 && timeLeft > 0 && (
+        <div className="bg-rose-950/90 border-b border-rose-500/50 px-3 py-1.5 text-center text-xs text-rose-200 font-bold flex items-center justify-center gap-2 animate-pulse">
+          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+          <span>Peringatan Peperiksaan: Masa menjawab berbaki kurang daripada 5 minit ({formatCountdown(timeLeft)})!</span>
+        </div>
+      )}
 
       {/* Review Mode Banner */}
       {reviewMode && (
