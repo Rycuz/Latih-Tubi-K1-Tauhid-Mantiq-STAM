@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Student record with aggregate quiz statistics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique student identifier" },
+        "name": { "type": "string", "description": "Student display name" },
+        "schoolOrClass": { "type": "string", "description": "School name or class name" },
+        "totalXp": { "type": "number", "description": "Total XP accumulated" },
+        "level": { "type": "number", "description": "Current student level" },
+        "accuracy": { "type": "number", "description": "Overall accuracy percentage" },
+        "quizzesCompleted": { "type": "number", "description": "Total quizzes finished" },
+        "totalQuestionsAnswered": { "type": "number", "description": "Total questions answered" },
+        "correctAnswersCount": { "type": "number", "description": "Total correct answers" },
+        "streakDays": { "type": "number", "description": "Consecutive days active" },
+        "lastActive": { "type": "string", "description": "ISO timestamp of last activity" }
+      },
+      "required": ["id", "name", "totalXp", "quizzesCompleted"]
+    },
+    "QuizSubmission": {
+      "title": "QuizSubmission",
+      "description": "Record of a completed quiz session submitted by a student",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique submission identifier" },
+        "studentId": { "type": "string", "description": "Student identifier" },
+        "studentName": { "type": "string", "description": "Name of the student" },
+        "schoolOrClass": { "type": "string", "description": "School or class" },
+        "quizTitle": { "type": "string", "description": "Title of the quiz taken" },
+        "subject": { "type": "string", "description": "Subject: tauhid, firaq, mantiq, or campuran" },
+        "score": { "type": "number", "description": "Number of correct answers" },
+        "totalQuestions": { "type": "number", "description": "Total questions in quiz" },
+        "accuracy": { "type": "number", "description": "Percentage scored" },
+        "xpEarned": { "type": "number", "description": "XP gained from this quiz" },
+        "timeSpentSeconds": { "type": "number", "description": "Time spent in seconds" },
+        "completedAt": { "type": "string", "description": "ISO timestamp of completion" }
+      },
+      "required": ["id", "studentName", "quizTitle", "score", "totalQuestions", "completedAt"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Collection of student profiles and cumulative performance metrics"
+    },
+    "/quiz_submissions/{submissionId}": {
+      "schema": "QuizSubmission",
+      "description": "Collection of all quiz attempts submitted in real-time"
+    }
+  }
+}

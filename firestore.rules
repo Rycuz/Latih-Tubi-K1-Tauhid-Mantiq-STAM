@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    match /students/{studentId} {
+      allow read: if true;
+      allow create, update: if isValidId(studentId)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.totalXp is number;
+      allow delete: if false;
+    }
+
+    match /quiz_submissions/{submissionId} {
+      allow read: if true;
+      allow create: if isValidId(submissionId)
+        && request.resource.data.studentName is string
+        && request.resource.data.studentName.size() > 0
+        && request.resource.data.studentName.size() <= 100
+        && request.resource.data.score is number
+        && request.resource.data.totalQuestions is number;
+      allow update, delete: if false;
+    }
+  }
+}

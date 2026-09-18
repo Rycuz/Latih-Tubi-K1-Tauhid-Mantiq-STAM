@@ -1,0 +1,6 @@
+{
+  "name": "Aplikasi Latih Tubi Tauhid Mantiq STAM",
+  "description": "Aplikasi latihan interaktif soalan aneka pilihan bagi subjek Tauhid, Firaq dan Mantiq STAM dengan pemarkahan masa nyata, Dashboard Guru untuk memantau prestasi pelajar dan sejarah latihan mengikut sekolah, pengurusan soalan, papan pendahulu, dan lencana digital.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
