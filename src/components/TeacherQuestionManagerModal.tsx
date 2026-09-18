@@ -24,17 +24,29 @@ import {
   ShieldCheck,
   Check,
   Users,
-  Layers
+  Layers,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  ListOrdered
 } from 'lucide-react';
 import { Question, SubjectId, TopicInfo, Difficulty, StudentRecord } from '../types';
 import { TOPICS_DATA } from '../data/questions';
 import { soundEffects } from '../utils/audio';
 import { cleanRepeatedText, sanitizeQuestion } from '../utils/sanitizeText';
-import { autoTranslateArabicOption } from '../utils/bilingualTranslator';
+import { autoTranslateArabicOption, autoTranslateArabicQuestion } from '../utils/bilingualTranslator';
+import { 
+  insertNewQuestionInTopic, 
+  moveQuestionWithinTopic, 
+  moveQuestionToPositionInTopic, 
+  reorderTopicQuestions, 
+  getQuestionTopicPosition 
+} from '../utils/questionReorder';
 import { FormattedQuestionStem } from './FormattedQuestionStem';
 import { QuestionDiagramRenderer } from './QuestionDiagramRenderer';
 import { TeacherDashboard } from './TeacherDashboard';
 import { TeacherTopicManager } from './TeacherTopicManager';
+import { TopicQuestionsReorderModal } from './TopicQuestionsReorderModal';
 import { CloudQuizSubmission } from '../lib/firebase';
 
 const STORAGE_KEY_TEACHER_PIN = 'stam_teacher_pin_v1';
@@ -113,6 +125,17 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   const [formExplanationArabic, setFormExplanationArabic] = useState('');
   const [formExplanationMalay, setFormExplanationMalay] = useState('');
   const [formDifficulty, setFormDifficulty] = useState<Difficulty>('sederhana');
+
+  // Topic Question Positioning & Reorder States
+  const [formPositionOption, setFormPositionOption] = useState<'end' | 'start' | 'custom'>('end');
+  const [formCustomPosition, setFormCustomPosition] = useState<number>(1);
+  const [formEditPosition, setFormEditPosition] = useState<number>(1);
+  const [activeReorderTopicId, setActiveReorderTopicId] = useState<string | null>(null);
+
+  // Memo for question count in the currently selected form topic
+  const currentFormTopicQuestionCount = useMemo(() => {
+    return questions.filter((q) => q.topicId === formTopicId).length;
+  }, [questions, formTopicId]);
 
   // Get current active PIN from storage or default
   const getCurrentPin = (): string => {
@@ -194,6 +217,9 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
     setFormExplanationMalay(q.explanationMalay || '');
     setFormDifficulty(q.difficulty || 'sederhana');
 
+    const posInfo = getQuestionTopicPosition(questions, q.id);
+    setFormEditPosition(posInfo.position);
+
     setActiveTab('add'); // Switch to editor form
   };
 
@@ -218,46 +244,88 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
     setFormExplanationArabic('');
     setFormExplanationMalay('');
     setFormDifficulty('sederhana');
+    setFormPositionOption('end');
+    setFormCustomPosition(1);
+    setFormEditPosition(1);
   };
 
   const handleAutoTranslateOptions = () => {
     soundEffects.playClick();
+
+    // 1. Check if user has entered any Arabic options yet
+    const hasAnyArabic = Boolean(
+      formOptAArabic.trim() ||
+      formOptBArabic.trim() ||
+      formOptCArabic.trim() ||
+      formOptDArabic.trim()
+    );
+
+    if (!hasAnyArabic) {
+      setSuccessNotice('⚠️ Sila masukkan teks pilihan jawapan dalam Bahasa Arab (Kolum Kiri) terlebih dahulu.');
+      setTimeout(() => setSuccessNotice(null), 4000);
+      return;
+    }
+
+    // 2. Check if all Malay fields already have content
+    const allFilled = Boolean(
+      formOptAMalay.trim() &&
+      formOptBMalay.trim() &&
+      formOptCMalay.trim() &&
+      formOptDMalay.trim()
+    );
+
+    if (allFilled) {
+      setSuccessNotice('ℹ️ Kesemua 4 pilihan jawapan telah pun mempunyai terjemahan BM. Kosongkan kotak sekiranya ingin cadangan baharu.');
+      setTimeout(() => setSuccessNotice(null), 3500);
+      return;
+    }
+
     let updatedCount = 0;
-    if (formOptAArabic.trim() && !formOptAMalay.trim()) {
-      const tr = autoTranslateArabicOption(formOptAArabic);
-      if (tr) {
-        setFormOptAMalay(tr);
-        updatedCount++;
-      }
-    }
-    if (formOptBArabic.trim() && !formOptBMalay.trim()) {
-      const tr = autoTranslateArabicOption(formOptBArabic);
-      if (tr) {
-        setFormOptBMalay(tr);
-        updatedCount++;
-      }
-    }
-    if (formOptCArabic.trim() && !formOptCMalay.trim()) {
-      const tr = autoTranslateArabicOption(formOptCArabic);
-      if (tr) {
-        setFormOptCMalay(tr);
-        updatedCount++;
-      }
-    }
-    if (formOptDArabic.trim() && !formOptDMalay.trim()) {
-      const tr = autoTranslateArabicOption(formOptDArabic);
-      if (tr) {
-        setFormOptDMalay(tr);
-        updatedCount++;
+    const opts = [
+      { ar: formOptAArabic, my: formOptAMalay, setMy: setFormOptAMalay },
+      { ar: formOptBArabic, my: formOptBMalay, setMy: setFormOptBMalay },
+      { ar: formOptCArabic, my: formOptCMalay, setMy: setFormOptCMalay },
+      { ar: formOptDArabic, my: formOptDMalay, setMy: setFormOptDMalay },
+    ];
+
+    for (const opt of opts) {
+      if (opt.ar.trim() && !opt.my.trim()) {
+        const tr = autoTranslateArabicOption(opt.ar);
+        if (tr) {
+          opt.setMy(tr);
+          updatedCount++;
+        }
       }
     }
 
     if (updatedCount > 0) {
-      setSuccessNotice(`Berjaya mencadangkan ${updatedCount} terjemahan dwi bahasa secara automatik!`);
+      setSuccessNotice(`✅ Berjaya mencadangkan ${updatedCount} terjemahan dwi-bahasa secara automatik!`);
     } else {
-      setSuccessNotice('Tiada terjemahan baharu yang dicadangkan atau terjemahan telah pun diisi.');
+      setSuccessNotice('⚠️ Tiada padanan automatik dalam glosari STAM bagi pilihan ini. Sila taip terjemahan Bahasa Melayu secara manual.');
     }
-    setTimeout(() => setSuccessNotice(null), 3000);
+    setTimeout(() => setSuccessNotice(null), 4000);
+  };
+
+  const handleAutoTranslateQuestion = () => {
+    soundEffects.playClick();
+    if (!formQuestionArabic.trim()) {
+      setSuccessNotice('⚠️ Sila masukkan Teks Soalan Bahasa Arab terlebih dahulu.');
+      setTimeout(() => setSuccessNotice(null), 3500);
+      return;
+    }
+    if (formQuestionMalay.trim()) {
+      setSuccessNotice('ℹ️ Soalan telah pun mempunyai terjemahan Bahasa Melayu. Kosongkan kotak jika ingin cadangan baharu.');
+      setTimeout(() => setSuccessNotice(null), 3500);
+      return;
+    }
+    const tr = autoTranslateArabicQuestion(formQuestionArabic);
+    if (tr) {
+      setFormQuestionMalay(tr);
+      setSuccessNotice('✅ Berjaya mencadangkan terjemahan soalan secara automatik!');
+    } else {
+      setSuccessNotice('⚠️ Tiada padanan soalan automatik dalam pangkalan data STAM. Sila taip terjemahan soalan secara manual.');
+    }
+    setTimeout(() => setSuccessNotice(null), 4000);
   };
 
   const handleSaveQuestionForm = (e: React.FormEvent) => {
@@ -303,12 +371,27 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
     let updatedList: Question[];
     if (editingQuestion) {
       // Update existing
-      updatedList = questions.map((q) => (q.id === editingQuestion.id ? questionPayload : q));
-      setSuccessNotice('Soalan berjaya dikemaskini!');
+      let listWithUpdated = questions.map((q) => (q.id === editingQuestion.id ? questionPayload : q));
+
+      // If user changed position within the same topic:
+      if (editingQuestion.topicId === questionPayload.topicId) {
+        const moveRes = moveQuestionToPositionInTopic(listWithUpdated, questionPayload.id, formEditPosition);
+        if (moveRes) {
+          listWithUpdated = moveRes.updatedList;
+        }
+      }
+      updatedList = listWithUpdated;
+      setSuccessNotice(`Soalan berjaya dikemaskini (Kedudukan #${formEditPosition} dalam tajuk)!`);
     } else {
-      // Insert new question at beginning or end
-      updatedList = [questionPayload, ...questions];
-      setSuccessNotice('Soalan baharu berjaya ditambah ke dalam sistem!');
+      // Insert new question at specified position within the topic
+      const { updatedList: inserted, positionNumber } = insertNewQuestionInTopic(
+        questions,
+        questionPayload,
+        formPositionOption,
+        formCustomPosition
+      );
+      updatedList = inserted;
+      setSuccessNotice(`Soalan baharu berjaya ditambah di kedudukan #${positionNumber} dalam tajuk "${topicTitleMalay}"!`);
     }
 
     soundEffects.playCorrect();
@@ -316,6 +399,36 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
     resetForm();
     setActiveTab('list');
 
+    setTimeout(() => setSuccessNotice(null), 3500);
+  };
+
+  const handleMoveQuestionInTopic = (qId: string, direction: 'up' | 'down') => {
+    soundEffects.playClick();
+    const res = moveQuestionWithinTopic(questions, qId, direction);
+    if (res) {
+      onSaveQuestions(res.updatedList);
+      setSuccessNotice(`Soalan dipindahkan ke kedudukan #${res.newPos} daripada ${res.total} dalam tajuk ini.`);
+      setTimeout(() => setSuccessNotice(null), 3000);
+    }
+  };
+
+  const handleJumpQuestionInTopic = (qId: string, targetPos: number) => {
+    soundEffects.playClick();
+    const res = moveQuestionToPositionInTopic(questions, qId, targetPos);
+    if (res) {
+      onSaveQuestions(res.updatedList);
+      setSuccessNotice(`Soalan dipindahkan ke kedudukan #${res.newPos} daripada ${res.total} dalam tajuk ini.`);
+      setTimeout(() => setSuccessNotice(null), 3000);
+    }
+  };
+
+  const handleSaveBulkReordered = (orderedIds: string[]) => {
+    if (!activeReorderTopicId) return;
+    const updated = reorderTopicQuestions(questions, activeReorderTopicId, orderedIds);
+    onSaveQuestions(updated);
+    const topObj = topics.find((t) => t.id === activeReorderTopicId) || TOPICS_DATA.find((t) => t.id === activeReorderTopicId);
+    setSuccessNotice(`Susunan ${orderedIds.length} soalan bagi tajuk "${topObj?.titleMalay || 'Tajuk'}" berjaya disimpan!`);
+    setActiveReorderTopicId(null);
     setTimeout(() => setSuccessNotice(null), 3500);
   };
 
@@ -604,6 +717,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
               onSaveTopics={onSaveTopics}
               onResetTopicsToDefault={onResetTopicsToDefault}
               onUpdateTopicTitleInQuestions={onUpdateTopicTitleInQuestions}
+              onOpenReorderTopicQuestions={(topicId) => setActiveReorderTopicId(topicId)}
             />
           )}
 
@@ -659,19 +773,35 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
               </div>
 
               {/* Action Banner */}
-              <div className="flex items-center justify-between text-xs text-slate-400 px-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400 px-1">
                 <span>Menunjukkan <strong>{filteredQuestions.length}</strong> daripada {questions.length} soalan</span>
-                <button
-                  onClick={() => {
-                    soundEffects.playClick();
-                    resetForm();
-                    setActiveTab('add');
-                  }}
-                  className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold flex items-center gap-1 shadow-sm transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Tambah Soalan Baharu</span>
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {filterTopic !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEffects.playClick();
+                        setActiveReorderTopicId(filterTopic);
+                      }}
+                      className="py-1.5 px-3 bg-teal-900/60 hover:bg-teal-800/80 text-teal-200 border border-teal-500/40 rounded-xl font-semibold flex items-center gap-1.5 shadow-sm transition-colors"
+                      title="Buka panel susun semula urutan soalan bagi topik ini"
+                    >
+                      <ArrowUpDown className="w-3.5 h-3.5 text-teal-300" />
+                      <span>Susun Urutan Topik Ini</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      soundEffects.playClick();
+                      resetForm();
+                      setActiveTab('add');
+                    }}
+                    className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold flex items-center gap-1 shadow-sm transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Tambah Soalan Baharu</span>
+                  </button>
+                </div>
               </div>
 
               {/* Questions Table / Cards */}
@@ -684,6 +814,9 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                   filteredQuestions.map((q, index) => {
                     const labelArabicMap: Record<string, string> = { a: 'أ', b: 'ب', c: 'ج', d: 'د' };
                     const correctOpt = q.options.find((o) => o.id === q.correctAnswer);
+                    const posInfo = getQuestionTopicPosition(questions, q.id);
+                    const isFirstInTopic = posInfo.position === 1;
+                    const isLastInTopic = posInfo.position === posInfo.total;
 
                     return (
                       <div
@@ -701,6 +834,10 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                             <span className="text-xs text-slate-400 font-medium">
                               {q.topicTitleMalay}
                             </span>
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-teal-950/80 border border-teal-500/30 text-teal-300 flex items-center gap-1" title="Kedudukan soalan dalam tajuk sukatan">
+                              <ListOrdered className="w-3 h-3 text-teal-400" />
+                              <span>Urutan Tajuk: #{posInfo.position} / {posInfo.total}</span>
+                            </span>
                             {q.diagramType && (
                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-500/30">
                                 Mengandungi {q.diagramType === 'table' ? 'Jadual' : q.diagramType === 'tree' ? 'Rajah Pokok' : 'Pernyataan Kotak'}
@@ -708,8 +845,46 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                             )}
                           </div>
 
-                          {/* Action Buttons: Edit, Preview, Delete */}
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Action Buttons: Position up/down, Edit, Preview, Delete */}
+                          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                            {/* Up / Down buttons within topic */}
+                            <div className="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700">
+                              <button
+                                type="button"
+                                onClick={() => handleMoveQuestionInTopic(q.id, 'up')}
+                                disabled={isFirstInTopic}
+                                className="p-1 rounded text-slate-300 hover:text-teal-300 hover:bg-slate-700 disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-slate-300 transition-colors"
+                                title={isFirstInTopic ? 'Sudah berada di kedudukan pertama dalam tajuk ini' : 'Pindah Ke Atas (▲) dalam tajuk ini'}
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleMoveQuestionInTopic(q.id, 'down')}
+                                disabled={isLastInTopic}
+                                className="p-1 rounded text-slate-300 hover:text-teal-300 hover:bg-slate-700 disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-slate-300 transition-colors"
+                                title={isLastInTopic ? 'Sudah berada di kedudukan terakhir dalam tajuk ini' : 'Pindah Ke Bawah (▼) dalam tajuk ini'}
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            {/* Direct position changer dropdown */}
+                            {posInfo.total > 1 && (
+                              <select
+                                value={posInfo.position}
+                                onChange={(e) => handleJumpQuestionInTopic(q.id, Number(e.target.value))}
+                                className="px-1.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] font-bold text-teal-300 focus:outline-none focus:border-teal-500 cursor-pointer"
+                                title="Lompat terus ke nombor kedudukan dalam tajuk ini"
+                              >
+                                {[...Array(posInfo.total)].map((_, i) => (
+                                  <option key={i + 1} value={i + 1}>
+                                    #{i + 1}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+
                             <button
                               onClick={() => setPreviewQuestion(q)}
                               className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
@@ -854,6 +1029,113 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                   </div>
                 </div>
 
+                {/* Topic Question Sequence / Position Setting */}
+                <div className="p-3.5 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-2.5">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <label className="text-xs font-bold text-teal-300 flex items-center gap-1.5">
+                      <ListOrdered className="w-4 h-4 text-teal-400" />
+                      <span>Kedudukan Urutan Soalan dalam Tajuk Ini:</span>
+                    </label>
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
+                      {currentFormTopicQuestionCount} soalan sedia ada dalam tajuk ini
+                    </span>
+                  </div>
+
+                  {!editingQuestion ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <label className={`p-2.5 rounded-xl border cursor-pointer flex items-center gap-2.5 transition-all ${
+                        formPositionOption === 'end' 
+                          ? 'bg-teal-950/60 border-teal-500 text-teal-200 ring-1 ring-teal-500' 
+                          : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-600'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="questionPosOption"
+                          checked={formPositionOption === 'end'}
+                          onChange={() => setFormPositionOption('end')}
+                          className="text-teal-500 focus:ring-teal-400"
+                        />
+                        <div className="text-xs">
+                          <div className="font-semibold text-white">Di Akhir Tajuk</div>
+                          <div className="text-[10px] text-slate-400">Soalan #{currentFormTopicQuestionCount + 1} (Disyorkan)</div>
+                        </div>
+                      </label>
+
+                      <label className={`p-2.5 rounded-xl border cursor-pointer flex items-center gap-2.5 transition-all ${
+                        formPositionOption === 'start' 
+                          ? 'bg-teal-950/60 border-teal-500 text-teal-200 ring-1 ring-teal-500' 
+                          : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-600'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="questionPosOption"
+                          checked={formPositionOption === 'start'}
+                          onChange={() => setFormPositionOption('start')}
+                          className="text-teal-500 focus:ring-teal-400"
+                        />
+                        <div className="text-xs">
+                          <div className="font-semibold text-white">Di Permulaan Tajuk</div>
+                          <div className="text-[10px] text-slate-400">Menjadi Soalan #1</div>
+                        </div>
+                      </label>
+
+                      <label className={`p-2.5 rounded-xl border cursor-pointer flex items-center gap-2.5 transition-all ${
+                        formPositionOption === 'custom' 
+                          ? 'bg-teal-950/60 border-teal-500 text-teal-200 ring-1 ring-teal-500' 
+                          : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-600'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="questionPosOption"
+                          checked={formPositionOption === 'custom'}
+                          onChange={() => setFormPositionOption('custom')}
+                          className="text-teal-500 focus:ring-teal-400"
+                        />
+                        <div className="text-xs flex-1 flex items-center justify-between gap-1">
+                          <div>
+                            <div className="font-semibold text-white">No. Khusus:</div>
+                            <div className="text-[10px] text-slate-400">Pilih kedudukan</div>
+                          </div>
+                          {formPositionOption === 'custom' && (
+                            <select
+                              value={formCustomPosition}
+                              onChange={(e) => setFormCustomPosition(Number(e.target.value))}
+                              className="px-2 py-1 bg-slate-900 border border-teal-500 text-white rounded-lg text-xs font-bold cursor-pointer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {[...Array(currentFormTopicQuestionCount + 1)].map((_, i) => (
+                                <option key={i + 1} value={i + 1}>
+                                  #{i + 1}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between bg-slate-900/80 p-2.5 rounded-xl border border-slate-700">
+                      <span className="text-xs text-slate-300">
+                        Tukar kedudukan soalan ini dalam tajuk (1 hingga {Math.max(1, currentFormTopicQuestionCount)}):
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400">Kedudukan:</span>
+                        <select
+                          value={formEditPosition}
+                          onChange={(e) => setFormEditPosition(Number(e.target.value))}
+                          className="px-3 py-1 bg-slate-800 border border-emerald-500 text-emerald-300 font-bold text-xs rounded-xl focus:outline-none cursor-pointer"
+                        >
+                          {[...Array(Math.max(1, currentFormTopicQuestionCount))].map((_, i) => (
+                            <option key={i + 1} value={i + 1}>
+                              No. #{i + 1} {i + 1 === formEditPosition ? '(Semasa)' : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Standard Pembelajaran (Optional) */}
                 <div>
                   <label className="text-xs font-semibold text-slate-300 block mb-1">
@@ -898,9 +1180,20 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
 
                 {/* Malay Question / Translation */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">
-                    Terjemahan / Soalan Bahasa Melayu:
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Terjemahan / Soalan Bahasa Melayu:
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleAutoTranslateQuestion}
+                      className="px-2.5 py-1 rounded-lg bg-teal-900/60 hover:bg-teal-800/80 border border-teal-500/40 text-teal-200 text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                      title="Isi terjemahan soalan secara automatik daripada Pangkalan Data STAM"
+                    >
+                      <Sparkles className="w-3 h-3 text-teal-300" />
+                      <span>⚡ Cadang Terjemahan Soalan BM</span>
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={formQuestionMalay}
@@ -1011,10 +1304,10 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                       type="button"
                       onClick={handleAutoTranslateOptions}
                       className="px-3 py-1.5 rounded-xl bg-teal-900/60 hover:bg-teal-800/80 border border-teal-500/40 text-teal-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm self-start sm:self-auto"
-                      title="Isi terjemahan Bahasa Melayu secara automatik daripada Glosari STAM"
+                      title="Isi terjemahan Bahasa Melayu bagi 4 pilihan jawapan secara automatik daripada Glosari & Pangkalan Data STAM"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-teal-300" />
-                      <span>⚡ Cadang Terjemahan BM</span>
+                      <span>⚡ Cadang Terjemahan Pilihan BM</span>
                     </button>
                   </div>
 
@@ -1493,6 +1786,17 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
             </div>
           </div>
         </div>
+      )}
+
+      {/* Bulk Topic Questions Reorder Modal */}
+      {activeReorderTopicId && (
+        <TopicQuestionsReorderModal
+          isOpen={Boolean(activeReorderTopicId)}
+          onClose={() => setActiveReorderTopicId(null)}
+          topic={topics.find((t) => t.id === activeReorderTopicId) || TOPICS_DATA.find((t) => t.id === activeReorderTopicId)}
+          topicQuestions={questions.filter((q) => q.topicId === activeReorderTopicId)}
+          onSaveReordered={handleSaveBulkReordered}
+        />
       )}
     </div>
   );

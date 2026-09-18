@@ -28,7 +28,8 @@ import {
   ChevronsUp,
   ChevronsDown,
   ArrowUpDown,
-  GripVertical
+  GripVertical,
+  ListOrdered
 } from 'lucide-react';
 import { SubjectId, TopicInfo, Question } from '../types';
 import { soundEffects } from '../utils/audio';
@@ -39,6 +40,7 @@ interface TeacherTopicManagerProps {
   onSaveTopics: (updatedTopics: TopicInfo[]) => void;
   onResetTopicsToDefault: () => void;
   onUpdateTopicTitleInQuestions?: (topicId: string, newTitleMalay: string, newTitleArabic: string) => void;
+  onOpenReorderTopicQuestions?: (topicId: string) => void;
 }
 
 const AVAILABLE_ICONS = [
@@ -65,6 +67,7 @@ export const TeacherTopicManager: React.FC<TeacherTopicManagerProps> = ({
   onSaveTopics,
   onResetTopicsToDefault,
   onUpdateTopicTitleInQuestions,
+  onOpenReorderTopicQuestions,
 }) => {
   // Filters & Search
   const [filterSubject, setFilterSubject] = useState<SubjectId | 'all'>('all');
@@ -636,14 +639,25 @@ export const TeacherTopicManager: React.FC<TeacherTopicManagerProps> = ({
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 self-end md:self-center shrink-0 border-t md:border-t-0 pt-2 md:pt-0 border-slate-800 w-full md:w-auto justify-end">
+                <div className="flex items-center gap-2 self-end md:self-center shrink-0 border-t md:border-t-0 pt-2 md:pt-0 border-slate-800 w-full md:w-auto justify-end flex-wrap">
+                  {onOpenReorderTopicQuestions && questionsCount > 0 && (
+                    <button
+                      onClick={() => onOpenReorderTopicQuestions(topic.id)}
+                      className="py-1.5 px-2.5 bg-teal-950/80 hover:bg-teal-900 text-teal-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-teal-500/40"
+                      title={`Susun kedudukan urutan soalan bagi tajuk "${topic.titleMalay}"`}
+                    >
+                      <ListOrdered className="w-3.5 h-3.5 text-teal-400" />
+                      <span>Susun Soalan ({questionsCount})</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => setPositionDialogTopic(topic)}
                     className="py-1.5 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-700"
                     title="Tukar kedudukan urutan bab ini"
                   >
                     <ArrowUpDown className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Susun (#{subjectIndex + 1})</span>
+                    <span>Susun Bab (#{subjectIndex + 1})</span>
                   </button>
 
                   <button
