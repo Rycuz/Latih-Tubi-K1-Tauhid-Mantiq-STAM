@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Flame, Volume2, VolumeX, Globe, Sparkles, BookOpen, ShieldCheck, Lock, Share2 } from 'lucide-react';
+import { Flame, Volume2, VolumeX, Globe, Sparkles, BookOpen, ShieldCheck, Lock, Share2, User, Edit3 } from 'lucide-react';
 import { soundEffects } from '../utils/audio';
 import { ShareAppModal } from './ShareAppModal';
 
@@ -11,6 +11,7 @@ interface HeaderProps {
   onToggleSound: () => void;
   languageMode: 'bilingual' | 'arabic' | 'malay';
   onChangeLanguageMode: (mode: 'bilingual' | 'arabic' | 'malay') => void;
+  studentName?: string;
   onOpenProfile?: () => void;
   onOpenTeacherModal?: () => void;
 }
@@ -23,6 +24,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleSound,
   languageMode,
   onChangeLanguageMode,
+  studentName,
+  onOpenProfile,
   onOpenTeacherModal,
 }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -54,6 +57,25 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Gamified Stats Bar & Action Toggles */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Student Profile Button (Ubah Nama / Maklumat Sebenar) */}
+          {onOpenProfile && (
+            <button
+              id="btn-open-student-profile"
+              onClick={() => {
+                soundEffects.playClick();
+                onOpenProfile();
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 hover:border-emerald-500/50 rounded-full text-slate-200 text-xs font-semibold shadow-sm transition-all group"
+              title="Klik untuk ubah nama sebenar, sekolah atau kelas anda"
+            >
+              <User className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span className="max-w-[75px] sm:max-w-[130px] truncate text-[11px] font-bold text-white">
+                {studentName || 'Profil Pelajar'}
+              </span>
+              <Edit3 className="w-3 h-3 text-slate-400 group-hover:text-emerald-300 transition-colors" />
+            </button>
+          )}
+
           {/* Streak Badge */}
           <div 
             className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/15 border border-amber-500/30 rounded-full text-amber-300 text-xs font-semibold shadow-sm"

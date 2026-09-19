@@ -24,7 +24,8 @@ import {
   User,
   Check,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Edit3
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Question, QuestionAttempt, SubjectId } from '../types';
@@ -47,10 +48,18 @@ interface QuizModalProps {
     total: number;
     xpEarned: number;
     attempts: QuestionAttempt[];
+    isReviewOnly?: boolean;
   }) => void;
   languageMode: 'bilingual' | 'arabic' | 'malay';
   bookmarkedIds: string[];
   onToggleBookmark: (questionId: string) => void;
+  studentProfile?: {
+    studentId: string;
+    name: string;
+    school: string;
+    studentClass: string;
+  };
+  onOpenEditProfile?: () => void;
 }
 
 export const QuizModal: React.FC<QuizModalProps> = ({
@@ -65,6 +74,8 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   languageMode,
   bookmarkedIds,
   onToggleBookmark,
+  studentProfile,
+  onOpenEditProfile,
 }) => {
   const [quizQuestions, setQuizQuestions] = useState<Question[]>(questions);
   const [currentIndex, setCurrentIndex] = useState(
@@ -145,21 +156,28 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
   // Cloud Sync & Student Profile States
   const [studentName, setStudentName] = useState<string>(() => {
-    try {
-      return localStorage.getItem('stam_student_name') || '';
-    } catch {
-      return '';
-    }
+    return studentProfile?.name || localStorage.getItem('stam_student_name') || '';
   });
   const [studentSchool, setStudentSchool] = useState<string>(() => {
-    try {
-      return localStorage.getItem('stam_student_school') || '';
-    } catch {
-      return '';
-    }
+    return studentProfile?.school || localStorage.getItem('stam_student_school') || '';
+  });
+  const [studentClass, setStudentClass] = useState<string>(() => {
+    return studentProfile?.studentClass || localStorage.getItem('stam_student_class') || '';
+  });
+  const [studentId] = useState<string>(() => {
+    return studentProfile?.studentId || localStorage.getItem('stam_student_id') || '';
   });
   const [cloudSyncStatus, setCloudSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
   const [cloudErrorMsg, setCloudErrorMsg] = useState<string>('');
+
+  // Keep synced if studentProfile prop updates
+  useEffect(() => {
+    if (studentProfile) {
+      if (studentProfile.name) setStudentName(studentProfile.name);
+      if (studentProfile.school) setStudentSchool(studentProfile.school);
+      if (studentProfile.studentClass) setStudentClass(studentProfile.studentClass);
+    }
+  }, [studentProfile]);
 
   const currentQ = quizQuestions[currentIndex];
   const isRepeatedQuestion = isRandom && currentIndex >= questions.length;
@@ -267,12 +285,14 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       setCurrentIndex((prev) => prev + 1);
     } else {
       setQuizCompleted(true);
-      soundEffects.playFanfare();
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
+      if (!reviewMode) {
+        soundEffects.playFanfare();
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      }
     }
   };
 
@@ -292,16 +312,19 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   };
 
   const handleCompleteAndExit = () => {
+    soundEffects.playClick();
     onFinishQuiz({
-      score,
+      score: reviewMode ? 0 : score,
       total: questions.length,
-      xpEarned,
-      attempts,
+      xpEarned: reviewMode ? 0 : xpEarned,
+      attempts: reviewMode ? [] : attempts,
+      isReviewOnly: reviewMode,
     });
+    onClose();
   };
 
   const handleUploadToFirebase = async () => {
-    if (!studentName.trim()) return;
+    if (reviewMode || !studentName.trim()) return;
     setCloudSyncStatus('syncing');
     setCloudErrorMsg('');
     try {
@@ -309,9 +332,17 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       if (studentSchool.trim()) {
         localStorage.setItem('stam_student_school', studentSchool.trim());
       }
+      if (studentClass.trim()) {
+        localStorage.setItem('stam_student_class', studentClass.trim());
+      }
+      const schoolDisplay = studentClass.trim()
+        ? `${studentSchool.trim()} (${studentClass.trim()})`
+        : studentSchool.trim() || 'Umum';
+
       const res = await submitQuizToFirebase({
+        studentId: studentId || undefined,
         studentName: studentName.trim(),
-        schoolOrClass: studentSchool.trim() || 'Umum',
+        schoolOrClass: schoolDisplay,
         quizTitle: title,
         subject: subjectName || 'campuran',
         score,
@@ -333,6 +364,15 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
   const handleShareWhatsApp = () => {
     soundEffects.playClick();
+    if (reviewMode) {
+      const msg = `*Semakan Skema Latihan STAM 2025*\n` +
+        `📖 *Tajuk:* ${title}\n` +
+        `📚 *Jumlah Soalan Diteliti:* ${questions.length} soalan\n` +
+        `📅 *Tarikh:* ${new Date().toLocaleDateString('ms-MY')}`;
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+      return;
+    }
     const accuracy = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
     const msg = `*Slip Keputusan Latihan STAM 2025*\n` +
       `👤 *Nama:* ${studentName.trim() || 'Calon STAM'}\n` +
@@ -346,10 +386,10 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   };
 
   useEffect(() => {
-    if (quizCompleted && studentName.trim() && cloudSyncStatus === 'idle') {
+    if (quizCompleted && studentName.trim() && cloudSyncStatus === 'idle' && !reviewMode) {
       handleUploadToFirebase();
     }
-  }, [quizCompleted]);
+  }, [quizCompleted, reviewMode]);
 
   const isBookmarked = currentQ && bookmarkedIds.includes(currentQ.id);
 
@@ -359,49 +399,87 @@ export const QuizModal: React.FC<QuizModalProps> = ({
     return (
       <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
         <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center my-auto animate-in fade-in zoom-in duration-300">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-950/50 mb-4">
-            <Award className="w-10 h-10 text-white" />
+          <div className={`w-20 h-20 mx-auto rounded-2xl flex items-center justify-center shadow-lg mb-4 ${
+            reviewMode
+              ? 'bg-gradient-to-tr from-teal-500 to-indigo-500 shadow-teal-950/50'
+              : 'bg-gradient-to-tr from-amber-500 to-emerald-400 shadow-emerald-950/50'
+          }`}>
+            {reviewMode ? (
+              <BookOpen className="w-10 h-10 text-white" />
+            ) : (
+              <Award className="w-10 h-10 text-white" />
+            )}
           </div>
 
           <h2 className="text-2xl font-bold text-white mb-1">
-            Tahniah! Sesi Selesai
+            {reviewMode ? 'Semakan Skema Selesai' : 'Tahniah! Sesi Selesai'}
           </h2>
           <p className="text-sm text-slate-400 mb-4 font-arabic text-base">
-            مَا شَاءَ الله! أَحْسَنْتَ يَا طَالِبَ العِلْمِ
+            {reviewMode ? 'نَفَعَنَا اللهُ وَإِيَّاكُمْ بِالعِلْمِ النَّافِعِ' : 'مَا شَاءَ الله! أَحْسَنْتَ يَا طَالِبَ العِلْمِ'}
           </p>
 
-          {/* Time's Up Notice (for 40 Questions Exam Set) */}
-          {is40QuestionsQuiz && isTimeUp && (
+          {/* Review Mode Notice Badge */}
+          {reviewMode ? (
+            <div className="mb-4 p-3 rounded-2xl bg-teal-500/15 border border-teal-500/30 text-teal-200 text-xs flex items-center gap-2.5 text-left">
+              <Eye className="w-4 h-4 text-teal-400 shrink-0" />
+              <span>
+                <strong>Mod Skema Jawapan:</strong> Anda telah selesai meneliti skema bagi kesemua {questions.length} soalan. Tiada rekod markah atau cubaan disimpan.
+              </span>
+            </div>
+          ) : is40QuestionsQuiz && isTimeUp ? (
             <div className="mb-4 p-3 rounded-2xl bg-rose-950/80 border border-rose-500/60 text-rose-200 text-xs font-semibold flex items-center justify-center gap-2 shadow-lg">
               <Clock className="w-4 h-4 text-rose-400 shrink-0" />
               <span>Masa Peperiksaan Telah Tamat! (Had masa 1 jam 15 minit)</span>
             </div>
-          )}
+          ) : null}
 
           {/* Results Summary Bento */}
-          <div className="grid grid-cols-3 gap-3 mb-3">
-            <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
-              <span className="text-[11px] text-slate-400 block mb-0.5">Markah</span>
-              <span className="text-xl font-bold text-white">
-                {score}/{questions.length}
-              </span>
+          {reviewMode ? (
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
+                <span className="text-[11px] text-slate-400 block mb-0.5">Jumlah Soalan</span>
+                <span className="text-xl font-bold text-white">
+                  {questions.length}
+                </span>
+              </div>
+              <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
+                <span className="text-[11px] text-slate-400 block mb-0.5">Mod Sesi</span>
+                <span className="text-xs font-bold text-teal-400 mt-1 block">
+                  Skema Sahaja
+                </span>
+              </div>
+              <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
+                <span className="text-[11px] text-slate-400 block mb-0.5">Status</span>
+                <span className="text-xs font-bold text-emerald-400 mt-1 block">
+                  Selesai Diteliti
+                </span>
+              </div>
             </div>
-            <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
-              <span className="text-[11px] text-slate-400 block mb-0.5">Ketepatan</span>
-              <span className="text-xl font-bold text-emerald-400">
-                {accuracy}%
-              </span>
+          ) : (
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
+                <span className="text-[11px] text-slate-400 block mb-0.5">Markah</span>
+                <span className="text-xl font-bold text-white">
+                  {score}/{questions.length}
+                </span>
+              </div>
+              <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
+                <span className="text-[11px] text-slate-400 block mb-0.5">Ketepatan</span>
+                <span className="text-xl font-bold text-emerald-400">
+                  {accuracy}%
+                </span>
+              </div>
+              <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
+                <span className="text-[11px] text-slate-400 block mb-0.5">Ganjaran XP</span>
+                <span className="text-xl font-bold text-amber-400 flex items-center justify-center gap-1">
+                  <Sparkles className="w-4 h-4" />+{xpEarned}
+                </span>
+              </div>
             </div>
-            <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3">
-              <span className="text-[11px] text-slate-400 block mb-0.5">Ganjaran XP</span>
-              <span className="text-xl font-bold text-amber-400 flex items-center justify-center gap-1">
-                <Sparkles className="w-4 h-4" />+{xpEarned}
-              </span>
-            </div>
-          </div>
+          )}
 
           {/* Time Spent Display for 40-Question Exam Set */}
-          {is40QuestionsQuiz && (
+          {!reviewMode && is40QuestionsQuiz && (
             <div className="mb-4 p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300 flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-slate-400 font-medium">
                 <Clock className="w-4 h-4 text-teal-400" />
@@ -414,7 +492,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           )}
 
           {/* Repeated Questions Completed Notice */}
-          {skippedIndices.length > 0 && (
+          {!reviewMode && skippedIndices.length > 0 && (
             <div className="mb-4 p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-center gap-2">
               <RotateCcw className="w-4 h-4 text-amber-400 shrink-0" />
               <span>
@@ -424,73 +502,142 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           )}
 
           {/* Cloud Sync & Student Details Card */}
-          <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-4 text-left mb-5">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-teal-300 flex items-center gap-1.5">
-                <UploadCloud className="w-4 h-4 text-teal-400" />
-                <span>Pangkalan Data Guru (Awan Firebase)</span>
-              </span>
-              {cloudSyncStatus === 'synced' && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                  <Check className="w-3 h-3 text-emerald-400" />
-                  <span>Tersimpan</span>
-                </span>
-              )}
-            </div>
-
-            {cloudSyncStatus === 'synced' ? (
-              <div className="p-2.5 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <p>
-                  Markah bagi <strong>{studentName}</strong> ({studentSchool || 'Umum'}) telah direkodkan terus ke Dashboard Guru!
-                </p>
+          {reviewMode ? (
+            <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-3.5 text-left mb-5 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-slate-700/50 flex items-center justify-center text-teal-400 shrink-0">
+                <CheckCircle2 className="w-4 h-4" />
               </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-[11px] text-slate-400">
-                  Masukkan nama anda supaya guru dapat melihat markah latihan anda di Dashboard Guru:
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div className="relative">
-                    <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-                    <input
-                      type="text"
-                      placeholder="Nama Pelajar (Wajib)"
-                      value={studentName}
-                      onChange={(e) => setStudentName(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
-                    />
-                  </div>
-                  <div className="relative">
-                    <School className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-                    <input
-                      type="text"
-                      placeholder="Sekolah / Kelas (cth: Maahad Yaakubiah / MAYA)"
-                      value={studentSchool}
-                      onChange={(e) => setStudentSchool(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleUploadToFirebase}
-                  disabled={!studentName.trim() || cloudSyncStatus === 'syncing'}
-                  className="w-full mt-1.5 py-2 px-3 bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm active:scale-98"
-                >
-                  <UploadCloud className="w-3.5 h-3.5" />
-                  <span>
-                    {cloudSyncStatus === 'syncing' ? 'Sedang Menyimpan ke Awan...' : 'Hantar Markah ke Dashboard Guru (Awan)'}
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Mod Skema adalah untuk bacaan dan rujukan kendiri. Tiada markah 0% atau rekod kuiz yang dihantar ke Dashboard Guru.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-4 text-left mb-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-teal-300 flex items-center gap-1.5">
+                  <UploadCloud className="w-4 h-4 text-teal-400" />
+                  <span>Pangkalan Data Guru (Awan Firebase)</span>
+                </span>
+                {cloudSyncStatus === 'synced' && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-400" />
+                    <span>Tersimpan</span>
                   </span>
-                </button>
-
-                {cloudErrorMsg && (
-                  <p className="text-[11px] text-rose-400 mt-1">{cloudErrorMsg}</p>
                 )}
               </div>
-            )}
-          </div>
+
+              {/* Verified Student Info Card */}
+              {studentName.trim() ? (
+                <div className="space-y-2.5">
+                  <div className="p-3 bg-slate-900/90 border border-slate-750 rounded-xl">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-white block truncate">
+                            {studentName}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block truncate">
+                            {studentSchool || 'Umum'}{studentClass ? ` • ${studentClass}` : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      {onOpenEditProfile && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            soundEffects.playClick();
+                            onOpenEditProfile();
+                          }}
+                          className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-emerald-500/40 text-emerald-400 text-[10px] font-semibold flex items-center gap-1 transition-colors shrink-0"
+                          title="Tukar nama samaran kepada nama sebenar anda"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          <span>Ubah Nama</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {cloudSyncStatus === 'synced' ? (
+                    <div className="p-2.5 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <p>
+                        Markah bagi <strong>{studentName}</strong> telah selamat direkodkan ke Dashboard Guru!
+                      </p>
+                    </div>
+                  ) : cloudSyncStatus === 'syncing' ? (
+                    <div className="p-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-xs text-slate-300 flex items-center gap-2">
+                      <RotateCcw className="w-3.5 h-3.5 text-teal-400 animate-spin shrink-0" />
+                      <p>Sedang menghantar keputusan ke Dashboard Guru...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {cloudErrorMsg && (
+                        <p className="text-[11px] text-rose-400">{cloudErrorMsg}</p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleUploadToFirebase}
+                        disabled={cloudSyncStatus === 'syncing'}
+                        className="w-full py-2 px-3 bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm active:scale-98"
+                      >
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>Hantar Semula Rekod ke Dashboard Guru</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-slate-400">
+                    Masukkan nama anda supaya guru dapat melihat markah latihan anda di Dashboard Guru:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="relative">
+                      <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                      <input
+                        type="text"
+                        placeholder="Nama Pelajar (Wajib)"
+                        value={studentName}
+                        onChange={(e) => setStudentName(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
+                      />
+                    </div>
+                    <div className="relative">
+                      <School className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                      <input
+                        type="text"
+                        placeholder="Sekolah / Kelas (cth: Maahad Yaakubiah / MAYA)"
+                        value={studentSchool}
+                        onChange={(e) => setStudentSchool(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleUploadToFirebase}
+                    disabled={!studentName.trim() || cloudSyncStatus === 'syncing'}
+                    className="w-full mt-1.5 py-2 px-3 bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm active:scale-98"
+                  >
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>
+                      {cloudSyncStatus === 'syncing' ? 'Sedang Menyimpan ke Awan...' : 'Hantar Markah ke Dashboard Guru (Awan)'}
+                    </span>
+                  </button>
+
+                  {cloudErrorMsg && (
+                    <p className="text-[11px] text-rose-400 mt-1">{cloudErrorMsg}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-2.5">
@@ -499,14 +646,18 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 hover:border-emerald-500/40 font-semibold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
             >
               <Share2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Hantar Slip ke WhatsApp Guru</span>
+              <span>{reviewMode ? 'Kongsi Catatan Skema ke WhatsApp' : 'Hantar Slip ke WhatsApp Guru'}</span>
             </button>
 
             <button
               onClick={handleCompleteAndExit}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold rounded-2xl shadow-lg shadow-emerald-950/40 transition-all active:scale-[0.98]"
+              className={`w-full py-3.5 px-4 text-white font-bold rounded-2xl shadow-lg transition-all active:scale-[0.98] ${
+                reviewMode
+                  ? 'bg-teal-600 hover:bg-teal-500 shadow-teal-950/40'
+                  : 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 shadow-emerald-950/40'
+              }`}
             >
-              Simpan & Kembali
+              {reviewMode ? 'Tutup & Kembali ke Menu' : 'Simpan & Kembali'}
             </button>
           </div>
         </div>

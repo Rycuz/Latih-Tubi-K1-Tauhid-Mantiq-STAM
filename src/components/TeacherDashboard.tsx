@@ -31,29 +31,55 @@ import {
 } from 'lucide-react';
 import { StudentRecord, StudentQuizHistory, SubjectId } from '../types';
 import { soundEffects } from '../utils/audio';
-import { CloudQuizSubmission } from '../lib/firebase';
+import { 
+  CloudQuizSubmission, 
+  deleteStudentFromFirebase, 
+  deleteQuizSubmissionFromFirebase 
+} from '../lib/firebase';
 
 const STORAGE_KEY_TEACHER_SCHOOL = 'stam_teacher_assigned_school_v1';
 const DEFAULT_TEACHER_SCHOOL = 'Maahad Yaakubiah (MAYA)';
+
+const GENERIC_SCHOOL_WORDS = new Set([
+  'maahad', "ma'had", 'mahad', 'sekolah', 'smka', 'smk', 'kolej', 'madrasah', 'institut', 'class', 'tingkatan', 'kelas'
+]);
 
 export const isStudentFromTeacherSchool = (studentSchoolOrClass: string, teacherSchool: string): boolean => {
   if (!studentSchoolOrClass || !teacherSchool) return false;
   const s = studentSchoolOrClass.toLowerCase().trim();
   const t = teacherSchool.toLowerCase().trim();
 
-  // Direct bidirectional containment
-  if (s.includes(t) || t.includes(s)) return true;
+  // Strict check for Maahad Yaakubiah / MAYA / Yaakubiah
+  const yaakubiahAliases = ['yaakubiah', 'yaqubiah', 'yakubiah', 'yaakubia', 'yaqubia'];
+  const hasMayaWord = /\bmaya\b/i.test(s) || s.includes('maya');
+  const studentIsMaya = hasMayaWord || yaakubiahAliases.some((alias) => s.includes(alias));
 
-  // MAYA / Maahad Yaakubiah alias & synonym matching
-  const mayaAliases = ['maya', 'maahad yaakubiah', 'yaakubiah', "ma'had yaakubiah", 'mahad yaakubiah', 'yaqubiah'];
-  const studentIsMaya = mayaAliases.some((alias) => s.includes(alias));
-  const teacherIsMaya = mayaAliases.some((alias) => t.includes(alias));
-  if (studentIsMaya && teacherIsMaya) return true;
+  const teacherHasMayaWord = /\bmaya\b/i.test(t) || t.includes('maya');
+  const teacherIsMaya = teacherHasMayaWord || yaakubiahAliases.some((alias) => t.includes(alias));
 
-  // Keyword token matching for multi-word school names
-  const teacherTokens = t.split(/[\s(),\-_]+/).filter((tok) => tok.length >= 4);
-  for (const token of teacherTokens) {
-    if (s.includes(token)) return true;
+  // If the teacher belongs to Maahad Yaakubiah (MAYA) (default or configured)
+  if (teacherIsMaya) {
+    // Only students strictly from Maahad Yaakubiah, MAYA, or Yaakubiah qualify as Pelajar Saya
+    return studentIsMaya;
+  }
+
+  // If teacher configured another specific school:
+  if (s === t) return true;
+
+  // Check specific non-generic tokens
+  const cleanTeacher = t.replace(/\b(maahad|smka|smk|sekolah|kolej|madrasah)\b/gi, '').trim();
+  if (cleanTeacher.length >= 4 && s.includes(cleanTeacher)) {
+    return true;
+  }
+
+  const teacherTokens = t
+    .split(/[\s(),\-_]+/)
+    .filter((tok) => tok.length >= 3 && !GENERIC_SCHOOL_WORDS.has(tok));
+
+  if (teacherTokens.length > 0) {
+    for (const token of teacherTokens) {
+      if (s.includes(token)) return true;
+    }
   }
 
   return false;
@@ -65,6 +91,16 @@ interface TeacherDashboardProps {
   onAddStudent?: (newStudent: StudentRecord) => void;
   onClearDemoStudents?: () => void;
   onRefreshLocalStudent?: () => void;
+  onDeleteStudent?: (studentId: string) => Promise<void> | void;
+  onDeleteSubmission?: (submissionId: string, studentId?: string) => Promise<void> | void;
+}
+
+interface DeleteTarget {
+  type: 'student' | 'submission';
+  studentId?: string;
+  studentName?: string;
+  submissionId?: string;
+  quizTitle?: string;
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
@@ -72,8 +108,13 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   cloudSubmissions = [],
   onAddStudent,
   onClearDemoStudents,
+  onDeleteStudent,
+  onDeleteSubmission,
 }) => {
   const [showLiveFeedModal, setShowLiveFeedModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
   // Teacher's own school configuration
   const [teacherSchool, setTeacherSchool] = useState<string>(() => {
     try {
@@ -157,6 +198,75 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       soundEffects.playCorrect();
     } catch {
       // ignore
+    }
+  };
+
+  const handlePromptDeleteStudent = (student: StudentRecord) => {
+    soundEffects.playClick();
+    setDeleteTarget({
+      type: 'student',
+      studentId: student.id,
+      studentName: student.name,
+    });
+  };
+
+  const handlePromptDeleteSubmission = (
+    submissionId: string,
+    studentId?: string,
+    quizTitle?: string,
+    studentName?: string
+  ) => {
+    soundEffects.playClick();
+    setDeleteTarget({
+      type: 'submission',
+      submissionId,
+      studentId,
+      quizTitle: quizTitle || 'Latihan',
+      studentName: studentName || (selectedStudentForDetail?.name || 'Pelajar'),
+    });
+  };
+
+  const handleExecuteDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      if (deleteTarget.type === 'student' && deleteTarget.studentId) {
+        if (onDeleteStudent) {
+          await onDeleteStudent(deleteTarget.studentId);
+        } else {
+          await deleteStudentFromFirebase(deleteTarget.studentId);
+        }
+        if (selectedStudentForDetail?.id === deleteTarget.studentId) {
+          setSelectedStudentForDetail(null);
+        }
+        setActionNotice(`Rekod pelajar "${deleteTarget.studentName}" berjaya dipadam daripada pangkalan data awan.`);
+        soundEffects.playCorrect();
+      } else if (deleteTarget.type === 'submission' && deleteTarget.submissionId) {
+        if (onDeleteSubmission) {
+          await onDeleteSubmission(deleteTarget.submissionId, deleteTarget.studentId);
+        } else {
+          await deleteQuizSubmissionFromFirebase(deleteTarget.submissionId, deleteTarget.studentId);
+        }
+        if (selectedStudentForDetail && deleteTarget.studentId === selectedStudentForDetail.id) {
+          setSelectedStudentForDetail((prev) => {
+            if (!prev) return null;
+            const updatedHistory = (prev.quizHistory || []).filter((h) => h.id !== deleteTarget.submissionId);
+            return {
+              ...prev,
+              quizHistory: updatedHistory,
+              quizzesCompleted: updatedHistory.length,
+            };
+          });
+        }
+        setActionNotice(`Rekod kuiz "${deleteTarget.quizTitle}" berjaya dipadam.`);
+        soundEffects.playCorrect();
+      }
+    } catch (err: any) {
+      console.error('Failed to delete:', err);
+      setActionNotice('Ralat semasa memadam rekod. Sila semak sambungan internet.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -372,6 +482,23 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Action Notice Alert */}
+      {actionNotice && (
+        <div className="p-3.5 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 text-xs font-semibold flex items-center justify-between shadow-lg animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{actionNotice}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActionNotice(null)}
+            className="text-emerald-400 hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-emerald-900/50 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Top Banner: Teacher School & Class Scope Configuration */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -869,6 +996,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       </span>
                     </div>
 
+                    {/* Delete Student Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePromptDeleteStudent(student);
+                      }}
+                      className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition-all shrink-0"
+                      title={`Padam semua rekod ${student.name}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+
                     {/* Action Arrow */}
                     <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 shrink-0" />
                   </div>
@@ -1091,13 +1231,31 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             </div>
                           </div>
 
-                          <div className="text-right shrink-0">
-                            <div className="text-xs font-bold text-white">
-                              Skor: <span className="text-emerald-400">{hist.score}</span> / {hist.totalQuestions}
+                          <div className="flex items-center gap-3 shrink-0">
+                            <div className="text-right">
+                              <div className="text-xs font-bold text-white">
+                                Skor: <span className="text-emerald-400">{hist.score}</span> / {hist.totalQuestions}
+                              </div>
+                              <div className="text-[10px] text-slate-400">
+                                Ketepatan: <span className="font-semibold text-amber-400">{hist.accuracy}%</span>
+                              </div>
                             </div>
-                            <div className="text-[10px] text-slate-400">
-                              Ketepatan: <span className="font-semibold text-amber-400">{hist.accuracy}%</span>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePromptDeleteSubmission(
+                                  hist.id, 
+                                  selectedStudentForDetail.id, 
+                                  hist.quizTitle, 
+                                  selectedStudentForDetail.name
+                                );
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 rounded-lg transition-all border border-transparent hover:border-rose-500/30"
+                              title="Padam rekod kuiz ini"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
                       );
@@ -1112,10 +1270,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-slate-800 bg-slate-900/90 flex justify-end">
+            <div className="px-6 py-4 border-t border-slate-800 bg-slate-900/90 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => handlePromptDeleteStudent(selectedStudentForDetail)}
+                className="px-3.5 py-2 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 hover:text-rose-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                <span>Padam Profil & Semua Rekod Pelajar</span>
+              </button>
+
               <button
                 onClick={() => setSelectedStudentForDetail(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors"
               >
                 Tutup Paparan
               </button>
@@ -1309,19 +1476,31 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-700/60 shrink-0">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-base font-extrabold text-white">
-                            {sub.score}/{sub.totalQuestions}
-                          </span>
-                          <span className={`text-xs font-bold ${isMumtaz ? 'text-emerald-400' : isJayyid ? 'text-teal-400' : 'text-amber-400'}`}>
-                            ({sub.accuracy}%)
+                      <div className="flex items-center gap-3 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-700/60 shrink-0">
+                        <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-base font-extrabold text-white">
+                              {sub.score}/{sub.totalQuestions}
+                            </span>
+                            <span className={`text-xs font-bold ${isMumtaz ? 'text-emerald-400' : isJayyid ? 'text-teal-400' : 'text-amber-400'}`}>
+                              ({sub.accuracy}%)
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-semibold text-amber-400 flex items-center gap-1 mt-0.5">
+                            <Sparkles className="w-3 h-3" />
+                            +{sub.xpEarned} XP
                           </span>
                         </div>
-                        <span className="text-[10px] font-semibold text-amber-400 flex items-center gap-1 mt-0.5">
-                          <Sparkles className="w-3 h-3" />
-                          +{sub.xpEarned} XP
-                        </span>
+
+                        {/* Delete Live Submission Button */}
+                        <button
+                          type="button"
+                          onClick={() => handlePromptDeleteSubmission(sub.id, sub.studentId, sub.quizTitle, sub.studentName)}
+                          className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 rounded-xl border border-transparent hover:border-rose-500/30 transition-all shrink-0"
+                          title="Padam rekod kuiz ini dari awan"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   );
@@ -1347,6 +1526,61 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold"
               >
                 Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-rose-500/40 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-200">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-2">
+              <h3 className="text-base font-bold text-white">
+                {deleteTarget.type === 'student' ? 'Padam Rekod Pelajar?' : 'Padam Rekod Jawapan Kuiz?'}
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {deleteTarget.type === 'student' ? (
+                  <>
+                    Adakah anda pasti ingin memadamkan rekod pelajar{' '}
+                    <strong className="text-rose-300 font-bold">{deleteTarget.studentName}</strong>?
+                    <br />
+                    Semua sejarah latihan dan markah pelajar ini akan dikeluarkan daripada pangkalan data awan Firebase.
+                  </>
+                ) : (
+                  <>
+                    Adakah anda pasti ingin memadamkan rekod kuiz{' '}
+                    <strong className="text-white font-bold">{deleteTarget.quizTitle}</strong> bagi pelajar{' '}
+                    <strong className="text-rose-300 font-bold">{deleteTarget.studentName}</strong>?
+                    <br />
+                    Markah ujian ini akan dikeluarkan daripada pangkalan data awan Firebase.
+                  </>
+                )}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteDelete}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 px-4 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-rose-950/50"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{isDeleting ? 'Sedang Memadam...' : 'Ya, Padam'}</span>
               </button>
             </div>
           </div>

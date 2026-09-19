@@ -24,6 +24,7 @@ import { AnalyticsView } from './components/AnalyticsView';
 import { BadgesView } from './components/BadgesView';
 import { QuizModal } from './components/QuizModal';
 import { TeacherQuestionManagerModal } from './components/TeacherQuestionManagerModal';
+import { StudentProfileModal, StudentProfileData } from './components/StudentProfileModal';
 import { soundEffects } from './utils/audio';
 import { sanitizeQuestion } from './utils/sanitizeText';
 import { 
@@ -31,7 +32,10 @@ import {
   subscribeToCloudSubmissions, 
   CloudQuizSubmission,
   saveCurriculumToFirebase,
-  subscribeToCloudCurriculum
+  subscribeToCloudCurriculum,
+  deleteStudentFromFirebase,
+  deleteQuizSubmissionFromFirebase,
+  updateStudentProfileInFirebase
 } from './lib/firebase';
 
 const STORAGE_KEY_STATS = 'al_dirasat_stats_v1';
@@ -84,6 +88,65 @@ export default function App() {
     }
     return INITIAL_BADGES;
   });
+
+  // Student Profile State (Mandatory before accessing app, editable anytime)
+  const [studentProfile, setStudentProfile] = useState<StudentProfileData>(() => {
+    try {
+      const storedId = localStorage.getItem('stam_student_id') || '';
+      const storedName = localStorage.getItem('stam_student_name') || '';
+      const storedSchool = localStorage.getItem('stam_student_school') || '';
+      const storedClass = localStorage.getItem('stam_student_class') || '';
+      return {
+        studentId: storedId || (storedName ? `std-${Date.now()}-${Math.random().toString(36).substring(2, 6)}` : ''),
+        name: storedName,
+        school: storedSchool,
+        studentClass: storedClass,
+      };
+    } catch {
+      return { studentId: '', name: '', school: '', studentClass: '' };
+    }
+  });
+
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  // Check if student profile is incomplete (requires mandatory onboarding before using the app)
+  const isMandatoryProfileMissing = !studentProfile.name.trim() || !studentProfile.school.trim() || !studentProfile.studentClass.trim();
+
+  const handleSaveStudentProfile = async (updated: StudentProfileData) => {
+    const studentId = updated.studentId || studentProfile.studentId || `std-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const cleanName = updated.name.trim();
+    const cleanSchool = updated.school.trim();
+    const cleanClass = updated.studentClass.trim();
+
+    try {
+      localStorage.setItem('stam_student_id', studentId);
+      localStorage.setItem('stam_student_name', cleanName);
+      localStorage.setItem('stam_student_school', cleanSchool);
+      localStorage.setItem('stam_student_class', cleanClass);
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+
+    setStudentProfile({
+      studentId,
+      name: cleanName,
+      school: cleanSchool,
+      studentClass: cleanClass,
+    });
+
+    // Update in Firebase so any past submissions or teacher dashboard records immediately reflect the real name
+    try {
+      await updateStudentProfileInFirebase({
+        studentId,
+        newName: cleanName,
+        newSchoolOrClass: cleanClass ? `${cleanSchool} (${cleanClass})` : cleanSchool,
+      });
+    } catch (fbErr) {
+      console.warn('Non-blocking cloud profile update notice:', fbErr);
+    }
+
+    setIsProfileModalOpen(false);
+  };
 
   // Active Quiz State
   const [activeQuizQuestions, setActiveQuizQuestions] = useState<Question[] | null>(null);
@@ -208,19 +271,75 @@ export default function App() {
     });
   };
 
+  const handleDeleteStudent = async (studentId: string) => {
+    // 1. Delete student & associated submissions from Firebase
+    await deleteStudentFromFirebase(studentId);
+
+    // 2. Remove from local state
+    setStudents((prev) => {
+      const filtered = prev.filter((s) => s.id !== studentId);
+      try {
+        localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(filtered));
+      } catch {
+        // ignore
+      }
+      return filtered;
+    });
+
+    // 3. Remove student's submissions from local state
+    setCloudSubmissions((prev) => prev.filter((sub) => sub.studentId !== studentId));
+  };
+
+  const handleDeleteSubmission = async (submissionId: string, studentId?: string) => {
+    // 1. Delete submission from Firebase
+    await deleteQuizSubmissionFromFirebase(submissionId, studentId);
+
+    // 2. Remove from local cloudSubmissions state
+    setCloudSubmissions((prev) => prev.filter((sub) => sub.id !== submissionId));
+
+    // 3. If studentId provided, update the student's local quiz history
+    if (studentId) {
+      setStudents((prev) => {
+        const updated = prev.map((s) => {
+          if (s.id !== studentId) return s;
+          const updatedHistory = (s.quizHistory || []).filter((h) => h.id !== submissionId);
+          const totalQ = updatedHistory.reduce((acc, h) => acc + h.totalQuestions, 0);
+          const correctQ = updatedHistory.reduce((acc, h) => acc + h.score, 0);
+          const totalXp = updatedHistory.reduce((acc, h) => acc + h.xpEarned, 0);
+          const accuracy = totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0;
+          return {
+            ...s,
+            quizHistory: updatedHistory,
+            quizzesCompleted: updatedHistory.length,
+            totalQuestionsAnswered: totalQ,
+            correctAnswersCount: correctQ,
+            totalXp,
+            accuracy,
+          };
+        });
+        try {
+          localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(updated));
+        } catch {
+          // ignore
+        }
+        return updated;
+      });
+    }
+  };
+
   // Real-time Cloud Submissions & Students via Firebase Firestore
   const [cloudSubmissions, setCloudSubmissions] = useState<CloudQuizSubmission[]>([]);
 
   useEffect(() => {
     const unsubStudents = subscribeToCloudStudents((cloudStudents) => {
-      if (cloudStudents && cloudStudents.length > 0) {
+      if (cloudStudents) {
         setStudents((prev) => {
           const cloudIds = new Set(cloudStudents.map((s) => s.id));
-          // Only keep real non-conflicting students (no mock ids)
-          const nonConflicting = prev
-            .filter((s) => !cloudIds.has(s.id))
-            .filter((s) => !s.id.startsWith('std-00') && s.id !== 'std-current-user');
-          const merged = [...cloudStudents, ...nonConflicting];
+          // Keep only real cloud students, plus any purely local manual additions
+          const manualOnly = prev
+            .filter((s) => !s.id.startsWith('std-00') && s.id !== 'std-current-user')
+            .filter((s) => !cloudIds.has(s.id) && s.id.startsWith('std-manual-'));
+          const merged = [...cloudStudents, ...manualOnly];
           try {
             localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(merged));
           } catch {
@@ -543,7 +662,14 @@ export default function App() {
     total: number;
     xpEarned: number;
     attempts: QuestionAttempt[];
+    isReviewOnly?: boolean;
   }) => {
+    if (results.isReviewOnly) {
+      // Mod Skema: Jangan simpan sebarang markah atau statistik cubaan, tutup modal serta-merta
+      setActiveQuizQuestions(null);
+      return;
+    }
+
     const newTotalXp = stats.totalXp + results.xpEarned;
     const newLevel = Math.floor(newTotalXp / 100) + 1;
 
@@ -763,6 +889,8 @@ export default function App() {
         onToggleSound={toggleSound}
         languageMode={languageMode}
         onChangeLanguageMode={setLanguageMode}
+        studentName={studentProfile.name}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
         onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
       />
 
@@ -824,7 +952,7 @@ export default function App() {
       />
 
       {/* Active Quiz Fullscreen Modal */}
-      {activeQuizQuestions && (
+      {Boolean(activeQuizQuestions && activeQuizQuestions.length > 0) && (
         <QuizModal
           questions={activeQuizQuestions}
           title={activeQuizTitle}
@@ -837,8 +965,19 @@ export default function App() {
           languageMode={languageMode}
           bookmarkedIds={stats.bookmarkedQuestionIds}
           onToggleBookmark={handleToggleBookmark}
+          studentProfile={studentProfile}
+          onOpenEditProfile={() => setIsProfileModalOpen(true)}
         />
       )}
+
+      {/* Student Profile Registration & Edit Modal */}
+      <StudentProfileModal
+        isOpen={isMandatoryProfileMissing || isProfileModalOpen}
+        isMandatoryOnboarding={isMandatoryProfileMissing}
+        initialProfile={studentProfile}
+        onSave={handleSaveStudentProfile}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
 
       {/* Teacher / Admin Question Management Modal (PIN Protected) */}
       <TeacherQuestionManagerModal
@@ -852,6 +991,8 @@ export default function App() {
         onResetToDefault={handleResetQuestionsToDefault}
         onAddStudent={handleAddStudent}
         onClearDemoStudents={handleClearDemoStudents}
+        onDeleteStudent={handleDeleteStudent}
+        onDeleteSubmission={handleDeleteSubmission}
         onSaveTopics={handleSaveTopics}
         onResetTopicsToDefault={handleResetTopicsToDefault}
         onUpdateTopicTitleInQuestions={handleUpdateTopicTitleInQuestions}

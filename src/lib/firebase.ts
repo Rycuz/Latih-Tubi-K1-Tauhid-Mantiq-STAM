@@ -3,8 +3,11 @@ import {
   getFirestore,
   doc,
   setDoc,
+  deleteDoc,
   collection,
   addDoc,
+  getDocs,
+  where,
   onSnapshot,
   query,
   orderBy,
@@ -214,6 +217,139 @@ export function subscribeToCloudSubmissions(
   } catch (err: any) {
     console.warn('Cannot subscribe to submissions:', err);
     return () => {};
+  }
+}
+
+/**
+ * Delete a student record from Firestore, and also delete any associated submissions.
+ */
+export async function deleteStudentFromFirebase(studentId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 1. Delete student document
+    await deleteDoc(doc(db, 'students', studentId));
+
+    // 2. Also find and delete all submissions belonging to this student
+    try {
+      const q = query(collection(db, 'quiz_submissions'), where('studentId', '==', studentId));
+      const snap = await getDocs(q);
+      const deletePromises = snap.docs.map((docSnap) => deleteDoc(docSnap.ref));
+      await Promise.all(deletePromises);
+    } catch (subErr) {
+      console.warn('Submissions deletion non-blocking notice:', subErr);
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed to delete student from Firebase:', err);
+    return { success: false, error: err?.message || 'Gagal memadam rekod pelajar dari Firestore' };
+  }
+}
+
+/**
+ * Delete a specific quiz submission from Firestore, and update/remove from student history if needed.
+ */
+export async function deleteQuizSubmissionFromFirebase(
+  submissionId: string,
+  studentId?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 1. Delete submission document
+    await deleteDoc(doc(db, 'quiz_submissions', submissionId));
+
+    // 2. If studentId provided, clean up or recalculate in student profile
+    if (studentId) {
+      try {
+        const studentRef = doc(db, 'students', studentId);
+        const studentSnap = await getDocFromServer(studentRef).catch(() => null);
+        if (studentSnap && studentSnap.exists()) {
+          const data = studentSnap.data();
+          const oldHistory: StudentQuizHistory[] = data.quizHistory || [];
+          const updatedHistory = oldHistory.filter((h) => h.id !== submissionId);
+
+          if (updatedHistory.length === 0) {
+            // If the student has no remaining history, delete the student profile as well
+            await deleteDoc(studentRef);
+          } else {
+            const totalQ = updatedHistory.reduce((acc, h) => acc + h.totalQuestions, 0);
+            const correctQ = updatedHistory.reduce((acc, h) => acc + h.score, 0);
+            const totalXp = updatedHistory.reduce((acc, h) => acc + h.xpEarned, 0);
+            const accuracy = totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0;
+            await setDoc(
+              studentRef,
+              {
+                quizHistory: updatedHistory,
+                quizzesCompleted: updatedHistory.length,
+                totalQuestionsAnswered: totalQ,
+                correctAnswersCount: correctQ,
+                totalXp,
+                accuracy,
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true }
+            );
+          }
+        }
+      } catch (e) {
+        console.warn('Student update after submission delete non-blocking notice:', e);
+      }
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed to delete submission from Firebase:', err);
+    return { success: false, error: err?.message || 'Gagal memadam rekod kuiz dari Firestore' };
+  }
+}
+
+/**
+ * Update an existing student's profile (e.g. rename from pseudonym to real name, update school/class)
+ * in Firestore students collection, and synchronize all previous submissions with the new name.
+ */
+export async function updateStudentProfileInFirebase(params: {
+  studentId: string;
+  newName: string;
+  newSchoolOrClass: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const cleanName = params.newName.trim();
+    const cleanSchool = params.newSchoolOrClass.trim();
+    const nowIso = new Date().toISOString();
+
+    // 1. Update the student document in 'students'
+    const studentRef = doc(db, 'students', params.studentId);
+    await setDoc(
+      studentRef,
+      {
+        name: cleanName,
+        schoolOrClass: cleanSchool,
+        updatedAt: nowIso,
+      },
+      { merge: true }
+    );
+
+    // 2. Also update all past submissions belonging to this student in 'quiz_submissions'
+    try {
+      const q = query(collection(db, 'quiz_submissions'), where('studentId', '==', params.studentId));
+      const snap = await getDocs(q);
+      const updatePromises = snap.docs.map((docSnap) =>
+        setDoc(
+          docSnap.ref,
+          {
+            studentName: cleanName,
+            schoolOrClass: cleanSchool,
+          },
+          { merge: true }
+        )
+      );
+      await Promise.all(updatePromises);
+    } catch (subErr) {
+      console.warn('Past submissions rename notice:', subErr);
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed to update student profile in Firebase:', err);
+    return { success: false, error: err?.message || 'Gagal mengemas kini profil pelajar' };
   }
 }
 

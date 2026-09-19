@@ -64,6 +64,8 @@ interface TeacherQuestionManagerModalProps {
   onResetToDefault: () => void;
   onAddStudent?: (newStudent: StudentRecord) => void;
   onClearDemoStudents?: () => void;
+  onDeleteStudent?: (studentId: string) => Promise<void> | void;
+  onDeleteSubmission?: (submissionId: string, studentId?: string) => Promise<void> | void;
   onSaveTopics: (updatedTopics: TopicInfo[]) => void;
   onResetTopicsToDefault: () => void;
   onUpdateTopicTitleInQuestions?: (topicId: string, newTitleMalay: string, newTitleArabic: string) => void;
@@ -81,6 +83,8 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   onResetToDefault,
   onAddStudent,
   onClearDemoStudents,
+  onDeleteStudent,
+  onDeleteSubmission,
   onSaveTopics,
   onResetTopicsToDefault,
   onUpdateTopicTitleInQuestions,
@@ -768,6 +772,8 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
               cloudSubmissions={cloudSubmissions}
               onAddStudent={onAddStudent}
               onClearDemoStudents={onClearDemoStudents}
+              onDeleteStudent={onDeleteStudent}
+              onDeleteSubmission={onDeleteSubmission}
             />
           )}
 
