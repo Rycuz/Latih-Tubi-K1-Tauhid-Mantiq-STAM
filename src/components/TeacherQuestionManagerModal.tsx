@@ -28,7 +28,8 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
-  ListOrdered
+  ListOrdered,
+  Cloud
 } from 'lucide-react';
 import { Question, SubjectId, TopicInfo, Difficulty, StudentRecord } from '../types';
 import { TOPICS_DATA } from '../data/questions';
@@ -66,6 +67,7 @@ interface TeacherQuestionManagerModalProps {
   onSaveTopics: (updatedTopics: TopicInfo[]) => void;
   onResetTopicsToDefault: () => void;
   onUpdateTopicTitleInQuestions?: (topicId: string, newTitleMalay: string, newTitleArabic: string) => void;
+  onSyncCurriculumToCloud?: () => Promise<{ success: boolean; error?: string }>;
 }
 
 export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalProps> = ({
@@ -82,6 +84,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   onSaveTopics,
   onResetTopicsToDefault,
   onUpdateTopicTitleInQuestions,
+  onSyncCurriculumToCloud,
 }) => {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -90,6 +93,8 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   const [isChangingPin, setIsChangingPin] = useState(false);
   const [newPin, setNewPin] = useState('');
   const [pinSuccessMessage, setPinSuccessMessage] = useState('');
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+  const [cloudSyncNotice, setCloudSyncNotice] = useState<string | null>(null);
 
   // Manager Tabs: default to 'dashboard' to instantly see students and performance
   const [activeTab, setActiveTab] = useState<'dashboard' | 'topics' | 'list' | 'add' | 'settings'>('dashboard');
@@ -184,6 +189,28 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
     setEnteredPin('');
     setPinError('');
     onClose();
+  };
+
+  const handleCloudSync = async () => {
+    if (!onSyncCurriculumToCloud) return;
+    setIsSyncingCloud(true);
+    setCloudSyncNotice('Menyegerakkan soalan dan tajuk ke pangkalan data awan (Firebase)...');
+    try {
+      const res = await onSyncCurriculumToCloud();
+      if (res.success) {
+        soundEffects.playCorrect();
+        setCloudSyncNotice('✅ Berjaya disegerakkan! Semua soalan dan terjemahan terkini kini aktif di Mod Biasa untuk semua pelajar.');
+      } else {
+        soundEffects.playWrong();
+        setCloudSyncNotice(`❌ Ralat penyegerakan awan: ${res.error || 'Sila cuba lagi'}`);
+      }
+    } catch (err: any) {
+      soundEffects.playWrong();
+      setCloudSyncNotice('❌ Gagal berhubung dengan pangkalan data awan.');
+    } finally {
+      setIsSyncingCloud(false);
+      setTimeout(() => setCloudSyncNotice(null), 6000);
+    }
   };
 
   // Populate form when editing an existing question
@@ -590,6 +617,24 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
           </div>
 
           <div className="flex items-center gap-2">
+            {onSyncCurriculumToCloud && (
+              <button
+                type="button"
+                onClick={handleCloudSync}
+                disabled={isSyncingCloud}
+                className={`py-1.5 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm ${
+                  isSyncingCloud
+                    ? 'bg-slate-800 text-slate-400 border border-slate-700 cursor-wait'
+                    : 'bg-teal-600/90 hover:bg-teal-500 border border-teal-500/40 text-white active:scale-95'
+                }`}
+                title="Segerakkan soalan dan tajuk ke pangkalan data awan (Firebase) supaya aktif serta-merta di Mod Biasa untuk semua pelajar"
+              >
+                <Cloud className={`w-3.5 h-3.5 ${isSyncingCloud ? 'animate-bounce' : ''}`} />
+                <span className="hidden sm:inline">{isSyncingCloud ? 'Menyegerak...' : 'Segerak ke Awan'}</span>
+                <span className="sm:hidden">{isSyncingCloud ? '...' : 'Awan'}</span>
+              </button>
+            )}
+
             <button
               onClick={handleLockSession}
               className="py-1.5 px-3 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-500/50 text-slate-300 hover:text-rose-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
@@ -606,6 +651,23 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
             </button>
           </div>
         </div>
+
+        {/* Real-time Cloud Sync Feedback Banner */}
+        {cloudSyncNotice && (
+          <div className="max-w-5xl mx-auto mt-2.5 px-3.5 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 text-xs flex items-center justify-between gap-2 shadow-sm animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{cloudSyncNotice}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCloudSyncNotice(null)}
+              className="text-slate-400 hover:text-white text-xs px-1"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <div className="max-w-5xl mx-auto mt-3 flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
@@ -1553,6 +1615,51 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
           {/* TAB 3: KESELAMATAN & SANDARAN (PIN & BACKUP) */}
           {activeTab === 'settings' && (
             <div className="space-y-5">
+              {/* Cloud Synchronization Card */}
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30">
+                    <Cloud className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-white">
+                        Penyegerakan Pangkalan Data Awan (Firebase Firestore)
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-[10px] font-bold">
+                        Sinkronasi Automatik
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Soalan yang ditambah dan terjemahan yang disunting disegerakkan terus ke pangkalan data awan untuk paparan Mod Biasa pelajar di Vercel.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    Setiap kali anda menyimpan atau menyunting soalan di Mod Guru, sistem akan mengemas kini storan setempat dan pangkalan data awan Firebase. Pelajar yang mengakses pautan web Vercel dalam <strong>Mod Biasa</strong> pada mana-mana telefon atau komputer akan menerima soalan terkini secara automatik.
+                  </p>
+                  {onSyncCurriculumToCloud && (
+                    <div className="flex items-center gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleCloudSync}
+                        disabled={isSyncingCloud}
+                        className={`py-2 px-4 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md ${
+                          isSyncingCloud
+                            ? 'bg-slate-700 text-slate-400 cursor-wait'
+                            : 'bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 active:scale-95'
+                        }`}
+                      >
+                        <Cloud className={`w-4 h-4 ${isSyncingCloud ? 'animate-bounce' : ''}`} />
+                        <span>{isSyncingCloud ? 'Sedang Menyegerak ke Awan...' : 'Segerakkan ke Pangkalan Data Awan Sekarang'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Change PIN Card */}
               <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
                 <div className="flex items-center gap-3 mb-3">

@@ -26,5 +26,12 @@ service cloud.firestore {
         && request.resource.data.totalQuestions is number;
       allow update, delete: if false;
     }
+
+    match /curriculum/{documentId} {
+      allow read: if true;
+      allow create, update: if isValidId(documentId)
+        && request.resource.data.updatedAt is string;
+      allow delete: if false;
+    }
   }
 }

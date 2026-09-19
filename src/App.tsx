@@ -26,7 +26,13 @@ import { QuizModal } from './components/QuizModal';
 import { TeacherQuestionManagerModal } from './components/TeacherQuestionManagerModal';
 import { soundEffects } from './utils/audio';
 import { sanitizeQuestion } from './utils/sanitizeText';
-import { subscribeToCloudStudents, subscribeToCloudSubmissions, CloudQuizSubmission } from './lib/firebase';
+import { 
+  subscribeToCloudStudents, 
+  subscribeToCloudSubmissions, 
+  CloudQuizSubmission,
+  saveCurriculumToFirebase,
+  subscribeToCloudCurriculum
+} from './lib/firebase';
 
 const STORAGE_KEY_STATS = 'al_dirasat_stats_v1';
 const STORAGE_KEY_BADGES = 'al_dirasat_badges_v1';
@@ -120,14 +126,20 @@ export default function App() {
       }
 
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Merge official questions to ensure bilingual options from code are always fresh
+        // Merge with official questions: use official questions as base structure,
+        // but preserve user-edited translations, options, explanations, and difficulty
         const merged = parsed.map((q) => {
           const official = officialMap.get(q.id);
           if (official) {
             return {
               ...official,
-              difficulty: q.difficulty || official.difficulty,
-              learningStandard: q.learningStandard || official.learningStandard,
+              ...q,
+              options: Array.isArray(q.options) && q.options.length > 0
+                ? q.options.map((opt, idx) => ({
+                    ...(official.options[idx] || {}),
+                    ...opt,
+                  }))
+                : official.options,
             };
           }
           return sanitizeQuestion(q);
@@ -223,9 +235,61 @@ export default function App() {
       setCloudSubmissions(subs);
     });
 
+    // Real-time listener for questions & topics from Firebase Firestore (Cloud Curriculum)
+    // Ensures questions added & translations edited in Teacher Mode immediately reflect on all devices
+    const unsubCurriculum = subscribeToCloudCurriculum({
+      onQuestions: (cloudQuestions) => {
+        if (Array.isArray(cloudQuestions) && cloudQuestions.length > 0) {
+          const officialMap = new Map(QUESTIONS_DATA.map((q) => [q.id, q]));
+          const merged = cloudQuestions.map((q) => {
+            const official = officialMap.get(q.id);
+            if (official) {
+              return {
+                ...official,
+                ...q,
+                options: Array.isArray(q.options) && q.options.length > 0
+                  ? q.options.map((opt, idx) => ({
+                      ...(official.options[idx] || {}),
+                      ...opt,
+                    }))
+                  : official.options,
+              };
+            }
+            return sanitizeQuestion(q);
+          });
+
+          // Ensure official questions not present in cloud are preserved
+          const existingIds = new Set(merged.map((q) => q.id));
+          for (const official of QUESTIONS_DATA) {
+            if (!existingIds.has(official.id)) {
+              merged.push(official);
+            }
+          }
+
+          setAllQuestions(merged);
+          try {
+            localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(merged));
+          } catch {
+            // ignore
+          }
+        }
+      },
+      onTopics: (cloudTopics) => {
+        if (Array.isArray(cloudTopics) && cloudTopics.length > 0) {
+          setTopics(cloudTopics);
+          try {
+            localStorage.setItem(STORAGE_KEY_TOPICS, JSON.stringify(cloudTopics));
+          } catch {
+            // ignore
+          }
+        }
+      },
+    });
+
     return () => {
       unsubStudents();
       unsubSubmissions();
+      unsubCurriculum();
     };
   }, []);
 
@@ -249,6 +313,14 @@ export default function App() {
 
   const handleSaveTopics = (updatedTopics: TopicInfo[]) => {
     setTopics(updatedTopics);
+    try {
+      localStorage.setItem(STORAGE_KEY_TOPICS, JSON.stringify(updatedTopics));
+    } catch (err) {
+      console.error('Failed to save topics to local storage', err);
+    }
+    saveCurriculumToFirebase(allQuestions, updatedTopics).catch((err) => {
+      console.warn('Failed to sync topics to cloud:', err);
+    });
   };
 
   const handleResetTopicsToDefault = () => {
@@ -258,6 +330,9 @@ export default function App() {
     } catch (err) {
       console.error('Failed to reset topics', err);
     }
+    saveCurriculumToFirebase(allQuestions, TOPICS_DATA).catch((err) => {
+      console.warn('Failed to reset topics in cloud:', err);
+    });
   };
 
   const handleUpdateTopicTitleInQuestions = (topicId: string, newTitleMalay: string, newTitleArabic: string) => {
@@ -277,6 +352,9 @@ export default function App() {
       } catch {
         // ignore
       }
+      saveCurriculumToFirebase(updated, topics).catch((err) => {
+        console.warn('Failed to sync updated topic titles to cloud:', err);
+      });
       return updated;
     });
   };
@@ -288,6 +366,10 @@ export default function App() {
     } catch (err) {
       console.error('Failed to save questions to local storage', err);
     }
+    // Save to Firebase Firestore cloud so that all students and devices in Normal Mode get the latest updates
+    saveCurriculumToFirebase(updatedQuestions, topics).catch((err) => {
+      console.warn('Failed to sync questions to cloud:', err);
+    });
   };
 
   const handleResetQuestionsToDefault = () => {
@@ -297,6 +379,13 @@ export default function App() {
     } catch (err) {
       console.error('Failed to reset questions', err);
     }
+    saveCurriculumToFirebase(QUESTIONS_DATA, topics).catch((err) => {
+      console.warn('Failed to reset questions in cloud:', err);
+    });
+  };
+
+  const handleSyncCurriculumToCloud = async () => {
+    return await saveCurriculumToFirebase(allQuestions, topics);
   };
 
   // Sync to local storage
@@ -694,6 +783,7 @@ export default function App() {
           <GroupChallengeView
             onUnlockGroupBadge={handleUnlockGroupBadge}
             languageMode={languageMode}
+            questions={allQuestions}
           />
         )}
 
@@ -717,6 +807,7 @@ export default function App() {
         {currentTab === 'analytics' && (
           <AnalyticsView
             stats={stats}
+            topics={topics}
             onPracticeWeakTopic={(topicId, subject) => handleStartQuiz(topicId, subject)}
             onOpenBookmarkedQuiz={handleOpenBookmarkedQuiz}
           />
@@ -764,6 +855,7 @@ export default function App() {
         onSaveTopics={handleSaveTopics}
         onResetTopicsToDefault={handleResetTopicsToDefault}
         onUpdateTopicTitleInQuestions={handleUpdateTopicTitleInQuestions}
+        onSyncCurriculumToCloud={handleSyncCurriculumToCloud}
       />
     </div>
   );

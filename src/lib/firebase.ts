@@ -13,7 +13,7 @@ import {
   arrayUnion,
 } from 'firebase/firestore';
 import config from '../../firebase-applet-config.json';
-import { StudentRecord, StudentQuizHistory, SubjectId } from '../types';
+import { StudentRecord, StudentQuizHistory, SubjectId, Question, TopicInfo } from '../types';
 
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(config) : getApp();
@@ -216,3 +216,143 @@ export function subscribeToCloudSubmissions(
     return () => {};
   }
 }
+
+/**
+ * Save questions and topics to Firestore cloud so they are synchronized
+ * across all devices, sessions, teachers, and students in Normal Mode.
+ */
+export async function saveCurriculumToFirebase(
+  questions: Question[],
+  topics: TopicInfo[]
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const nowIso = new Date().toISOString();
+    
+    // Group questions by subject for fast updates and safely staying under Firestore document limits
+    const tauhid = questions.filter((q) => q.subject === 'tauhid');
+    const firaq = questions.filter((q) => q.subject === 'firaq');
+    const mantiq = questions.filter((q) => q.subject === 'mantiq');
+    const custom = questions.filter((q) => !['tauhid', 'firaq', 'mantiq'].includes(q.subject));
+
+    // Serialize cleanly without undefined fields
+    const safeTauhid = JSON.parse(JSON.stringify(tauhid));
+    const safeFiraq = JSON.parse(JSON.stringify(firaq));
+    const safeMantiq = JSON.parse(JSON.stringify(mantiq));
+    const safeCustom = JSON.parse(JSON.stringify(custom));
+    const safeTopics = JSON.parse(JSON.stringify(topics));
+
+    // Save each subject section and topics in parallel
+    await Promise.all([
+      setDoc(doc(db, 'curriculum', 'questions_tauhid'), {
+        id: 'questions_tauhid',
+        subject: 'tauhid',
+        updatedAt: nowIso,
+        count: safeTauhid.length,
+        questions: safeTauhid,
+      }),
+      setDoc(doc(db, 'curriculum', 'questions_firaq'), {
+        id: 'questions_firaq',
+        subject: 'firaq',
+        updatedAt: nowIso,
+        count: safeFiraq.length,
+        questions: safeFiraq,
+      }),
+      setDoc(doc(db, 'curriculum', 'questions_mantiq'), {
+        id: 'questions_mantiq',
+        subject: 'mantiq',
+        updatedAt: nowIso,
+        count: safeMantiq.length,
+        questions: safeMantiq,
+      }),
+      setDoc(doc(db, 'curriculum', 'questions_custom'), {
+        id: 'questions_custom',
+        subject: 'custom',
+        updatedAt: nowIso,
+        count: safeCustom.length,
+        questions: safeCustom,
+      }),
+      setDoc(doc(db, 'curriculum', 'topics'), {
+        id: 'topics',
+        updatedAt: nowIso,
+        count: safeTopics.length,
+        topics: safeTopics,
+      }),
+    ]);
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed to save curriculum to Firestore:', err);
+    return { success: false, error: err?.message || 'Gagal menyimpan ke pangkalan data awan' };
+  }
+}
+
+/**
+ * Real-time listener for curriculum (questions & topics) updates from Firestore.
+ * Automatically synchronizes Normal Mode across all student devices whenever
+ * the teacher saves changes.
+ */
+export function subscribeToCloudCurriculum(callbacks: {
+  onQuestions?: (questions: Question[]) => void;
+  onTopics?: (topics: TopicInfo[]) => void;
+  onError?: (err: Error) => void;
+}) {
+  try {
+    const q = collection(db, 'curriculum');
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        let hasQuestions = false;
+        let hasTopics = false;
+        let tauhidQuestions: Question[] = [];
+        let firaqQuestions: Question[] = [];
+        let mantiqQuestions: Question[] = [];
+        let customQuestions: Question[] = [];
+        let fetchedTopics: TopicInfo[] = [];
+
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (docSnap.id === 'questions_tauhid' && Array.isArray(data.questions)) {
+            tauhidQuestions = data.questions;
+            hasQuestions = true;
+          } else if (docSnap.id === 'questions_firaq' && Array.isArray(data.questions)) {
+            firaqQuestions = data.questions;
+            hasQuestions = true;
+          } else if (docSnap.id === 'questions_mantiq' && Array.isArray(data.questions)) {
+            mantiqQuestions = data.questions;
+            hasQuestions = true;
+          } else if (docSnap.id === 'questions_custom' && Array.isArray(data.questions)) {
+            customQuestions = data.questions;
+            hasQuestions = true;
+          } else if (docSnap.id === 'topics' && Array.isArray(data.topics)) {
+            fetchedTopics = data.topics;
+            hasTopics = true;
+          }
+        });
+
+        if (hasQuestions && callbacks.onQuestions) {
+          const combined = [
+            ...tauhidQuestions,
+            ...firaqQuestions,
+            ...mantiqQuestions,
+            ...customQuestions,
+          ];
+          if (combined.length > 0) {
+            callbacks.onQuestions(combined);
+          }
+        }
+
+        if (hasTopics && callbacks.onTopics && fetchedTopics.length > 0) {
+          callbacks.onTopics(fetchedTopics);
+        }
+      },
+      (error) => {
+        console.warn('Firestore curriculum subscription error:', error);
+        if (callbacks.onError) callbacks.onError(error);
+      }
+    );
+  } catch (err: any) {
+    console.warn('Cannot subscribe to curriculum:', err);
+    return () => {};
+  }
+}
+

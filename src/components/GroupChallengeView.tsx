@@ -23,11 +23,13 @@ import { QuestionDiagramRenderer } from './QuestionDiagramRenderer';
 interface GroupChallengeViewProps {
   onUnlockGroupBadge: () => void;
   languageMode: 'bilingual' | 'arabic' | 'malay';
+  questions?: Question[];
 }
 
 export const GroupChallengeView: React.FC<GroupChallengeViewProps> = ({
   onUnlockGroupBadge,
   languageMode,
+  questions = QUESTIONS_DATA,
 }) => {
   const [gameState, setGameState] = useState<GroupChallengeState>({
     roomId: 'HALAQAH-786',
@@ -83,7 +85,8 @@ export const GroupChallengeView: React.FC<GroupChallengeViewProps> = ({
   const startNewChallenge = () => {
     soundEffects.playClick();
     // Shuffle questions randomly
-    const shuffled = [...QUESTIONS_DATA].sort(() => 0.5 - Math.random()).slice(0, roundCount);
+    const pool = questions.length > 0 ? questions : QUESTIONS_DATA;
+    const shuffled = [...pool].sort(() => 0.5 - Math.random()).slice(0, roundCount);
     
     setGameState((prev) => ({
       ...prev,

@@ -38,6 +38,18 @@
         "completedAt": { "type": "string", "description": "ISO timestamp of completion" }
       },
       "required": ["id", "studentName", "quizTitle", "score", "totalQuestions", "completedAt"]
+    },
+    "CurriculumSection": {
+      "title": "CurriculumSection",
+      "description": "Curriculum section containing questions or topics synchronized across teachers and students",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identifier of the curriculum section" },
+        "subject": { "type": "string", "description": "Subject or section type" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last update" },
+        "count": { "type": "number", "description": "Item count" }
+      },
+      "required": ["id", "updatedAt"]
     }
   },
   "firestore": {
@@ -48,6 +60,10 @@
     "/quiz_submissions/{submissionId}": {
       "schema": "QuizSubmission",
       "description": "Collection of all quiz attempts submitted in real-time"
+    },
+    "/curriculum/{documentId}": {
+      "schema": "CurriculumSection",
+      "description": "Global curriculum questions and topics synchronized across all devices in normal and teacher mode"
     }
   }
 }

@@ -13,20 +13,22 @@ import {
   Flame,
   Bookmark
 } from 'lucide-react';
-import { UserStats, SubjectId } from '../types';
-import { TOPICS_DATA, QUESTIONS_DATA } from '../data/questions';
+import { UserStats, SubjectId, TopicInfo } from '../types';
+import { TOPICS_DATA } from '../data/questions';
 import { soundEffects } from '../utils/audio';
 
 interface AnalyticsViewProps {
   stats: UserStats;
   onPracticeWeakTopic: (topicId: string, subject: SubjectId) => void;
   onOpenBookmarkedQuiz: () => void;
+  topics?: TopicInfo[];
 }
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   stats,
   onPracticeWeakTopic,
   onOpenBookmarkedQuiz,
+  topics = TOPICS_DATA,
 }) => {
   const totalAnswered = stats.totalQuestionsAnswered;
   const overallAccuracy =
@@ -79,7 +81,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   ];
 
   // Weak topics calculation (answered at least once and accuracy < 70%, or topics not yet attempted)
-  const weakTopics = TOPICS_DATA.map((t) => {
+  const weakTopics = topics.map((t) => {
     const p = stats.topicPerformance[t.id];
     const answered = p?.answered || 0;
     const correct = p?.correct || 0;
@@ -91,7 +93,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     .slice(0, 4);
 
   // Strong topics (accuracy >= 75% with at least 2 questions)
-  const strongTopics = TOPICS_DATA.map((t) => {
+  const strongTopics = topics.map((t) => {
     const p = stats.topicPerformance[t.id];
     const answered = p?.answered || 0;
     const correct = p?.correct || 0;
