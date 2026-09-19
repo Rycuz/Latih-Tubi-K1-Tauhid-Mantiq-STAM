@@ -618,7 +618,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                       <School className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
                       <input
                         type="text"
-                        placeholder="Sekolah / Kelas (cth: Maahad Yaakubiah / MAYA)"
+                        placeholder="Nama Sekolah / Kelas"
                         value={studentSchool}
                         onChange={(e) => setStudentSchool(e.target.value)}
                         className="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"

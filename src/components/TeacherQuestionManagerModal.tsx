@@ -29,12 +29,14 @@ import {
   ArrowDown,
   ArrowUpDown,
   ListOrdered,
-  Cloud
+  Cloud,
+  Underline
 } from 'lucide-react';
 import { Question, SubjectId, TopicInfo, Difficulty, StudentRecord } from '../types';
 import { TOPICS_DATA } from '../data/questions';
 import { soundEffects } from '../utils/audio';
 import { cleanRepeatedText, sanitizeQuestion } from '../utils/sanitizeText';
+import { renderFormattedUnderlineText } from '../utils/formatTextWithUnderline';
 import { autoTranslateArabicOption, autoTranslateArabicQuestion } from '../utils/bilingualTranslator';
 import { 
   insertNewQuestionInTopic, 
@@ -1221,54 +1223,104 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
 
                 {/* Arabic Question Stem */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1 flex-wrap gap-1.5">
                     <label className="text-xs font-semibold text-slate-300">
                       Teks Soalan Bahasa Arab (Wajib): <span className="text-emerald-400">*</span>
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => setFormQuestionArabic((prev) => (prev ? `${prev} ﴿ ﴾` : '﴿ ﴾'))}
-                      className="text-[11px] px-2 py-0.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 transition-colors"
-                      title="Sisip Kurungan Khas Ayat Al-Quran (Ornate Brackets)"
-                    >
-                      <span className="font-arabic text-sm">﴿ ﴾</span>
-                      <span className="font-sans text-[10px]">+ Sisip Kurungan Quran</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setFormQuestionArabic((prev) => (prev ? `${prev} <u>كلمة</u>` : '<u>كلمة</u>'))}
+                        className="text-[11px] px-2 py-0.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition-colors"
+                        title="Gariskan perkataan (cth: perkataan yang ditanya had qiyas / hukum)"
+                      >
+                        <Underline className="w-3 h-3 text-amber-300" />
+                        <span className="font-sans text-[10px]">+ Garis Perkataan &lt;u&gt;</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormQuestionArabic((prev) => (prev ? `${prev} ﴿ ﴾` : '﴿ ﴾'))}
+                        className="text-[11px] px-2 py-0.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 transition-colors"
+                        title="Sisip Kurungan Khas Ayat Al-Quran (Ornate Brackets)"
+                      >
+                        <span className="font-arabic text-sm">﴿ ﴾</span>
+                        <span className="font-sans text-[10px]">+ Sisip Kurungan Quran</span>
+                      </button>
+                    </div>
                   </div>
                   <textarea
                     rows={3}
                     value={formQuestionArabic}
                     onChange={(e) => setFormQuestionArabic(e.target.value)}
-                    placeholder="أدخل نص السؤال باللغة العربية هنا..."
+                    placeholder="أدخل نص السؤال باللغة العربية هنا... (Untuk gariskan perkataan, balut dengan <u>perkataan</u>)"
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-base text-white font-arabic text-right dir-rtl focus:outline-none focus:border-emerald-500"
                     dir="rtl"
                     required
                   />
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 flex-wrap gap-1">
+                    <span>
+                      💡 <strong className="text-amber-300">Cara Gariskan Perkataan:</strong> Letak <code className="text-amber-300 bg-slate-900 px-1 py-0.5 rounded font-mono">&lt;u&gt;perkataan&lt;/u&gt;</code> di sekeliling perkataan yang ingin digariskan.
+                    </span>
+                  </div>
+
+                  {/* Live Arabic Underline Preview */}
+                  {formQuestionArabic && (formQuestionArabic.includes('<u>') || formQuestionArabic.includes('[u]') || formQuestionArabic.includes('__')) && (
+                    <div className="mt-2 p-2.5 rounded-xl bg-slate-900/90 border border-amber-500/30 text-right dir-rtl" dir="rtl">
+                      <span className="text-[10px] uppercase font-bold text-amber-400 mb-1 block font-sans">
+                        Pratonton Garisan Bawah (Live Underline Preview):
+                      </span>
+                      <div className="font-arabic text-base text-slate-100 leading-loose">
+                        {renderFormattedUnderlineText(formQuestionArabic, true)}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Malay Question / Translation */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1 flex-wrap gap-1.5">
                     <label className="text-xs font-semibold text-slate-300">
                       Terjemahan / Soalan Bahasa Melayu:
                     </label>
-                    <button
-                      type="button"
-                      onClick={handleAutoTranslateQuestion}
-                      className="px-2.5 py-1 rounded-lg bg-teal-900/60 hover:bg-teal-800/80 border border-teal-500/40 text-teal-200 text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-                      title="Isi terjemahan soalan secara automatik daripada Pangkalan Data STAM"
-                    >
-                      <Sparkles className="w-3 h-3 text-teal-300" />
-                      <span>⚡ Cadang Terjemahan Soalan BM</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setFormQuestionMalay((prev) => (prev ? `${prev} <u>perkataan</u>` : '<u>perkataan</u>'))}
+                        className="text-[11px] px-2 py-0.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition-colors"
+                        title="Gariskan perkataan dalam soalan BM"
+                      >
+                        <Underline className="w-3 h-3 text-amber-300" />
+                        <span className="font-sans text-[10px]">+ Garis Perkataan BM</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAutoTranslateQuestion}
+                        className="px-2.5 py-1 rounded-lg bg-teal-900/60 hover:bg-teal-800/80 border border-teal-500/40 text-teal-200 text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                        title="Isi terjemahan soalan secara automatik daripada Pangkalan Data STAM"
+                      >
+                        <Sparkles className="w-3 h-3 text-teal-300" />
+                        <span>⚡ Cadang Terjemahan Soalan BM</span>
+                      </button>
+                    </div>
                   </div>
                   <input
                     type="text"
                     value={formQuestionMalay}
                     onChange={(e) => setFormQuestionMalay(e.target.value)}
-                    placeholder="Contoh: Pilih perbandingan yang benar antara Sam'iyyat dan Ghaibiyyat..."
+                    placeholder="Contoh: Apakah bahagian qadhiyyah bagi perkataan <u>memabukkan</u> yang bergaris..."
                     className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                   />
+                  {/* Live Malay Underline Preview */}
+                  {formQuestionMalay && (formQuestionMalay.includes('<u>') || formQuestionMalay.includes('[u]') || formQuestionMalay.includes('__')) && (
+                    <div className="mt-1.5 p-2 rounded-xl bg-slate-900/90 border border-amber-500/30 text-xs text-slate-200">
+                      <span className="text-[10px] uppercase font-bold text-amber-400 mb-1 block">
+                        Pratonton Garisan BM:
+                      </span>
+                      <div>
+                        {renderFormattedUnderlineText(formQuestionMalay, false)}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Diagram / Table / Tree Section */}
@@ -1311,17 +1363,28 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                           </div>
                         )}
                         {formDiagramType === 'box' && (
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between flex-wrap gap-1.5">
                             <span className="font-bold text-amber-400">Pernyataan Teks Kotak:</span>
-                            <button
-                              type="button"
-                              onClick={() => setFormDiagramArabic((prev) => (prev ? `${prev} ﴿ ﴾` : '﴿ ﴾'))}
-                              className="text-[11px] px-2 py-0.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition-colors"
-                              title="Sisip Kurungan Khas Ayat Al-Quran (Ornate Brackets)"
-                            >
-                              <span className="font-arabic text-sm">﴿ ﴾</span>
-                              <span className="font-sans text-[10px]">+ Sisip Kurungan Quran</span>
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => setFormDiagramArabic((prev) => (prev ? `${prev} <u>كلمة</u>` : '<u>كلمة</u>'))}
+                                className="text-[11px] px-2 py-0.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition-colors"
+                                title="Gariskan perkataan dalam kotak pernyataan"
+                              >
+                                <Underline className="w-3 h-3 text-amber-300" />
+                                <span className="font-sans text-[10px]">+ Garis Perkataan &lt;u&gt;</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setFormDiagramArabic((prev) => (prev ? `${prev} ﴿ ﴾` : '﴿ ﴾'))}
+                                className="text-[11px] px-2 py-0.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 transition-colors"
+                                title="Sisip Kurungan Khas Ayat Al-Quran (Ornate Brackets)"
+                              >
+                                <span className="font-arabic text-sm">﴿ ﴾</span>
+                                <span className="font-sans text-[10px]">+ Sisip Kurungan Quran</span>
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>

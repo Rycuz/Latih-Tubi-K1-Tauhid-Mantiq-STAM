@@ -1,5 +1,6 @@
 import React from 'react';
 import { parseNumberedQuestion } from '../utils/sanitizeText';
+import { renderFormattedUnderlineText } from '../utils/formatTextWithUnderline';
 
 interface FormattedQuestionStemProps {
   questionArabic?: string;
@@ -34,7 +35,7 @@ export const FormattedQuestionStem: React.FC<FormattedQuestionStemProps> = ({
             } ${fontSizeClass}`}
             dir="rtl"
           >
-            {parsedAr.stem}
+            {renderFormattedUnderlineText(parsedAr.stem, true)}
           </div>
 
           {/* If there are numbered statements 1, 2, 3, 4 (١، ٢، ٣، ٤) */}
@@ -49,7 +50,7 @@ export const FormattedQuestionStem: React.FC<FormattedQuestionStemProps> = ({
                     {ARABIC_DIGITS[idx] || `${idx + 1}`}
                   </span>
                   <span className="text-base leading-relaxed pt-0.5 font-medium">
-                    {item}
+                    {renderFormattedUnderlineText(item, true)}
                   </span>
                 </div>
               ))}
@@ -66,7 +67,7 @@ export const FormattedQuestionStem: React.FC<FormattedQuestionStemProps> = ({
               parsedMy.items.length > 0 ? 'mb-2 font-semibold text-slate-200' : 'whitespace-pre-line'
             }`}
           >
-            {parsedMy.stem}
+            {renderFormattedUnderlineText(parsedMy.stem, false)}
           </p>
 
           {/* If there are numbered statements 1, 2, 3, 4 */}
@@ -81,7 +82,7 @@ export const FormattedQuestionStem: React.FC<FormattedQuestionStemProps> = ({
                     {idx + 1}
                   </span>
                   <span className="leading-relaxed pt-0.5">
-                    {item}
+                    {renderFormattedUnderlineText(item, false)}
                   </span>
                 </div>
               ))}

@@ -2,6 +2,7 @@ import React from 'react';
 import { BookOpen, Table } from 'lucide-react';
 import { cleanRepeatedText } from '../utils/sanitizeText';
 import { ConceptTreeDiagram, parseTreeDiagram } from './ConceptTreeDiagram';
+import { renderFormattedUnderlineText } from '../utils/formatTextWithUnderline';
 
 interface QuestionDiagramRendererProps {
   diagramArabic?: string;
@@ -85,7 +86,7 @@ export const QuestionDiagramRenderer: React.FC<QuestionDiagramRendererProps> = (
                   </td>
                   {rowCells.map((cell, cIdx) => (
                     <td key={cIdx} className="p-2.5 text-sm border-l border-slate-800/60 last:border-0 leading-relaxed">
-                      {cell}
+                      {renderFormattedUnderlineText(cell, true)}
                     </td>
                   ))}
                 </tr>
@@ -106,7 +107,7 @@ export const QuestionDiagramRenderer: React.FC<QuestionDiagramRendererProps> = (
           <span>نص البيان / السند:</span>
         </div>
         <p className="font-arabic text-base text-teal-100 leading-relaxed font-medium">
-          {cleanedDiag}
+          {renderFormattedUnderlineText(cleanedDiag, true)}
         </p>
       </div>
     );

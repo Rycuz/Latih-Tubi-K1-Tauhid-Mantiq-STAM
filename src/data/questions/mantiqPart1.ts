@@ -1036,7 +1036,7 @@ export const MANTIQ_QUESTIONS_PART1: Question[] = [
     "learningStandard": "(ه) بيان أجزاء الشرطية المتصلة",
     "questionArabic": "بم تسمى كلمة \"تـجتهد\" في الـمثال السابق؟ / عيّن جزء القضية لما تحته خط.",
     "questionMalay": "Apakah dinamakan perkataan \"تـجتهد\" dalam contoh sebelum ini? / Tentukan bahagian qadhiyyah bagi perkataan yang bergaris di bawahnya.",
-    "diagramArabic": "إن تـجتهد تنجح",
+    "diagramArabic": "إن <u>تـجتهد</u> تنجح",
     "diagramType": "box",
     "options": [
       {
@@ -2396,8 +2396,8 @@ export const MANTIQ_QUESTIONS_PART1: Question[] = [
     "topicTitleArabic": "القياس",
     "topicTitleMalay": "Bab 5: Al-Qiyas",
     "learningStandard": "(ج) بيان تركيب القياس الاقتراني بيانا وافيا",
-    "questionArabic": "الخمر مسكر– وكل مسكر حرام – الخمر حرام بِمَ يسمى حد القياس فيما تحته خط.",
-    "questionMalay": "\"Arak itu memabukkan – dan setiap yang memabukkan adalah haram – arak itu haram\". Apakah dinamakan had qiyas bagi perkataan yang bergaris di bawahnya?",
+    "questionArabic": "الخمر <u>مسكر</u> – وكل <u>مسكر</u> حرام – الخمر حرام بِمَ يسمى حد القياس فيما تحته خط.",
+    "questionMalay": "\"Arak itu <u>memabukkan</u> – dan setiap yang <u>memabukkan</u> adalah haram – arak itu haram\". Apakah dinamakan had qiyas bagi perkataan yang bergaris di bawahnya?",
     "options": [
       {
         "id": "a",
@@ -2432,8 +2432,8 @@ export const MANTIQ_QUESTIONS_PART1: Question[] = [
     "topicTitleArabic": "القياس",
     "topicTitleMalay": "Bab 5: Al-Qiyas",
     "learningStandard": "(ج) بيان تركيب القياس الاقتراني بيانا وافيا",
-    "questionArabic": "بعض التلاميذ فاهم – وكل فاهم عالم – بعض التلاميذ عالم بِمَ تسمى القضية التي تحتها خط في تركيب القياس؟",
-    "questionMalay": "\"Sebahagian murid faham – dan setiap yang faham berilmu – sebahagian murid berilmu\". Apakah dinamakan qadhiyyah yang bergaris di bawahnya dalam susunan qiyas?",
+    "questionArabic": "بعض التلاميذ فاهم – <u>وكل فاهم عالم</u> – بعض التلاميذ عالم بِمَ تسمى القضية التي تحتها خط في تركيب القياس؟",
+    "questionMalay": "\"Sebahagian murid faham – dan <u>setiap yang faham berilmu</u> – sebahagian murid berilmu\". Apakah dinamakan qadhiyyah yang bergaris di bawahnya dalam susunan qiyas?",
     "options": [
       {
         "id": "a",

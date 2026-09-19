@@ -26,22 +26,6 @@ interface StudentProfileModalProps {
   onClose?: () => void;
 }
 
-const COMMON_SCHOOL_SUGGESTIONS = [
-  'Maahad Yaakubiah (MAYA)',
-  'Maahad Muhammadi Rantau Panjang',
-  'Maahad Muhammadi (L)',
-  'Maahad Muhammadi (P)',
-  'SMKA Maahad Hamidiah',
-];
-
-const COMMON_CLASS_SUGGESTIONS = [
-  '6 Syukur',
-  '6 Sabar',
-  '6 Ikhlas',
-  '6 Tawaduk',
-  '6 Redha',
-];
-
 export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   isOpen,
   isMandatoryOnboarding = false,
@@ -81,11 +65,11 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
       return;
     }
     if (!cleanSchool) {
-      setErrorMsg('Sila pilih atau masukkan nama sekolah anda.');
+      setErrorMsg('Sila masukkan nama sekolah anda.');
       return;
     }
     if (!cleanClass) {
-      setErrorMsg('Sila pilih atau masukkan kelas / tingkatan anda.');
+      setErrorMsg('Sila masukkan kelas / tingkatan anda.');
       return;
     }
 
@@ -178,7 +162,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Cth: Muhammad Alif bin Danial"
+                placeholder="Nama Penuh Sebenar Pelajar"
                 className="w-full pl-9 pr-3 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
               />
             </div>
@@ -199,33 +183,9 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                 required
                 value={school}
                 onChange={(e) => setSchool(e.target.value)}
-                placeholder="Cth: Maahad Yaakubiah (MAYA)"
+                placeholder="Nama Sekolah / Pusat Pengajian"
                 className="w-full pl-9 pr-3 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
               />
-            </div>
-
-            {/* Quick School Chips */}
-            <div className="pt-1">
-              <span className="text-[10px] font-semibold text-slate-400 block mb-1">Pilihan Cepat:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {COMMON_SCHOOL_SUGGESTIONS.map((sch) => (
-                  <button
-                    key={sch}
-                    type="button"
-                    onClick={() => {
-                      soundEffects.playClick();
-                      setSchool(sch);
-                    }}
-                    className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all ${
-                      school === sch
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 font-bold'
-                        : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:text-slate-200 hover:bg-slate-800'
-                    }`}
-                  >
-                    {sch}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -241,33 +201,9 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                 required
                 value={studentClass}
                 onChange={(e) => setStudentClass(e.target.value)}
-                placeholder="Cth: 6 Syukur / 6 Sabar"
+                placeholder="Nama Kelas / Tingkatan"
                 className="w-full pl-9 pr-3 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
               />
-            </div>
-
-            {/* Quick Class Chips */}
-            <div className="pt-1">
-              <span className="text-[10px] font-semibold text-slate-400 block mb-1">Pilihan Cepat:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {COMMON_CLASS_SUGGESTIONS.map((cls) => (
-                  <button
-                    key={cls}
-                    type="button"
-                    onClick={() => {
-                      soundEffects.playClick();
-                      setStudentClass(cls);
-                    }}
-                    className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all ${
-                      studentClass === cls
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 font-bold'
-                        : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:text-slate-200 hover:bg-slate-800'
-                    }`}
-                  >
-                    {cls}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
