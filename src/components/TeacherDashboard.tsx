@@ -1221,13 +1221,26 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                               </h5>
                             </div>
 
-                            <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                            <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1.5 flex-wrap">
                               <span>{hist.completedAt}</span>
                               <span>•</span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-slate-500" />
-                                {Math.floor(hist.timeSpentSeconds / 60)}m {hist.timeSpentSeconds % 60}s
-                              </span>
+                              {(!hist.timeSpentSeconds || hist.timeSpentSeconds === 60) && hist.totalQuestions >= 10 ? (
+                                <span
+                                  className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900/80 border border-slate-700/60 text-slate-400 font-medium"
+                                  title="Masa tidak direkodkan dengan tepat dalam sistem versi sebelum ini"
+                                >
+                                  <Clock className="w-3 h-3 text-slate-500 shrink-0" />
+                                  <span>Masa: Tidak Direkodkan (Versi Terdahulu)</span>
+                                </span>
+                              ) : (
+                                <span
+                                  className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900/80 border border-slate-700/60 text-slate-300 font-medium"
+                                  title="Tempoh masa yang diambil oleh pelajar untuk menyiapkan latihan/kuiz ini"
+                                >
+                                  <Clock className="w-3 h-3 text-teal-400 shrink-0" />
+                                  <span>Tempoh Menjawab: {Math.floor(hist.timeSpentSeconds / 60)}m {hist.timeSpentSeconds % 60}s</span>
+                                </span>
+                              )}
                             </div>
                           </div>
 

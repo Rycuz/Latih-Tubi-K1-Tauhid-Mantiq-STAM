@@ -92,6 +92,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   const [fontSizeClass, setFontSizeClass] = useState<'text-lg' | 'text-xl' | 'text-2xl'>('text-xl');
   const [attempts, setAttempts] = useState<QuestionAttempt[]>([]);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [quizStartedAt] = useState<number>(Date.now());
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
 
   // Random set skip-and-repeat states
@@ -339,6 +340,11 @@ export const QuizModal: React.FC<QuizModalProps> = ({
         ? `${studentSchool.trim()} (${studentClass.trim()})`
         : studentSchool.trim() || 'Umum';
 
+      const elapsedTotalSeconds = Math.max(1, Math.round((Date.now() - quizStartedAt) / 1000));
+      const totalQuizSeconds = is40QuestionsQuiz
+        ? Math.max(1, TOTAL_EXAM_SECONDS - timeLeft)
+        : elapsedTotalSeconds;
+
       const res = await submitQuizToFirebase({
         studentId: studentId || undefined,
         studentName: studentName.trim(),
@@ -348,6 +354,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
         score,
         totalQuestions: questions.length,
         xpEarned,
+        timeSpentSeconds: totalQuizSeconds,
       });
       if (res.success) {
         setCloudSyncStatus('synced');
