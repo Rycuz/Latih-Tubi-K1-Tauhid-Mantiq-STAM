@@ -670,22 +670,22 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
       {
         "id": "a",
         "textArabic": "سوق الناس إلى الموقف الذي يحاسبون فيه.",
-        "textMalay": "Setiap dosa yang diiringi dengan ancaman laknat, kemurkaan Allah, had (hukuman syarak), atau azab neraka"
+        "textMalay": "Menggiring manusia ke padang mahsyar tempat mereka dihisab."
       },
       {
         "id": "b",
         "textArabic": "ما ينال الناس فيه من الشدائد لطول الوقوف.",
-        "textMalay": "Setiap perkara makruh yang dilakukan secara tidak sengaja"
+        "textMalay": "Kesusahan yang dialami manusia kerana terlalu lama berdiri di mahsyar."
       },
       {
         "id": "c",
         "textArabic": "ما سطّرت فيها الملائكة كل ما يفعله المرء في الدنيا.",
-        "textMalay": "Kesalahan kecil yang dilakukan sekali seumur hidup"
+        "textMalay": "Apa yang dicatat oleh para malaikat mengenai setiap apa yang dilakukan oleh seseorang di dunia."
       },
       {
         "id": "d",
-        "textArabic": "ما استجمع ثلاثة أركان : الإقلاع عن الذنب والندم على فعله والعزم",
-        "textMalay": "Meninggalkan adab-adab makan"
+        "textArabic": "ما استجمع ثلاثة أركان : الإقلاع عن الذنب والندم على فعله والعزم على ألا يعود.",
+        "textMalay": "Apa yang menghimpunkan tiga rukun: Meninggalkan dosa, menyesal atas perbuatannya, dan berazam untuk tidak mengulanginya lagi."
       }
     ],
     "correctAnswer": "d",
@@ -702,28 +702,26 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
     "learningStandard": "(أ) ذكر تعريف التوبة لغة واصطلاحا",
     "questionArabic": "ما الدليل أن يكون التوبة صدورها قبل الغرغرة قبيل الموت؟",
     "questionMalay": "Apakah dalil bahawa taubat itu mestilah berlaku sebelum ghargharah (nyawa sampai di kerongkong) menjelang kematian?",
-    "diagramArabic": "على ألا يعود.",
-    "diagramType": "box",
     "options": [
       {
         "id": "a",
         "textArabic": "قال تعالى : (وَتُوبُوا إِلَى اللَّهِ جَمِيعًا أَيُّهَ ٱلْمُؤْمِنُونَ لَعَلَّكُمْ تُفْلِحُونَ)",
-        "textMalay": "Taubat diterima secara pasti"
+        "textMalay": "Firman Allah: (Dan bertaubatlah kamu sekalian kepada Allah wahai orang-orang beriman supaya kamu berjaya)"
       },
       {
         "id": "b",
         "textArabic": "قال تعالى : (فَأَمَّا مَنْ أُوتى كِتَٰبَهُ بِيَمِينِهِ فَيَقُولُ هَاؤْمُ ٱَقْرَءُواْ كِتَابِيَةُ)",
-        "textMalay": "Taubat tertolak"
+        "textMalay": "Firman Allah: (Adapun orang yang diberikan kitabnya di sebelah kanannya, maka dia berkata: Ambillah, bacalah kitabku ini)"
       },
       {
         "id": "c",
         "textArabic": "قال تعالى : (مَالِ هَٰذَا الْكِتَبِ لَا يُغَادِرُ صَغِيرَةً وَلَا كَبِيرَةً إِلَّا أَحْصَىهَا وَوَجَدُواْ مَا عَملُوا حَاضِراً وَلَا يَظْلِمُ رَبُّكَ أَحَدًا)",
-        "textMalay": "Diterima menurut ijmak"
+        "textMalay": "Firman Allah: (Mengapa kitab ini tidak meninggalkan yang kecil dan yang besar melainkan ia mencatatnya...)"
       },
       {
         "id": "d",
-        "textArabic": "قال تعالى : ولَيْسَتِ ٱلتَّوْبَةُ لِلَّذِينَ يَعْمَلُونَ السَّيِئَاتِ حَتَّى إِذَا حَضَرَ أَحَدَهُمُ",
-        "textMalay": "Diterima menurut kehendak Allah Taala"
+        "textArabic": "قال تعالى : (ولَيْسَتِ ٱلتَّوْبَةُ لِلَّذِينَ يَعْمَلُونَ السَّيِئَاتِ حَتَّى إِذَا حَضَرَ أَحَدَهُمُ ٱلْموتُ قَالَ إِنِى تُبْتُ الانَ وَلَا الَّذِينَ يَمُوتُونَ وَهُمْ كُفَّار)",
+        "textMalay": "Firman Allah: (Dan tidaklah taubat itu diterima bagi orang yang melakukan kejahatan hingga apabila maut datang kepada seseorang dari mereka, dia berkata: Sesungguhnya aku bertaubat sekarang, dan tidak pula bagi orang yang mati dalam keadaan kafir)"
       }
     ],
     "correctAnswer": "d",
@@ -740,28 +738,26 @@ export const TAUHID_QUESTIONS_PART2: Question[] = [
     "learningStandard": "(أ) ذكر تعريف التوبة لغة واصطلاحا",
     "questionArabic": "ما رأي الأشاعرة في التوبة عند الغرغرة بالنسبة للكافر والعاصي.",
     "questionMalay": "Apakah pandangan golongan Asya'irah tentang taubat ketika ghargharah bagi orang kafir dan orang yang bermaksiat?",
-    "diagramArabic": "ٱلْموتُ قَالَ إِنِى تُبْتُ الانَ وَلَا الَّذِينَ يَمُوتُونَ وَهُمْ كُفَّار)",
-    "diagramType": "box",
     "options": [
       {
         "id": "a",
         "textArabic": "عدم صحة توبتهما",
-        "textMalay": "Wajib menurut akal"
+        "textMalay": "Tidak sah taubat kedua-duanya"
       },
       {
         "id": "b",
         "textArabic": "توبة العاصي مقبولة، توبة الكافر غير مقبولة.",
-        "textMalay": "Wajib menurut syarak"
+        "textMalay": "Taubat orang bermaksiat diterima, taubat orang kafir tidak diterima"
       },
       {
         "id": "c",
         "textArabic": "صحة توبتهما",
-        "textMalay": "Harus menurut syarak"
+        "textMalay": "Sah taubat kedua-duanya"
       },
       {
         "id": "d",
         "textArabic": "توبة العاصي غير مقبولة، توبة الكافر مقبولة",
-        "textMalay": "Sunat menurut syarak"
+        "textMalay": "Taubat orang bermaksiat tidak diterima, taubat orang kafir diterima"
       }
     ],
     "correctAnswer": "a",

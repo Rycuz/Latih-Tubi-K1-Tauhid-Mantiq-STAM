@@ -228,8 +228,9 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
     setFormLearningStandard(q.learningStandard || '');
     setFormQuestionArabic(q.questionArabic || '');
     setFormQuestionMalay(q.questionMalay || '');
-    setFormDiagramType(q.diagramType === 'table' ? 'table' : q.diagramType === 'tree' ? 'tree' : q.diagramType === 'box' ? 'box' : 'none');
-    setFormDiagramArabic(q.diagramArabic || '');
+    const isNone = !q.diagramType || q.diagramType === 'none' || !q.diagramArabic || !q.diagramArabic.trim();
+    setFormDiagramType(isNone ? 'none' : (q.diagramType as 'tree' | 'table' | 'box'));
+    setFormDiagramArabic(isNone ? '' : (q.diagramArabic || ''));
     
     const optA = q.options.find((o) => o.id === 'a');
     const optB = q.options.find((o) => o.id === 'b');
@@ -387,8 +388,8 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
       learningStandard: formLearningStandard.trim() || undefined,
       questionArabic: cleanRepeatedText(formQuestionArabic.trim()),
       questionMalay: cleanRepeatedText(formQuestionMalay.trim()) || 'Sila pilih jawapan yang paling tepat berdasarkan teks di atas.',
-      diagramType: formDiagramType !== 'none' ? formDiagramType : undefined,
-      diagramArabic: formDiagramType !== 'none' && formDiagramArabic.trim() ? cleanRepeatedText(formDiagramArabic.trim()) : undefined,
+      diagramType: formDiagramType !== 'none' ? formDiagramType : 'none',
+      diagramArabic: formDiagramType !== 'none' && formDiagramArabic.trim() ? cleanRepeatedText(formDiagramArabic.trim()) : '',
       options: [
         { id: 'a', textArabic: formOptAArabic.trim(), textMalay: formOptAMalay.trim() },
         { id: 'b', textArabic: formOptBArabic.trim(), textMalay: formOptBMalay.trim() },
@@ -908,7 +909,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                               <ListOrdered className="w-3 h-3 text-teal-400" />
                               <span>Urutan Tajuk: #{posInfo.position} / {posInfo.total}</span>
                             </span>
-                            {q.diagramType && (
+                            {q.diagramType && q.diagramType !== 'none' && q.diagramArabic && q.diagramArabic.trim() && (
                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-500/30">
                                 Mengandungi {q.diagramType === 'table' ? 'Jadual' : q.diagramType === 'tree' ? 'Rajah Pokok' : 'Pernyataan Kotak'}
                               </span>
@@ -1332,7 +1333,13 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                     </label>
                     <select
                       value={formDiagramType}
-                      onChange={(e) => setFormDiagramType(e.target.value as 'none' | 'tree' | 'table' | 'box')}
+                      onChange={(e) => {
+                        const val = e.target.value as 'none' | 'tree' | 'table' | 'box';
+                        setFormDiagramType(val);
+                        if (val === 'none') {
+                          setFormDiagramArabic('');
+                        }
+                      }}
                       className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs text-white"
                     >
                       <option value="none">Tiada Rajah / Jadual</option>

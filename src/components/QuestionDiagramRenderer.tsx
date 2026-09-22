@@ -21,13 +21,13 @@ export const QuestionDiagramRenderer: React.FC<QuestionDiagramRendererProps> = (
   correctAnswer,
   className = '',
 }) => {
-  if (!diagramArabic) return null;
+  if (!diagramArabic || !diagramArabic.trim() || !diagramType || diagramType === 'none') return null;
 
   const cleanedDiag = cleanRepeatedText(diagramArabic);
-  if (!cleanedDiag) return null;
+  if (!cleanedDiag || !cleanedDiag.trim()) return null;
 
   // 1. Tree diagram
-  if (diagramType === 'tree' || (diagramType !== 'table' && parseTreeDiagram(cleanedDiag))) {
+  if (diagramType === 'tree' || (diagramType !== 'table' && diagramType !== 'box' && parseTreeDiagram(cleanedDiag))) {
     return <ConceptTreeDiagram diagramText={cleanedDiag} className={className} />;
   }
 

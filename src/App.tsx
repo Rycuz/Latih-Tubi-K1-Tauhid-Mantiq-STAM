@@ -194,9 +194,13 @@ export default function App() {
         const merged = parsed.map((q) => {
           const official = officialMap.get(q.id);
           if (official) {
-            return {
+            const hasDiagramType = q.diagramType !== undefined;
+            const hasDiagramArabic = q.diagramArabic !== undefined;
+            const res: Question = {
               ...official,
               ...q,
+              diagramType: hasDiagramType ? q.diagramType : (hasDiagramArabic && !q.diagramArabic ? 'none' : official.diagramType),
+              diagramArabic: hasDiagramArabic ? q.diagramArabic : (hasDiagramType && q.diagramType === 'none' ? '' : official.diagramArabic),
               options: Array.isArray(q.options) && q.options.length > 0
                 ? q.options.map((opt, idx) => ({
                     ...(official.options[idx] || {}),
@@ -204,8 +208,18 @@ export default function App() {
                   }))
                 : official.options,
             };
+            if (res.id === 'tauhid-k1-090' || res.id === 'tauhid-k1-091') {
+              res.diagramType = 'none';
+              res.diagramArabic = '';
+            }
+            return res;
           }
-          return sanitizeQuestion(q);
+          const sanitized = sanitizeQuestion(q);
+          if (sanitized.id === 'tauhid-k1-090' || sanitized.id === 'tauhid-k1-091') {
+            sanitized.diagramType = 'none';
+            sanitized.diagramArabic = '';
+          }
+          return sanitized;
         });
 
         // Ensure any newly added official questions are present
@@ -363,9 +377,13 @@ export default function App() {
           const merged = cloudQuestions.map((q) => {
             const official = officialMap.get(q.id);
             if (official) {
-              return {
+              const hasDiagramType = q.diagramType !== undefined;
+              const hasDiagramArabic = q.diagramArabic !== undefined;
+              const res: Question = {
                 ...official,
                 ...q,
+                diagramType: hasDiagramType ? q.diagramType : (hasDiagramArabic && !q.diagramArabic ? 'none' : official.diagramType),
+                diagramArabic: hasDiagramArabic ? q.diagramArabic : (hasDiagramType && q.diagramType === 'none' ? '' : official.diagramArabic),
                 options: Array.isArray(q.options) && q.options.length > 0
                   ? q.options.map((opt, idx) => ({
                       ...(official.options[idx] || {}),
@@ -373,8 +391,18 @@ export default function App() {
                     }))
                   : official.options,
               };
+              if (res.id === 'tauhid-k1-090' || res.id === 'tauhid-k1-091') {
+                res.diagramType = 'none';
+                res.diagramArabic = '';
+              }
+              return res;
             }
-            return sanitizeQuestion(q);
+            const sanitized = sanitizeQuestion(q);
+            if (sanitized.id === 'tauhid-k1-090' || sanitized.id === 'tauhid-k1-091') {
+              sanitized.diagramType = 'none';
+              sanitized.diagramArabic = '';
+            }
+            return sanitized;
           });
 
           // Ensure official questions not present in cloud are preserved

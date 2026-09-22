@@ -18,7 +18,7 @@ export interface Question {
   questionArabic: string;
   questionMalay: string;
   diagramArabic?: string; // For questions with tree diagrams / flowcharts like in PDF
-  diagramType?: 'tree' | 'table' | 'box';
+  diagramType?: 'tree' | 'table' | 'box' | 'none';
   options: QuestionOption[];
   correctAnswer: 'a' | 'b' | 'c' | 'd';
   explanationArabic: string;
