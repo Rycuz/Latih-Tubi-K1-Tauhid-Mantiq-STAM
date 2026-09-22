@@ -362,6 +362,36 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
     setTimeout(() => setSuccessNotice(null), 4000);
   };
 
+  // Quick template for Complex MCQ (2 combinations: 1&2, 2&3, 3&4, 1&4)
+  const handleApplyComplexCombo2 = () => {
+    soundEffects.playClick();
+    setFormOptAArabic('١ و ٢');
+    setFormOptAMalay('1 dan 2');
+    setFormOptBArabic('٢ و ٣');
+    setFormOptBMalay('2 dan 3');
+    setFormOptCArabic('٣ و ٤');
+    setFormOptCMalay('3 dan 4');
+    setFormOptDArabic('١ و ٤');
+    setFormOptDMalay('1 dan 4');
+    setSuccessNotice('✅ Berjaya mengisi pilihan aneka kompleks (2 gabungan angka Arab: ١ dan ٢, dsb.)!');
+    setTimeout(() => setSuccessNotice(null), 3500);
+  };
+
+  // Quick template for Complex MCQ (3 combinations: 1,2&3; 1,2&4; 1,3&4; 2,3&4)
+  const handleApplyComplexCombo3 = () => {
+    soundEffects.playClick();
+    setFormOptAArabic('١ و ٢ و ٣');
+    setFormOptAMalay('1, 2 dan 3');
+    setFormOptBArabic('١ و ٢ و ٤');
+    setFormOptBMalay('1, 2 dan 4');
+    setFormOptCArabic('١ و ٣ و ٤');
+    setFormOptCMalay('1, 3 dan 4');
+    setFormOptDArabic('٢ و ٣ و ٤');
+    setFormOptDMalay('2, 3 dan 4');
+    setSuccessNotice('✅ Berjaya mengisi pilihan aneka kompleks (3 gabungan angka Arab: ١، ٢ dan ٣, dsb.)!');
+    setTimeout(() => setSuccessNotice(null), 3500);
+  };
+
   const handleSaveQuestionForm = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -1438,15 +1468,37 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                         Kolum Kiri: Bahasa Arab | Kolum Kanan: Terjemahan Bahasa Melayu
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleAutoTranslateOptions}
-                      className="px-3 py-1.5 rounded-xl bg-teal-900/60 hover:bg-teal-800/80 border border-teal-500/40 text-teal-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm self-start sm:self-auto"
-                      title="Isi terjemahan Bahasa Melayu bagi 4 pilihan jawapan secara automatik daripada Glosari & Pangkalan Data STAM"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-teal-300" />
-                      <span>⚡ Cadang Terjemahan Pilihan BM</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleApplyComplexCombo2}
+                        className="px-2.5 py-1.5 rounded-xl bg-amber-950/70 hover:bg-amber-900/90 border border-amber-500/50 text-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                        title="Isi automatik pilihan jawapan aneka kompleks (2 Gabungan: ١ و ٢, ٢ و ٣, ٣ و ٤, ١ و ٤)"
+                      >
+                        <ListOrdered className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Aneka Kompleks (2 Gabungan: ١ dan ٢)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleApplyComplexCombo3}
+                        className="px-2.5 py-1.5 rounded-xl bg-indigo-950/70 hover:bg-indigo-900/90 border border-indigo-500/50 text-indigo-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                        title="Isi automatik pilihan jawapan aneka kompleks (3 Gabungan: ١ و ٢ و ٣, ١ و ٢ و ٤, ١ و ٣ و ٤, ٢ و ٣ و ٤)"
+                      >
+                        <ListOrdered className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Aneka Kompleks (3 Gabungan: ١, ٢ dan ٣)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleAutoTranslateOptions}
+                        className="px-3 py-1.5 rounded-xl bg-teal-900/60 hover:bg-teal-800/80 border border-teal-500/40 text-teal-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                        title="Isi terjemahan Bahasa Melayu bagi 4 pilihan jawapan secara automatik daripada Glosari & Pangkalan Data STAM"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-teal-300" />
+                        <span>⚡ Cadang Terjemahan BM</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Header labels for the two columns */}
