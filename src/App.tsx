@@ -41,6 +41,8 @@ import {
 const STORAGE_KEY_STATS = 'al_dirasat_stats_v1';
 const STORAGE_KEY_BADGES = 'al_dirasat_badges_v1';
 const STORAGE_KEY_QUESTIONS = 'al_dirasat_custom_questions_v6';
+const STORAGE_KEY_DELETED_QUESTION_IDS = 'al_dirasat_deleted_question_ids_v1';
+const STORAGE_KEY_TRASH_QUESTIONS = 'al_dirasat_trash_questions_v1';
 const STORAGE_KEY_STUDENTS = 'stam_students_roster_v3';
 const STORAGE_KEY_TOPICS = 'al_dirasat_custom_topics_v3';
 
@@ -167,6 +169,18 @@ export default function App() {
 
       const officialMap = new Map(QUESTIONS_DATA.map((q) => [q.id, q]));
       const saved = localStorage.getItem(STORAGE_KEY_QUESTIONS);
+      const savedDeleted = localStorage.getItem(STORAGE_KEY_DELETED_QUESTION_IDS);
+      let deletedIds = new Set<string>();
+      if (savedDeleted) {
+        try {
+          const parsedDeleted = JSON.parse(savedDeleted);
+          if (Array.isArray(parsedDeleted)) {
+            deletedIds = new Set(parsedDeleted);
+          }
+        } catch {
+          // ignore
+        }
+      }
       let parsed: Question[] = [];
 
       if (saved) {
@@ -222,25 +236,56 @@ export default function App() {
           return sanitized;
         });
 
-        // Ensure any newly added official questions are present
-        const existingIds = new Set(merged.map((q) => q.id));
+        // Filter out questions that user explicitly deleted
+        const filteredMerged = merged.filter((q) => !deletedIds.has(q.id));
+
+        // Ensure any newly added official questions are present, unless explicitly deleted
+        const existingIds = new Set(filteredMerged.map((q) => q.id));
         for (const official of QUESTIONS_DATA) {
-          if (!existingIds.has(official.id)) {
-            merged.push(official);
+          if (!existingIds.has(official.id) && !deletedIds.has(official.id)) {
+            filteredMerged.push(official);
           }
         }
 
         try {
-          localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(merged));
+          localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(filteredMerged));
         } catch {
           // ignore
         }
-        return merged;
+        return filteredMerged;
       }
     } catch {
       // fallback
     }
     return QUESTIONS_DATA.map(sanitizeQuestion);
+  });
+
+  // Recycle Bin / Trash Questions State
+  const [deletedQuestions, setDeletedQuestions] = useState<Question[]>(() => {
+    try {
+      const savedTrash = localStorage.getItem(STORAGE_KEY_TRASH_QUESTIONS);
+      if (savedTrash) {
+        const parsed = JSON.parse(savedTrash);
+        if (Array.isArray(parsed)) return parsed.map(sanitizeQuestion);
+      }
+      // If no trash stored yet, populate from deletedIds and QUESTIONS_DATA
+      const savedDeleted = localStorage.getItem(STORAGE_KEY_DELETED_QUESTION_IDS);
+      if (savedDeleted) {
+        const ids = JSON.parse(savedDeleted);
+        if (Array.isArray(ids)) {
+          const offMap = new Map(QUESTIONS_DATA.map((q) => [q.id, q]));
+          const fallbackTrash: Question[] = [];
+          for (const id of ids) {
+            const found = offMap.get(id);
+            if (found) fallbackTrash.push(found);
+          }
+          return fallbackTrash;
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return [];
   });
 
   // Students Roster & Performance History State
@@ -373,6 +418,19 @@ export default function App() {
     const unsubCurriculum = subscribeToCloudCurriculum({
       onQuestions: (cloudQuestions) => {
         if (Array.isArray(cloudQuestions) && cloudQuestions.length > 0) {
+          const savedDeleted = localStorage.getItem(STORAGE_KEY_DELETED_QUESTION_IDS);
+          let deletedIds = new Set<string>();
+          if (savedDeleted) {
+            try {
+              const parsedDeleted = JSON.parse(savedDeleted);
+              if (Array.isArray(parsedDeleted)) {
+                deletedIds = new Set(parsedDeleted);
+              }
+            } catch {
+              // ignore
+            }
+          }
+
           const officialMap = new Map(QUESTIONS_DATA.map((q) => [q.id, q]));
           const merged = cloudQuestions.map((q) => {
             const official = officialMap.get(q.id);
@@ -405,17 +463,20 @@ export default function App() {
             return sanitized;
           });
 
-          // Ensure official questions not present in cloud are preserved
-          const existingIds = new Set(merged.map((q) => q.id));
+          // Filter out questions that user explicitly deleted
+          const filteredMerged = merged.filter((q) => !deletedIds.has(q.id));
+
+          // Ensure official questions not present in cloud are preserved, unless explicitly deleted
+          const existingIds = new Set(filteredMerged.map((q) => q.id));
           for (const official of QUESTIONS_DATA) {
-            if (!existingIds.has(official.id)) {
-              merged.push(official);
+            if (!existingIds.has(official.id) && !deletedIds.has(official.id)) {
+              filteredMerged.push(official);
             }
           }
 
-          setAllQuestions(merged);
+          setAllQuestions(filteredMerged);
           try {
-            localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(merged));
+            localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(filteredMerged));
           } catch {
             // ignore
           }
@@ -506,7 +567,54 @@ export default function App() {
     });
   };
 
-  const handleSaveCustomQuestions = (updatedQuestions: Question[]) => {
+  const handleSaveCustomQuestions = (updatedQuestions: Question[], deletedId?: string) => {
+    // If a specific question was deleted, track it in deletedQuestions (Recycle Bin)
+    if (deletedId) {
+      const deletedObj = allQuestions.find((q) => q.id === deletedId);
+      if (deletedObj) {
+        setDeletedQuestions((prev) => {
+          const next = [deletedObj, ...prev.filter((q) => q.id !== deletedId)];
+          try {
+            localStorage.setItem(STORAGE_KEY_TRASH_QUESTIONS, JSON.stringify(next));
+          } catch {
+            // ignore
+          }
+          return next;
+        });
+      }
+    }
+
+    let currentDeleted = new Set<string>();
+    try {
+      const savedDeleted = localStorage.getItem(STORAGE_KEY_DELETED_QUESTION_IDS);
+      if (savedDeleted) {
+        const parsed = JSON.parse(savedDeleted);
+        if (Array.isArray(parsed)) {
+          currentDeleted = new Set(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    if (deletedId) {
+      currentDeleted.add(deletedId);
+    }
+
+    // Also compare with official questions: any official question absent from updatedQuestions is recorded as deleted
+    const updatedIds = new Set(updatedQuestions.map((q) => q.id));
+    for (const off of QUESTIONS_DATA) {
+      if (!updatedIds.has(off.id)) {
+        currentDeleted.add(off.id);
+      }
+    }
+
+    try {
+      localStorage.setItem(STORAGE_KEY_DELETED_QUESTION_IDS, JSON.stringify(Array.from(currentDeleted)));
+    } catch {
+      // ignore
+    }
+
     setAllQuestions(updatedQuestions);
     try {
       localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(updatedQuestions));
@@ -519,16 +627,87 @@ export default function App() {
     });
   };
 
-  const handleResetQuestionsToDefault = () => {
-    setAllQuestions(QUESTIONS_DATA);
+  // Restore a question from Recycle Bin back into active questions list
+  const handleRestoreQuestion = (questionToRestore: Question) => {
+    // Remove from deleted registry
+    let currentDeleted = new Set<string>();
     try {
-      localStorage.removeItem(STORAGE_KEY_QUESTIONS);
-    } catch (err) {
-      console.error('Failed to reset questions', err);
+      const savedDeleted = localStorage.getItem(STORAGE_KEY_DELETED_QUESTION_IDS);
+      if (savedDeleted) {
+        const parsed = JSON.parse(savedDeleted);
+        if (Array.isArray(parsed)) currentDeleted = new Set(parsed);
+      }
+    } catch {
+      // ignore
     }
-    saveCurriculumToFirebase(QUESTIONS_DATA, topics).catch((err) => {
-      console.warn('Failed to reset questions in cloud:', err);
+    currentDeleted.delete(questionToRestore.id);
+    try {
+      localStorage.setItem(STORAGE_KEY_DELETED_QUESTION_IDS, JSON.stringify(Array.from(currentDeleted)));
+    } catch {
+      // ignore
+    }
+
+    // Remove from Recycle Bin
+    setDeletedQuestions((prev) => {
+      const next = prev.filter((q) => q.id !== questionToRestore.id);
+      try {
+        localStorage.setItem(STORAGE_KEY_TRASH_QUESTIONS, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
     });
+
+    // Re-insert into active questions
+    const nextQuestions = [...allQuestions, questionToRestore];
+    setAllQuestions(nextQuestions);
+    try {
+      localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(nextQuestions));
+    } catch {
+      // ignore
+    }
+
+    // Sync back to Firebase Firestore cloud
+    saveCurriculumToFirebase(nextQuestions, topics).catch((err) => {
+      console.warn('Failed to sync restored question to cloud:', err);
+    });
+  };
+
+  // Permanently delete a question from the Recycle Bin
+  const handlePermanentlyDeleteQuestion = (questionId: string) => {
+    setDeletedQuestions((prev) => {
+      const next = prev.filter((q) => q.id !== questionId);
+      try {
+        localStorage.setItem(STORAGE_KEY_TRASH_QUESTIONS, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+
+    // Ensure it stays in deletedIds so it is never re-added
+    try {
+      const savedDeleted = localStorage.getItem(STORAGE_KEY_DELETED_QUESTION_IDS);
+      let currentDeleted = new Set<string>();
+      if (savedDeleted) {
+        const parsed = JSON.parse(savedDeleted);
+        if (Array.isArray(parsed)) currentDeleted = new Set(parsed);
+      }
+      currentDeleted.add(questionId);
+      localStorage.setItem(STORAGE_KEY_DELETED_QUESTION_IDS, JSON.stringify(Array.from(currentDeleted)));
+    } catch {
+      // ignore
+    }
+  };
+
+  // Permanently empty all questions in the Recycle Bin
+  const handleEmptyTrash = () => {
+    setDeletedQuestions([]);
+    try {
+      localStorage.removeItem(STORAGE_KEY_TRASH_QUESTIONS);
+    } catch {
+      // ignore
+    }
   };
 
   const handleSyncCurriculumToCloud = async () => {
@@ -1012,11 +1191,14 @@ export default function App() {
         isOpen={isTeacherModalOpen}
         onClose={() => setIsTeacherModalOpen(false)}
         questions={allQuestions}
+        deletedQuestions={deletedQuestions}
         students={students}
         cloudSubmissions={cloudSubmissions}
         topics={topics}
         onSaveQuestions={handleSaveCustomQuestions}
-        onResetToDefault={handleResetQuestionsToDefault}
+        onRestoreQuestion={handleRestoreQuestion}
+        onPermanentlyDeleteQuestion={handlePermanentlyDeleteQuestion}
+        onEmptyTrash={handleEmptyTrash}
         onAddStudent={handleAddStudent}
         onClearDemoStudents={handleClearDemoStudents}
         onDeleteStudent={handleDeleteStudent}

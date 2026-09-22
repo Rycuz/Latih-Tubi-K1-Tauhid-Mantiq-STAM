@@ -13,7 +13,6 @@ import {
   AlertCircle, 
   Download, 
   Upload, 
-  RotateCcw, 
   Eye, 
   KeyRound, 
   HelpCircle, 
@@ -30,7 +29,9 @@ import {
   ArrowUpDown,
   ListOrdered,
   Cloud,
-  Underline
+  Underline,
+  Archive,
+  Undo2
 } from 'lucide-react';
 import { Question, SubjectId, TopicInfo, Difficulty, StudentRecord } from '../types';
 import { TOPICS_DATA } from '../data/questions';
@@ -59,11 +60,15 @@ interface TeacherQuestionManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
   questions: Question[];
+  deletedQuestions?: Question[];
   students: StudentRecord[];
   cloudSubmissions?: CloudQuizSubmission[];
   topics: TopicInfo[];
-  onSaveQuestions: (updatedQuestions: Question[]) => void;
-  onResetToDefault: () => void;
+  onSaveQuestions: (updatedQuestions: Question[], deletedId?: string) => void;
+  onRestoreQuestion?: (question: Question) => void;
+  onPermanentlyDeleteQuestion?: (questionId: string) => void;
+  onEmptyTrash?: () => void;
+  onResetToDefault?: () => void;
   onAddStudent?: (newStudent: StudentRecord) => void;
   onClearDemoStudents?: () => void;
   onDeleteStudent?: (studentId: string) => Promise<void> | void;
@@ -78,10 +83,14 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   isOpen,
   onClose,
   questions,
+  deletedQuestions = [],
   students,
   cloudSubmissions,
   topics,
   onSaveQuestions,
+  onRestoreQuestion,
+  onPermanentlyDeleteQuestion,
+  onEmptyTrash,
   onResetToDefault,
   onAddStudent,
   onClearDemoStudents,
@@ -103,7 +112,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   const [cloudSyncNotice, setCloudSyncNotice] = useState<string | null>(null);
 
   // Manager Tabs: default to 'dashboard' to instantly see students and performance
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'topics' | 'list' | 'add' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'topics' | 'list' | 'add' | 'archive' | 'settings'>('dashboard');
 
   // Filter & Search
   const [filterSubject, setFilterSubject] = useState<SubjectId | 'all'>('all');
@@ -113,6 +122,9 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   // Editing State
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [permanentDeleteConfirmId, setPermanentDeleteConfirmId] = useState<string | null>(null);
+  const [restoreConfirmQuestion, setRestoreConfirmQuestion] = useState<Question | null>(null);
+  const [emptyTrashConfirm, setEmptyTrashConfirm] = useState(false);
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
@@ -499,10 +511,40 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   const handleDeleteQuestion = (qId: string) => {
     soundEffects.playClick();
     const updated = questions.filter((q) => q.id !== qId);
-    onSaveQuestions(updated);
+    onSaveQuestions(updated, qId);
     setDeleteConfirmId(null);
-    setSuccessNotice('Soalan telah berjaya dipadam.');
-    setTimeout(() => setSuccessNotice(null), 3000);
+    setSuccessNotice('Soalan telah dipindahkan ke Arkib Soalan Dipadam (Kotak Sampah). Anda boleh memulihkannya bila-bila masa.');
+    setTimeout(() => setSuccessNotice(null), 4000);
+  };
+
+  const handleExecuteRestore = (q: Question) => {
+    soundEffects.playCorrect();
+    if (onRestoreQuestion) {
+      onRestoreQuestion(q);
+      setSuccessNotice(`Soalan "${q.questionArabic.slice(0, 30)}..." telah berjaya dipulihkan kembali ke Bank Soalan!`);
+    }
+    setRestoreConfirmQuestion(null);
+    setTimeout(() => setSuccessNotice(null), 4000);
+  };
+
+  const handleExecutePermanentDelete = (qId: string) => {
+    soundEffects.playWrong();
+    if (onPermanentlyDeleteQuestion) {
+      onPermanentlyDeleteQuestion(qId);
+      setSuccessNotice('Soalan telah dipadam secara kekal dari pangkalan data.');
+    }
+    setPermanentDeleteConfirmId(null);
+    setTimeout(() => setSuccessNotice(null), 4000);
+  };
+
+  const handleExecuteEmptyTrash = () => {
+    soundEffects.playWrong();
+    if (onEmptyTrash) {
+      onEmptyTrash();
+      setSuccessNotice('Semua soalan dalam Arkib telah dipadam secara kekal.');
+    }
+    setEmptyTrashConfirm(false);
+    setTimeout(() => setSuccessNotice(null), 4000);
   };
 
   const handleExportJson = () => {
@@ -552,6 +594,20 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
       return matchSub && matchTopic && matchSearch;
     });
   }, [questions, filterSubject, filterTopic, searchQuery]);
+
+  // Filtered list for Recycle Bin / Arkib Soalan Dipadam
+  const filteredDeletedQuestions = useMemo(() => {
+    return deletedQuestions.filter((q) => {
+      const matchSub = filterSubject === 'all' || q.subject === filterSubject;
+      const matchTopic = filterTopic === 'all' || q.topicId === filterTopic;
+      const matchSearch =
+        searchQuery === '' ||
+        q.questionArabic.includes(searchQuery) ||
+        q.questionMalay.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        q.options.some((o) => o.textArabic.includes(searchQuery) || o.textMalay.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchSub && matchTopic && matchSearch;
+    });
+  }, [deletedQuestions, filterSubject, filterTopic, searchQuery]);
 
   // Topics for selected form subject
   const availableTopicsForSubject = useMemo(() => {
@@ -768,6 +824,21 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{editingQuestion ? 'Sunting Soalan' : 'Tambah Soalan Baru'}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              soundEffects.playClick();
+              setActiveTab('archive');
+            }}
+            className={`py-1.5 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'archive'
+                ? 'bg-amber-600 text-white shadow-sm'
+                : 'bg-slate-800/80 text-slate-400 hover:text-white'
+            }`}
+          >
+            <Archive className="w-3.5 h-3.5" />
+            <span>Arkib Dipadam ({deletedQuestions.length})</span>
           </button>
 
           <button
@@ -1740,6 +1811,224 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
             </div>
           )}
 
+          {/* TAB: ARKIB SOALAN DIPADAM (RECYCLE BIN / KOTAK SAMPAH) */}
+          {activeTab === 'archive' && (
+            <div className="space-y-4">
+              {/* Info Header Banner */}
+              <div className="bg-amber-950/30 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
+                    <Archive className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>Arkib Soalan Dipadam (Kotak Sampah)</span>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
+                        {deletedQuestions.length} soalan
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                      Soalan yang dipadam dari bank soalan disimpan di sini dengan selamat. Anda boleh memulihkan soalan kembali bila-bila masa atau memadamkannya secara kekal.
+                    </p>
+                  </div>
+                </div>
+
+                {deletedQuestions.length > 0 && (
+                  <button
+                    onClick={() => {
+                      soundEffects.playClick();
+                      setEmptyTrashConfirm(true);
+                    }}
+                    className="py-2 px-3.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-700/60 text-rose-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 self-start sm:self-center"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Kosongkan Arkib</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Filter and Search Bar for Trash */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-12 gap-3">
+                {/* Search */}
+                <div className="sm:col-span-5 relative">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Cari dalam soalan dipadam (Arab / Melayu)..."
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Subject Filter */}
+                <div className="sm:col-span-3">
+                  <select
+                    value={filterSubject}
+                    onChange={(e) => {
+                      setFilterSubject(e.target.value as SubjectId | 'all');
+                      setFilterTopic('all');
+                    }}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="all">Semua Subjek (Tauhid, Firaq, Mantiq)</option>
+                    <option value="tauhid">Ilmu Tauhid</option>
+                    <option value="firaq">Al-Firaq Al-Islamiyyah</option>
+                    <option value="mantiq">Ilmu Mantiq</option>
+                  </select>
+                </div>
+
+                {/* Topic Filter */}
+                <div className="sm:col-span-4">
+                  <select
+                    value={filterTopic}
+                    onChange={(e) => setFilterTopic(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="all">Semua Bab / Topik</option>
+                    {topics.filter((t) => filterSubject === 'all' || t.subject === filterSubject).map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.titleArabic} ({t.titleMalay})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Deleted Questions List */}
+              <div className="space-y-3">
+                {filteredDeletedQuestions.length === 0 ? (
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center text-slate-400">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto mb-3">
+                      <Archive className="w-7 h-7" />
+                    </div>
+                    <p className="text-sm font-semibold text-slate-300">
+                      {deletedQuestions.length === 0
+                        ? 'Tiada soalan dalam arkib dipadam.'
+                        : 'Tiada soalan dipadam yang menepati kriteria tapisan.'}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {deletedQuestions.length === 0
+                        ? 'Apabila anda memadam soalan dari Bank Soalan, soalan tersebut akan disimpan di sini.'
+                        : 'Cuba ubah kata kunci carian atau tetapan tapisan subjek/tajuk.'}
+                    </p>
+                  </div>
+                ) : (
+                  filteredDeletedQuestions.map((q, index) => {
+                    const labelArabicMap: Record<string, string> = { a: 'أ', b: 'ب', c: 'ج', d: 'د' };
+                    const correctOpt = q.options.find((o) => o.id === q.correctAnswer);
+
+                    return (
+                      <div
+                        key={q.id}
+                        className="bg-slate-900 border border-amber-900/30 hover:border-amber-500/40 rounded-2xl p-4 transition-all shadow-md relative overflow-hidden"
+                      >
+                        {/* Top Indicator */}
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-md bg-amber-950 border border-amber-500/40 text-amber-300 font-bold text-xs">
+                              #{index + 1}
+                            </span>
+                            <span className="text-xs uppercase font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                              {q.subject}
+                            </span>
+                            <span className="text-xs text-slate-400 font-medium">
+                              {q.topicTitleMalay}
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-950/70 border border-rose-500/30 text-rose-300">
+                              Dipadam
+                            </span>
+                          </div>
+
+                          {/* Quick Action Buttons for Restore & Permanent Delete */}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => {
+                                soundEffects.playClick();
+                                setPreviewQuestion(q);
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                              title="Pratonton Soalan Ini"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                soundEffects.playClick();
+                                setRestoreConfirmQuestion(q);
+                              }}
+                              className="py-1 px-2.5 bg-emerald-950 hover:bg-emerald-900 border border-emerald-600/50 text-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                              title="Kembalikan soalan ini ke Bank Soalan"
+                            >
+                              <Undo2 className="w-3.5 h-3.5" />
+                              <span>Pulihkan</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                soundEffects.playClick();
+                                setPermanentDeleteConfirmId(q.id);
+                              }}
+                              className="py-1 px-2.5 bg-rose-950 hover:bg-rose-900 border border-rose-700/50 text-rose-300 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                              title="Padam soalan ini secara kekal"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Padam Kekal</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Arabic Question Body */}
+                        <div className="mb-2">
+                          <FormattedQuestionStem
+                            questionArabic={q.questionArabic}
+                            questionMalay={q.questionMalay}
+                            fontSizeClass="text-sm sm:text-base"
+                          />
+                        </div>
+
+                        {/* Diagram Note if exists */}
+                        {q.diagramType && q.diagramType !== 'none' && q.diagramArabic && (
+                          <div className="mb-2 p-2 bg-slate-950/50 border border-slate-800 rounded-xl text-[11px] text-slate-400">
+                            <span className="text-amber-400 font-semibold">Mengandungi Rajah ({q.diagramType})</span>
+                          </div>
+                        )}
+
+                        {/* Options Preview */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-2 border-t border-slate-800/80">
+                          {q.options.map((opt) => {
+                            const isCorrect = opt.id === q.correctAnswer;
+                            return (
+                              <div
+                                key={opt.id}
+                                className={`text-[11px] p-2 rounded-xl border flex items-center justify-between gap-1.5 ${
+                                  isCorrect
+                                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300 font-medium'
+                                    : 'bg-slate-800/40 border-slate-700/40 text-slate-400'
+                                }`}
+                              >
+                                <span className="font-bold">
+                                  ({opt.id.toUpperCase()} - {labelArabicMap[opt.id]})
+                                </span>
+                                <span className="font-arabic text-right truncate flex-1 px-1" dir="rtl">
+                                  {opt.textArabic}
+                                </span>
+                                {isCorrect && (
+                                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1 py-0.5 rounded font-bold shrink-0">
+                                    Betul
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+
           {/* TAB 3: KESELAMATAN & SANDARAN (PIN & BACKUP) */}
           {activeTab === 'settings' && (
             <div className="space-y-5">
@@ -1885,50 +2174,24 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                     </label>
                   </div>
                 </div>
-
-                {/* Reset to Original Default STAM Questions */}
-                <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-                  <div>
-                    <h4 className="text-xs font-bold text-rose-400">
-                      Pulihkan Kepada 286 Soalan STAM Asal
-                    </h4>
-                    <p className="text-[11px] text-slate-500">
-                      Jika anda tersalah padam atau ingin kembali kepada set soalan latihan asal aplikasi.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (confirm('Adakah anda pasti ingin memulihkan semula kepada 286 soalan latihan STAM asal? Sebarang soalan baharu yang tidak dieksport akan hilang.')) {
-                        onResetToDefault();
-                        soundEffects.playFanfare();
-                        setSuccessNotice('Semua 286 soalan latihan STAM asal telah dipulihkan semula!');
-                        setTimeout(() => setSuccessNotice(null), 3500);
-                      }
-                    }}
-                    className="py-2 px-3.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-700/60 text-rose-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Reset Ke Asal</span>
-                  </button>
-                </div>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal (Moving to Trash/Arkib) */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-3">
-              <Trash2 className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-3">
+              <Archive className="w-6 h-6" />
             </div>
             <h3 className="text-sm font-bold text-white text-center mb-1">
-              Sahkan Pemadaman Soalan
+              Pindahkan Soalan Ke Arkib?
             </h3>
             <p className="text-xs text-slate-400 text-center mb-4 leading-relaxed">
-              Adakah anda pasti ingin memadam soalan ini dari aplikasi? Tindakan ini tidak boleh diundur melainkan anda menekan Reset ke Asal.
+              Soalan ini akan dikeluarkan dari senarai aktif dan dipindahkan ke <strong>Arkib Soalan Dipadam</strong>. Anda masih boleh memulihkannya pada bila-bila masa.
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -1941,7 +2204,100 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                 onClick={() => handleDeleteQuestion(deleteConfirmId)}
                 className="flex-1 py-2 px-3 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl"
               >
-                Padam Sekarang
+                Pindah Ke Arkib
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Restore Confirmation Modal */}
+      {restoreConfirmQuestion && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+              <Undo2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-white text-center mb-1">
+              Pulihkan Soalan Ini?
+            </h3>
+            <p className="text-xs text-slate-400 text-center mb-4 leading-relaxed">
+              Soalan ini akan dikembalikan semula ke senarai aktif Bank Soalan mengikut bab dan topik asalnya.
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setRestoreConfirmQuestion(null)}
+                className="flex-1 py-2 px-3 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => handleExecuteRestore(restoreConfirmQuestion)}
+                className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl"
+              >
+                Pulihkan Soalan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permanent Delete Confirmation Modal */}
+      {permanentDeleteConfirmId && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-slate-900 border border-rose-900/50 rounded-3xl p-5 shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-3">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-white text-center mb-1">
+              Padam Soalan Secara Kekal?
+            </h3>
+            <p className="text-xs text-slate-400 text-center mb-4 leading-relaxed">
+              Adakah anda pasti ingin memadam soalan ini secara kekal? Tindakan ini <strong className="text-rose-400">tidak boleh dipulihkan semula</strong>.
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPermanentDeleteConfirmId(null)}
+                className="flex-1 py-2 px-3 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => handleExecutePermanentDelete(permanentDeleteConfirmId)}
+                className="flex-1 py-2 px-3 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl"
+              >
+                Padam Kekal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Empty Entire Trash Confirmation Modal */}
+      {emptyTrashConfirm && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-slate-900 border border-rose-900/50 rounded-3xl p-5 shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-3">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-white text-center mb-1">
+              Kosongkan Semua Soalan Arkib?
+            </h3>
+            <p className="text-xs text-slate-400 text-center mb-4 leading-relaxed">
+              Semua {deletedQuestions.length} soalan di dalam Arkib Soalan Dipadam akan dihapuskan secara kekal. Tindakan ini tidak boleh diundur.
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setEmptyTrashConfirm(false)}
+                className="flex-1 py-2 px-3 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleExecuteEmptyTrash}
+                className="flex-1 py-2 px-3 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl"
+              >
+                Ya, Kosongkan Arkib
               </button>
             </div>
           </div>
