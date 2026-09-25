@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   Lock, 
   Unlock, 
@@ -36,13 +36,17 @@ import {
   Wand2,
   Loader2,
   RefreshCw,
-  Languages
+  Languages,
+  Bold,
+  Highlighter,
+  Palette
 } from 'lucide-react';
 import { Question, SubjectId, TopicInfo, Difficulty, StudentRecord } from '../types';
 import { TOPICS_DATA } from '../data/questions';
 import { soundEffects } from '../utils/audio';
 import { cleanRepeatedText, sanitizeQuestion } from '../utils/sanitizeText';
 import { renderFormattedUnderlineText } from '../utils/formatTextWithUnderline';
+import { RichTextFormattingToolbar } from './RichTextFormattingToolbar';
 import { autoTranslateArabicOption, autoTranslateArabicQuestion } from '../utils/bilingualTranslator';
 import {
   translateTextWithGemini,
@@ -174,6 +178,12 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   const [isTranslatingExplanation, setIsTranslatingExplanation] = useState(false);
   const [translationDirection, setTranslationDirection] = useState<'ar_to_ms' | 'ms_to_ar'>('ar_to_ms');
   const [geminiStatus, setGeminiStatus] = useState<{ available: boolean; model: string } | null>(null);
+
+  // Input Refs for Selection-Aware Rich Text Formatting (Bold, Highlight, Underline)
+  const arabicQuestionInputRef = useRef<HTMLTextAreaElement>(null);
+  const malayQuestionInputRef = useRef<HTMLInputElement>(null);
+  const arabicExplanationInputRef = useRef<HTMLTextAreaElement>(null);
+  const malayExplanationInputRef = useRef<HTMLTextAreaElement>(null);
   const [listTranslatingId, setListTranslatingId] = useState<string | null>(null);
 
   React.useEffect(() => {
@@ -1475,12 +1485,12 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                                 <div className="flex-1 min-w-0">
                                   {opt.textArabic && (
                                     <div className="font-arabic text-right font-medium text-slate-100 text-xs leading-relaxed" dir="rtl">
-                                      {opt.textArabic}
+                                      {renderFormattedUnderlineText(opt.textArabic, true)}
                                     </div>
                                   )}
                                   {opt.textMalay && opt.textMalay !== opt.textArabic && (
                                     <div className="text-[11px] text-teal-300/90 leading-snug mt-1 italic">
-                                      {opt.textMalay}
+                                      {renderFormattedUnderlineText(opt.textMalay, false)}
                                     </div>
                                   )}
                                 </div>
@@ -1768,54 +1778,51 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                 </div>
 
                 {/* Arabic Question Stem */}
-                <div>
-                  <div className="flex items-center justify-between mb-1 flex-wrap gap-1.5">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between flex-wrap gap-1.5">
                     <label className="text-xs font-semibold text-slate-300">
                       Teks Soalan Bahasa Arab (Wajib): <span className="text-emerald-400">*</span>
                     </label>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setFormQuestionArabic((prev) => (prev ? `${prev} <u>كلمة</u>` : '<u>كلمة</u>'))}
-                        className="text-[11px] px-2 py-0.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition-colors"
-                        title="Gariskan perkataan (cth: perkataan yang ditanya had qiyas / hukum)"
-                      >
-                        <Underline className="w-3 h-3 text-amber-300" />
-                        <span className="font-sans text-[10px]">+ Garis Perkataan &lt;u&gt;</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormQuestionArabic((prev) => (prev ? `${prev} ﴿ ﴾` : '﴿ ﴾'))}
-                        className="text-[11px] px-2 py-0.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 transition-colors"
-                        title="Sisip Kurungan Khas Ayat Al-Quran (Ornate Brackets)"
-                      >
-                        <span className="font-arabic text-sm">﴿ ﴾</span>
-                        <span className="font-sans text-[10px]">+ Sisip Kurungan Quran</span>
-                      </button>
-                    </div>
-                  </div>
-                  <textarea
-                    rows={3}
-                    value={formQuestionArabic}
-                    onChange={(e) => setFormQuestionArabic(e.target.value)}
-                    placeholder="أدخل نص السؤال باللغة العربية هنا... (Untuk gariskan perkataan, balut dengan <u>perkataan</u>)"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-base text-white font-arabic text-right dir-rtl focus:outline-none focus:border-emerald-500"
-                    dir="rtl"
-                    required
-                  />
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 flex-wrap gap-1">
-                    <span>
-                      💡 <strong className="text-amber-300">Cara Gariskan Perkataan:</strong> Letak <code className="text-amber-300 bg-slate-900 px-1 py-0.5 rounded font-mono">&lt;u&gt;perkataan&lt;/u&gt;</code> di sekeliling perkataan yang ingin digariskan.
+                    <span className="text-[11px] text-slate-400">
+                      Kata Kunci: Bold (<code className="text-teal-300 font-mono">&lt;b&gt;</code>) &amp; Warna Merah (<code className="text-rose-400 font-mono">&lt;merah&gt;</code>)
                     </span>
                   </div>
 
-                  {/* Live Arabic Underline Preview */}
-                  {formQuestionArabic && (formQuestionArabic.includes('<u>') || formQuestionArabic.includes('[u]') || formQuestionArabic.includes('__')) && (
-                    <div className="mt-2 p-2.5 rounded-xl bg-slate-900/90 border border-amber-500/30 text-right dir-rtl" dir="rtl">
-                      <span className="text-[10px] uppercase font-bold text-amber-400 mb-1 block font-sans">
-                        Pratonton Garisan Bawah (Live Underline Preview):
-                      </span>
-                      <div className="font-arabic text-base text-slate-100 leading-loose">
+                  {/* Rich Text Toolbar for Arabic Question */}
+                  <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-700/80">
+                    <RichTextFormattingToolbar
+                      value={formQuestionArabic}
+                      onChange={setFormQuestionArabic}
+                      inputRef={arabicQuestionInputRef}
+                      isArabic={true}
+                      label="Alat Kata Kunci Arab"
+                    />
+                  </div>
+
+                  <textarea
+                    ref={arabicQuestionInputRef}
+                    rows={3}
+                    value={formQuestionArabic}
+                    onChange={(e) => setFormQuestionArabic(e.target.value)}
+                    placeholder="أدخل نص السؤال باللغة العربية هنا... (Pilih mana-mana perkataan & klik butang alat di atas untuk Bold atau Warna Merah)"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-base text-white font-arabic text-right dir-rtl focus:outline-none focus:border-emerald-500 shadow-inner"
+                    dir="rtl"
+                    required
+                  />
+
+                  {/* Live Arabic Rich Text Preview */}
+                  {formQuestionArabic && (
+                    <div className="p-3 rounded-2xl bg-slate-900/90 border border-teal-500/30 text-right dir-rtl space-y-1.5 shadow-md" dir="rtl">
+                      <div className="flex items-center justify-between font-sans text-[11px]">
+                        <span className="text-[10px] uppercase font-bold text-teal-300 flex items-center gap-1.5">
+                          <Eye className="w-3.5 h-3.5 text-teal-400" />
+                          <span>Pratonton Teks Soalan Arab (Live Preview):</span>
+                        </span>
+                        <span className="text-slate-400 text-[10px]">
+                          Paparan tepat seperti dilihat oleh pelajar di Mod Kuiz
+                        </span>
+                      </div>
+                      <div className="font-arabic text-base text-slate-100 leading-loose pt-1">
                         {renderFormattedUnderlineText(formQuestionArabic, true)}
                       </div>
                     </div>
@@ -1823,21 +1830,12 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                 </div>
 
                 {/* Malay Question / Translation */}
-                <div>
-                  <div className="flex items-center justify-between mb-1 flex-wrap gap-1.5">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between flex-wrap gap-1.5">
                     <label className="text-xs font-semibold text-slate-300">
                       Terjemahan / Soalan Bahasa Melayu:
                     </label>
                     <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setFormQuestionMalay((prev) => (prev ? `${prev} <u>perkataan</u>` : '<u>perkataan</u>'))}
-                        className="text-[11px] px-2 py-0.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition-colors"
-                        title="Gariskan perkataan dalam soalan BM"
-                      >
-                        <Underline className="w-3 h-3 text-amber-300" />
-                        <span className="font-sans text-[10px]">+ Garis Perkataan BM</span>
-                      </button>
                       <button
                         type="button"
                         onClick={handleGeminiTranslateQuestion}
@@ -1863,20 +1861,35 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                       </button>
                     </div>
                   </div>
+
+                  {/* Rich Text Toolbar for Malay Question */}
+                  <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-700/80">
+                    <RichTextFormattingToolbar
+                      value={formQuestionMalay}
+                      onChange={setFormQuestionMalay}
+                      inputRef={malayQuestionInputRef}
+                      isArabic={false}
+                      label="Alat Kata Kunci BM"
+                    />
+                  </div>
+
                   <input
+                    ref={malayQuestionInputRef}
                     type="text"
                     value={formQuestionMalay}
                     onChange={(e) => setFormQuestionMalay(e.target.value)}
-                    placeholder="Contoh: Apakah bahagian qadhiyyah bagi perkataan <u>memabukkan</u> yang bergaris..."
+                    placeholder="Contoh: Apakah bahagian qadhiyyah bagi perkataan <merah>memabukkan</merah> yang berwarna merah..."
                     className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                   />
-                  {/* Live Malay Underline Preview */}
-                  {formQuestionMalay && (formQuestionMalay.includes('<u>') || formQuestionMalay.includes('[u]') || formQuestionMalay.includes('__')) && (
-                    <div className="mt-1.5 p-2 rounded-xl bg-slate-900/90 border border-amber-500/30 text-xs text-slate-200">
-                      <span className="text-[10px] uppercase font-bold text-amber-400 mb-1 block">
-                        Pratonton Garisan BM:
+
+                  {/* Live Malay Rich Text Preview */}
+                  {formQuestionMalay && (
+                    <div className="p-2.5 rounded-2xl bg-slate-900/90 border border-teal-500/30 text-xs text-slate-200 shadow-md">
+                      <span className="text-[10px] uppercase font-bold text-teal-300 mb-1 flex items-center gap-1.5">
+                        <Eye className="w-3 h-3 text-teal-400" />
+                        <span>Pratonton Teks Soalan BM:</span>
                       </span>
-                      <div>
+                      <div className="pt-0.5 leading-relaxed">
                         {renderFormattedUnderlineText(formQuestionMalay, false)}
                       </div>
                     </div>
@@ -2288,11 +2301,21 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
 
                 {/* Explanation / Skema Jawapan */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">
-                      Huraian Skema Jawapan (Bahasa Arab):
-                    </label>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-slate-300">
+                        Huraian Skema Jawapan (Bahasa Arab):
+                      </label>
+                      <RichTextFormattingToolbar
+                        value={formExplanationArabic}
+                        onChange={setFormExplanationArabic}
+                        inputRef={arabicExplanationInputRef}
+                        isArabic={true}
+                        compact={true}
+                      />
+                    </div>
                     <textarea
+                      ref={arabicExplanationInputRef}
                       rows={2}
                       value={formExplanationArabic}
                       onChange={(e) => setFormExplanationArabic(e.target.value)}
@@ -2302,27 +2325,37 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                     />
                   </div>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold text-slate-300">
                         Huraian Skema Jawapan (Bahasa Melayu):
                       </label>
-                      <button
-                        type="button"
-                        onClick={handleGeminiTranslateExplanation}
-                        disabled={isTranslatingExplanation}
-                        className="px-2 py-0.5 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-[10px] font-bold flex items-center gap-1 transition-all"
-                        title="Terjemahkan huraian jawapan dengan Gemini AI"
-                      >
-                        {isTranslatingExplanation ? (
-                          <Loader2 className="w-2.5 h-2.5 animate-spin text-white" />
-                        ) : (
-                          <Bot className="w-2.5 h-2.5 text-amber-300" />
-                        )}
-                        <span>✨ Terjemah Huraian</span>
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <RichTextFormattingToolbar
+                          value={formExplanationMalay}
+                          onChange={setFormExplanationMalay}
+                          inputRef={malayExplanationInputRef}
+                          isArabic={false}
+                          compact={true}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleGeminiTranslateExplanation}
+                          disabled={isTranslatingExplanation}
+                          className="px-2 py-0.5 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-[10px] font-bold flex items-center gap-1 transition-all shrink-0"
+                          title="Terjemahkan huraian jawapan dengan Gemini AI"
+                        >
+                          {isTranslatingExplanation ? (
+                            <Loader2 className="w-2.5 h-2.5 animate-spin text-white" />
+                          ) : (
+                            <Bot className="w-2.5 h-2.5 text-amber-300" />
+                          )}
+                          <span>✨ Terjemah</span>
+                        </button>
+                      </div>
                     </div>
                     <textarea
+                      ref={malayExplanationInputRef}
                       rows={2}
                       value={formExplanationMalay}
                       onChange={(e) => setFormExplanationMalay(e.target.value)}
@@ -2900,7 +2933,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                   >
                     <span className="text-xs">({opt.id.toUpperCase()})</span>
                     <span className="font-arabic text-right dir-rtl text-sm" dir="rtl">
-                      {opt.textArabic}
+                      {renderFormattedUnderlineText(opt.textArabic, true)}
                     </span>
                     {isCorrect && (
                       <span className="text-[10px] bg-emerald-500 text-slate-950 font-bold px-1.5 py-0.5 rounded">

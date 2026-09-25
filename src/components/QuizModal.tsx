@@ -33,6 +33,7 @@ import { soundEffects } from '../utils/audio';
 import { cleanRepeatedText } from '../utils/sanitizeText';
 import { FormattedQuestionStem } from './FormattedQuestionStem';
 import { QuestionDiagramRenderer } from './QuestionDiagramRenderer';
+import { renderFormattedUnderlineText } from '../utils/formatTextWithUnderline';
 import { submitQuizToFirebase } from '../lib/firebase';
 
 interface QuizModalProps {
@@ -928,14 +929,14 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
                   <div className="flex-1 min-w-0">
                     {showArabic && opt.textArabic && (
-                      <p className="font-arabic text-base font-semibold leading-relaxed text-right dir-rtl mb-1" dir="rtl">
-                        {opt.textArabic}
-                      </p>
+                      <div className="font-arabic text-base font-semibold leading-relaxed text-right dir-rtl mb-1" dir="rtl">
+                        {renderFormattedUnderlineText(opt.textArabic, true)}
+                      </div>
                     )}
                     {showMalay && opt.textMalay && (
-                      <p className="text-xs text-slate-300 font-normal leading-relaxed">
-                        {opt.textMalay}
-                      </p>
+                      <div className="text-xs text-slate-300 font-normal leading-relaxed">
+                        {renderFormattedUnderlineText(opt.textMalay, false)}
+                      </div>
                     )}
                   </div>
 
@@ -974,9 +975,9 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               {showArabic && currentQ.explanationArabic && currentQ.explanationArabic.trim() !== '' && (
                 <div className="mb-3 bg-slate-800/60 rounded-xl p-3 border border-slate-700/50">
                   <span className="text-[11px] font-bold text-teal-300 block mb-1">الشَّرْحُ وَالتَّوْجِيهُ:</span>
-                  <p className="font-arabic text-sm text-slate-200 leading-relaxed text-right dir-rtl" dir="rtl">
-                    {currentQ.explanationArabic}
-                  </p>
+                  <div className="font-arabic text-sm text-slate-200 leading-relaxed text-right dir-rtl" dir="rtl">
+                    {renderFormattedUnderlineText(currentQ.explanationArabic, true)}
+                  </div>
                 </div>
               )}
 
@@ -984,7 +985,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               {showMalay && currentQ.explanationMalay && currentQ.explanationMalay.trim() !== '' && (
                 <div className="text-xs text-slate-300 leading-relaxed space-y-1.5">
                   <span className="text-[11px] font-bold text-emerald-400 block">Huraian Bahasa Melayu:</span>
-                  <p>{currentQ.explanationMalay}</p>
+                  <div>{renderFormattedUnderlineText(currentQ.explanationMalay, false)}</div>
                 </div>
               )}
             </div>
