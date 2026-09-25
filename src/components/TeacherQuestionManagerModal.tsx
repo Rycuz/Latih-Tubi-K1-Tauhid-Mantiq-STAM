@@ -31,7 +31,12 @@ import {
   Cloud,
   Underline,
   Archive,
-  Undo2
+  Undo2,
+  Bot,
+  Wand2,
+  Loader2,
+  RefreshCw,
+  Languages
 } from 'lucide-react';
 import { Question, SubjectId, TopicInfo, Difficulty, StudentRecord } from '../types';
 import { TOPICS_DATA } from '../data/questions';
@@ -39,6 +44,12 @@ import { soundEffects } from '../utils/audio';
 import { cleanRepeatedText, sanitizeQuestion } from '../utils/sanitizeText';
 import { renderFormattedUnderlineText } from '../utils/formatTextWithUnderline';
 import { autoTranslateArabicOption, autoTranslateArabicQuestion } from '../utils/bilingualTranslator';
+import {
+  translateTextWithGemini,
+  translateQuestionFullWithGemini,
+  translateOptionsBatchWithGemini,
+  checkGeminiStatus
+} from '../utils/geminiTranslationService';
 import { 
   insertNewQuestionInTopic, 
   moveQuestionWithinTopic, 
@@ -154,6 +165,22 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
   const [formCustomPosition, setFormCustomPosition] = useState<number>(1);
   const [formEditPosition, setFormEditPosition] = useState<number>(1);
   const [activeReorderTopicId, setActiveReorderTopicId] = useState<string | null>(null);
+
+  // Gemini AI Translation States
+  const [isTranslatingFull, setIsTranslatingFull] = useState(false);
+  const [isTranslatingQuestion, setIsTranslatingQuestion] = useState(false);
+  const [isTranslatingOptions, setIsTranslatingOptions] = useState(false);
+  const [translatingOptionKey, setTranslatingOptionKey] = useState<'a' | 'b' | 'c' | 'd' | null>(null);
+  const [isTranslatingExplanation, setIsTranslatingExplanation] = useState(false);
+  const [translationDirection, setTranslationDirection] = useState<'ar_to_ms' | 'ms_to_ar'>('ar_to_ms');
+  const [geminiStatus, setGeminiStatus] = useState<{ available: boolean; model: string } | null>(null);
+  const [listTranslatingId, setListTranslatingId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    checkGeminiStatus().then((status) => {
+      setGeminiStatus(status);
+    });
+  }, []);
 
   // Memo for question count in the currently selected form topic
   const currentFormTopicQuestionCount = useMemo(() => {
@@ -372,6 +399,326 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
       setSuccessNotice('⚠️ Tiada padanan soalan automatik dalam pangkalan data STAM. Sila taip terjemahan soalan secara manual.');
     }
     setTimeout(() => setSuccessNotice(null), 4000);
+  };
+
+  // Gemini AI: Translate Full Question, Diagram, All 4 Options & Explanation in one go
+  const handleGeminiTranslateFull = async () => {
+    soundEffects.playClick();
+    const isToMalay = translationDirection === 'ar_to_ms';
+    const sourceQuestion = isToMalay ? formQuestionArabic : formQuestionMalay;
+    const hasSourceOpts = isToMalay
+      ? Boolean(formOptAArabic.trim() || formOptBArabic.trim() || formOptCArabic.trim() || formOptDArabic.trim())
+      : Boolean(formOptAMalay.trim() || formOptBMalay.trim() || formOptCMalay.trim() || formOptDMalay.trim());
+
+    if (!sourceQuestion.trim() && !hasSourceOpts) {
+      setSuccessNotice(
+        isToMalay
+          ? '⚠️ Sila masukkan teks soalan atau pilihan jawapan dalam Bahasa Arab terlebih dahulu.'
+          : '⚠️ Sila masukkan teks soalan atau pilihan jawapan dalam Bahasa Melayu terlebih dahulu.'
+      );
+      setTimeout(() => setSuccessNotice(null), 4000);
+      return;
+    }
+
+    setIsTranslatingFull(true);
+    setSuccessNotice('🤖 Gemini AI sedang menterjemahkan soalan, rajah, dan 4 pilihan jawapan (STAM)...');
+
+    try {
+      const optionsPayload = [
+        { id: 'a', textArabic: formOptAArabic, textMalay: formOptAMalay },
+        { id: 'b', textArabic: formOptBArabic, textMalay: formOptBMalay },
+        { id: 'c', textArabic: formOptCArabic, textMalay: formOptCMalay },
+        { id: 'd', textArabic: formOptDArabic, textMalay: formOptDMalay },
+      ];
+
+      const res = await translateQuestionFullWithGemini({
+        questionArabic: formQuestionArabic,
+        questionMalay: formQuestionMalay,
+        options: optionsPayload,
+        explanationArabic: formExplanationArabic,
+        explanationMalay: formExplanationMalay,
+        diagramArabic: formDiagramArabic,
+        targetLanguage: isToMalay ? 'ms' : 'ar',
+      });
+
+      if (res.success && res.data) {
+        soundEffects.playCorrect();
+        if (isToMalay) {
+          if (res.data.translatedQuestion) setFormQuestionMalay(res.data.translatedQuestion);
+          if (res.data.translatedExplanation) setFormExplanationMalay(res.data.translatedExplanation);
+          if (res.data.translatedOptions) {
+            for (const opt of res.data.translatedOptions) {
+              if (opt.id === 'a') setFormOptAMalay(opt.translatedText);
+              if (opt.id === 'b') setFormOptBMalay(opt.translatedText);
+              if (opt.id === 'c') setFormOptCMalay(opt.translatedText);
+              if (opt.id === 'd') setFormOptDMalay(opt.translatedText);
+            }
+          }
+        } else {
+          if (res.data.translatedQuestion) setFormQuestionArabic(res.data.translatedQuestion);
+          if (res.data.translatedExplanation) setFormExplanationArabic(res.data.translatedExplanation);
+          if (res.data.translatedOptions) {
+            for (const opt of res.data.translatedOptions) {
+              if (opt.id === 'a') setFormOptAArabic(opt.translatedText);
+              if (opt.id === 'b') setFormOptBArabic(opt.translatedText);
+              if (opt.id === 'c') setFormOptCArabic(opt.translatedText);
+              if (opt.id === 'd') setFormOptDArabic(opt.translatedText);
+            }
+          }
+        }
+        setSuccessNotice(
+          res.notice ||
+            (res.fallback
+              ? '✨ Terjemahan soalan & pilihan jawapan disiapkan menggunakan Glosari Pintar STAM!'
+              : '✨ Berjaya menterjemah soalan dan semua pilihan jawapan menggunakan Gemini AI!')
+        );
+      } else {
+        soundEffects.playWrong();
+        setSuccessNotice(`❌ ${res.error || 'Gagal menterjemah dengan Gemini AI. Sila cuba lagi.'}`);
+      }
+    } catch (err: any) {
+      soundEffects.playWrong();
+      setSuccessNotice('❌ Ralat semasa menghubungi servis terjemahan.');
+    } finally {
+      setIsTranslatingFull(false);
+      setTimeout(() => setSuccessNotice(null), 5000);
+    }
+  };
+
+  // Gemini AI: Translate Question Stem Only
+  const handleGeminiTranslateQuestion = async () => {
+    soundEffects.playClick();
+    const isToMalay = translationDirection === 'ar_to_ms';
+    const sourceText = isToMalay ? formQuestionArabic : formQuestionMalay;
+
+    if (!sourceText.trim()) {
+      setSuccessNotice(
+        isToMalay
+          ? '⚠️ Sila masukkan teks soalan Bahasa Arab terlebih dahulu.'
+          : '⚠️ Sila masukkan teks soalan Bahasa Melayu terlebih dahulu.'
+      );
+      setTimeout(() => setSuccessNotice(null), 3500);
+      return;
+    }
+
+    setIsTranslatingQuestion(true);
+    setSuccessNotice('🤖 Gemini AI sedang menterjemahkan teks soalan STAM...');
+
+    try {
+      const res = await translateTextWithGemini(sourceText, isToMalay ? 'ms' : 'ar');
+      if (res.success && res.translatedText) {
+        soundEffects.playCorrect();
+        if (isToMalay) {
+          setFormQuestionMalay(res.translatedText);
+        } else {
+          setFormQuestionArabic(res.translatedText);
+        }
+        setSuccessNotice(
+          res.usedFallback
+            ? '✨ Terjemahan soalan disiapkan menggunakan Glosari Pintar STAM!'
+            : '✨ Terjemahan soalan berjaya disiapkan oleh Gemini AI!'
+        );
+      } else {
+        soundEffects.playWrong();
+        setSuccessNotice(`❌ ${res.error || 'Gagal menterjemahkan soalan.'}`);
+      }
+    } catch {
+      soundEffects.playWrong();
+      setSuccessNotice('❌ Ralat memproses terjemahan soalan.');
+    } finally {
+      setIsTranslatingQuestion(false);
+      setTimeout(() => setSuccessNotice(null), 4000);
+    }
+  };
+
+  // Gemini AI: Translate all 4 Options simultaneously
+  const handleGeminiTranslateOptions = async () => {
+    soundEffects.playClick();
+    const isToMalay = translationDirection === 'ar_to_ms';
+    const hasAnySource = isToMalay
+      ? Boolean(formOptAArabic.trim() || formOptBArabic.trim() || formOptCArabic.trim() || formOptDArabic.trim())
+      : Boolean(formOptAMalay.trim() || formOptBMalay.trim() || formOptCMalay.trim() || formOptDMalay.trim());
+
+    if (!hasAnySource) {
+      setSuccessNotice(
+        isToMalay
+          ? '⚠️ Sila masukkan sekurang-kurangnya satu pilihan jawapan Bahasa Arab terlebih dahulu.'
+          : '⚠️ Sila masukkan sekurang-kurangnya satu pilihan jawapan Bahasa Melayu terlebih dahulu.'
+      );
+      setTimeout(() => setSuccessNotice(null), 4000);
+      return;
+    }
+
+    setIsTranslatingOptions(true);
+    setSuccessNotice('🤖 Gemini AI sedang menterjemahkan 4 pilihan jawapan...');
+
+    try {
+      const optionsList = [
+        { id: 'a', textArabic: formOptAArabic, textMalay: formOptAMalay },
+        { id: 'b', textArabic: formOptBArabic, textMalay: formOptBMalay },
+        { id: 'c', textArabic: formOptCArabic, textMalay: formOptCMalay },
+        { id: 'd', textArabic: formOptDArabic, textMalay: formOptDMalay },
+      ];
+
+      const res = await translateOptionsBatchWithGemini(optionsList, isToMalay ? 'ms' : 'ar');
+      if (res.success && res.translatedOptions) {
+        soundEffects.playCorrect();
+        for (const opt of res.translatedOptions) {
+          if (isToMalay) {
+            if (opt.id === 'a') setFormOptAMalay(opt.translatedText);
+            if (opt.id === 'b') setFormOptBMalay(opt.translatedText);
+            if (opt.id === 'c') setFormOptCMalay(opt.translatedText);
+            if (opt.id === 'd') setFormOptDMalay(opt.translatedText);
+          } else {
+            if (opt.id === 'a') setFormOptAArabic(opt.translatedText);
+            if (opt.id === 'b') setFormOptBArabic(opt.translatedText);
+            if (opt.id === 'c') setFormOptCArabic(opt.translatedText);
+            if (opt.id === 'd') setFormOptDArabic(opt.translatedText);
+          }
+        }
+        setSuccessNotice(
+          res.fallback
+            ? '✨ Kesemua 4 pilihan jawapan diterjemahkan menggunakan Glosari Pintar STAM!'
+            : '✨ Kesemua 4 pilihan jawapan berjaya diterjemahkan oleh Gemini AI!'
+        );
+      } else {
+        soundEffects.playWrong();
+        setSuccessNotice(`❌ ${res.error || 'Gagal menterjemahkan pilihan jawapan.'}`);
+      }
+    } catch {
+      soundEffects.playWrong();
+      setSuccessNotice('❌ Ralat memproses terjemahan pilihan jawapan.');
+    } finally {
+      setIsTranslatingOptions(false);
+      setTimeout(() => setSuccessNotice(null), 4000);
+    }
+  };
+
+  // Gemini AI: Translate a Single Option (A, B, C, or D)
+  const handleGeminiTranslateSingleOption = async (optKey: 'a' | 'b' | 'c' | 'd') => {
+    soundEffects.playClick();
+    const isToMalay = translationDirection === 'ar_to_ms';
+    let sourceText = '';
+    if (optKey === 'a') sourceText = isToMalay ? formOptAArabic : formOptAMalay;
+    if (optKey === 'b') sourceText = isToMalay ? formOptBArabic : formOptBMalay;
+    if (optKey === 'c') sourceText = isToMalay ? formOptCArabic : formOptCMalay;
+    if (optKey === 'd') sourceText = isToMalay ? formOptDArabic : formOptDMalay;
+
+    if (!sourceText.trim()) {
+      setSuccessNotice(`⚠️ Sila isi teks pilihan (${optKey.toUpperCase()}) terlebih dahulu.`);
+      setTimeout(() => setSuccessNotice(null), 3000);
+      return;
+    }
+
+    setTranslatingOptionKey(optKey);
+    try {
+      const res = await translateTextWithGemini(sourceText, isToMalay ? 'ms' : 'ar');
+      if (res.success && res.translatedText) {
+        soundEffects.playCorrect();
+        if (isToMalay) {
+          if (optKey === 'a') setFormOptAMalay(res.translatedText);
+          if (optKey === 'b') setFormOptBMalay(res.translatedText);
+          if (optKey === 'c') setFormOptCMalay(res.translatedText);
+          if (optKey === 'd') setFormOptDMalay(res.translatedText);
+        } else {
+          if (optKey === 'a') setFormOptAArabic(res.translatedText);
+          if (optKey === 'b') setFormOptBArabic(res.translatedText);
+          if (optKey === 'c') setFormOptCArabic(res.translatedText);
+          if (optKey === 'd') setFormOptDArabic(res.translatedText);
+        }
+        setSuccessNotice(`✨ Pilihan (${optKey.toUpperCase()}) berjaya diterjemahkan!`);
+      } else {
+        soundEffects.playWrong();
+        setSuccessNotice(`❌ ${res.error || 'Ralat terjemahan.'}`);
+      }
+    } catch {
+      soundEffects.playWrong();
+      setSuccessNotice('❌ Ralat terjemahan pilihan.');
+    } finally {
+      setTranslatingOptionKey(null);
+      setTimeout(() => setSuccessNotice(null), 3000);
+    }
+  };
+
+  // Gemini AI: Translate Explanation
+  const handleGeminiTranslateExplanation = async () => {
+    soundEffects.playClick();
+    const isToMalay = translationDirection === 'ar_to_ms';
+    const sourceText = isToMalay ? formExplanationArabic : formExplanationMalay;
+
+    if (!sourceText.trim()) {
+      setSuccessNotice('⚠️ Sila masukkan huraian jawapan terlebih dahulu.');
+      setTimeout(() => setSuccessNotice(null), 3000);
+      return;
+    }
+
+    setIsTranslatingExplanation(true);
+    try {
+      const res = await translateTextWithGemini(sourceText, isToMalay ? 'ms' : 'ar');
+      if (res.success && res.translatedText) {
+        soundEffects.playCorrect();
+        if (isToMalay) {
+          setFormExplanationMalay(res.translatedText);
+        } else {
+          setFormExplanationArabic(res.translatedText);
+        }
+        setSuccessNotice('✨ Huraian jawapan berjaya diterjemahkan oleh Gemini AI!');
+      } else {
+        soundEffects.playWrong();
+        setSuccessNotice(`❌ ${res.error || 'Ralat menterjemah huraian.'}`);
+      }
+    } catch {
+      soundEffects.playWrong();
+      setSuccessNotice('❌ Ralat menterjemah huraian.');
+    } finally {
+      setIsTranslatingExplanation(false);
+      setTimeout(() => setSuccessNotice(null), 3500);
+    }
+  };
+
+  // Gemini AI: Quick translate a question card in Question List tab
+  const handleGeminiTranslateListItem = async (q: Question) => {
+    soundEffects.playClick();
+    setListTranslatingId(q.id);
+    setSuccessNotice(`🤖 Gemini AI sedang menterjemahkan soalan #${q.id.slice(0, 8)}...`);
+
+    try {
+      const res = await translateQuestionFullWithGemini({
+        questionArabic: q.questionArabic,
+        questionMalay: q.questionMalay,
+        options: q.options,
+        explanationArabic: q.explanationArabic,
+        explanationMalay: q.explanationMalay,
+        diagramArabic: q.diagramArabic,
+        targetLanguage: 'ms',
+      });
+
+      if (res.success && res.data) {
+        soundEffects.playCorrect();
+        const updatedQuestion: Question = {
+          ...q,
+          questionMalay: res.data.translatedQuestion || q.questionMalay,
+          explanationMalay: res.data.translatedExplanation || q.explanationMalay,
+          options: q.options.map((opt) => {
+            const tr = res.data?.translatedOptions?.find((o) => o.id === opt.id);
+            return tr ? { ...opt, textMalay: tr.translatedText } : opt;
+          }),
+        };
+
+        const updatedList = questions.map((item) => (item.id === q.id ? updatedQuestion : item));
+        onSaveQuestions(updatedList);
+        setSuccessNotice(`✨ Soalan berjaya diterjemahkan dengan Gemini AI dan disimpan secara automatik!`);
+      } else {
+        soundEffects.playWrong();
+        setSuccessNotice(`❌ ${res.error || 'Gagal menterjemah soalan ini.'}`);
+      }
+    } catch {
+      soundEffects.playWrong();
+      setSuccessNotice('❌ Ralat menterjemah soalan senarai.');
+    } finally {
+      setListTranslatingId(null);
+      setTimeout(() => setSuccessNotice(null), 4000);
+    }
   };
 
   // Quick template for Complex MCQ (2 combinations: 1&2, 2&3, 3&4, 1&4)
@@ -701,6 +1048,10 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
                   {questions.length} Soalan Aktif
+                </span>
+                <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-[10px] font-bold" title="Integrasi API Gemini AI sedia digunakan untuk terjemahan soalan & pilihan jawapan">
+                  <Bot className="w-3 h-3 text-teal-300" />
+                  <span>Gemini AI Terjemahan</span>
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
@@ -1065,6 +1416,19 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
+                              type="button"
+                              onClick={() => handleGeminiTranslateListItem(q)}
+                              disabled={listTranslatingId === q.id}
+                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-teal-950 text-slate-300 hover:text-teal-300 border border-slate-700 hover:border-teal-500/40 disabled:opacity-50 transition-colors"
+                              title="Terjemahkan soalan dan 4 pilihan jawapan ini dengan Gemini AI"
+                            >
+                              {listTranslatingId === q.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
+                              ) : (
+                                <Sparkles className="w-4 h-4 text-amber-400" />
+                              )}
+                            </button>
+                            <button
                               onClick={() => startEditQuestion(q)}
                               className="p-1.5 rounded-lg bg-slate-800 hover:bg-emerald-950 text-slate-300 hover:text-emerald-400 border border-slate-700 hover:border-emerald-500/40"
                               title="Sunting Soalan Ini"
@@ -1161,6 +1525,86 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
               </div>
 
               <form onSubmit={handleSaveQuestionForm} className="space-y-4">
+                {/* GEMINI AI TRANSLATION HUB */}
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-teal-950/70 to-indigo-950/60 border border-teal-500/40 shadow-lg space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-inner">
+                        <Bot className="w-5 h-5 text-teal-300" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                            <span>Integrasi Penterjemahan Pintar Gemini AI</span>
+                          </h4>
+                          <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-mono border border-teal-500/40 flex items-center gap-1">
+                            <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                            <span>gemini-3.8-flash</span>
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 mt-0.5">
+                          Penterjemahan automatik soalan &amp; pilihan jawapan dengan ketepatan istilah sukatan STAM (Tauhid, Firaq &amp; Mantiq).
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Direction Toggle */}
+                    <div className="flex items-center gap-1.5 self-start sm:self-auto bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          soundEffects.playClick();
+                          setTranslationDirection('ar_to_ms');
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+                          translationDirection === 'ar_to_ms'
+                            ? 'bg-teal-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                        title="Terjemah daripada Bahasa Arab ke Bahasa Melayu"
+                      >
+                        <span>🇸🇦 Arab ➔ 🇲🇾 BM</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          soundEffects.playClick();
+                          setTranslationDirection('ms_to_ar');
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+                          translationDirection === 'ms_to_ar'
+                            ? 'bg-teal-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                        title="Terjemah daripada Bahasa Melayu ke Bahasa Arab"
+                      >
+                        <span>🇲🇾 BM ➔ 🇸🇦 Arab</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* One-Click Full Translation Action */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1 border-t border-teal-500/20">
+                    <button
+                      type="button"
+                      onClick={handleGeminiTranslateFull}
+                      disabled={isTranslatingFull}
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700 hover:from-teal-500 hover:to-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-teal-900/40 transition-all active:scale-98 cursor-pointer"
+                    >
+                      {isTranslatingFull ? (
+                        <>
+                          <Loader2 className="w-4 h-4 text-white animate-spin" />
+                          <span>Gemini AI Sedang Menterjemah (Soalan &amp; 4 Pilihan)...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 text-amber-300" />
+                          <span>✨ Terjemah Lengkap dengan Gemini AI (Soalan, Rajah &amp; 4 Pilihan)</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
                 {/* Subject & Topic Selectors */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -1396,12 +1840,26 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                       </button>
                       <button
                         type="button"
-                        onClick={handleAutoTranslateQuestion}
-                        className="px-2.5 py-1 rounded-lg bg-teal-900/60 hover:bg-teal-800/80 border border-teal-500/40 text-teal-200 text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-                        title="Isi terjemahan soalan secara automatik daripada Pangkalan Data STAM"
+                        onClick={handleGeminiTranslateQuestion}
+                        disabled={isTranslatingQuestion}
+                        className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                        title="Terjemahkan teks soalan menggunakan Gemini AI"
                       >
-                        <Sparkles className="w-3 h-3 text-teal-300" />
-                        <span>⚡ Cadang Terjemahan Soalan BM</span>
+                        {isTranslatingQuestion ? (
+                          <Loader2 className="w-3 h-3 animate-spin text-white" />
+                        ) : (
+                          <Bot className="w-3 h-3 text-amber-300" />
+                        )}
+                        <span>✨ Terjemah Soalan (Gemini AI)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAutoTranslateQuestion}
+                        className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-[11px] font-medium flex items-center gap-1 transition-all"
+                        title="Isi terjemahan soalan daripada glosari STAM luar talian"
+                      >
+                        <Sparkles className="w-2.5 h-2.5 text-teal-400" />
+                        <span>Glosari Asas</span>
                       </button>
                     </div>
                   </div>
@@ -1562,12 +2020,27 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
 
                       <button
                         type="button"
-                        onClick={handleAutoTranslateOptions}
-                        className="px-3 py-1.5 rounded-xl bg-teal-900/60 hover:bg-teal-800/80 border border-teal-500/40 text-teal-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-                        title="Isi terjemahan Bahasa Melayu bagi 4 pilihan jawapan secara automatik daripada Glosari & Pangkalan Data STAM"
+                        onClick={handleGeminiTranslateOptions}
+                        disabled={isTranslatingOptions}
+                        className="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                        title="Terjemahkan kesemua 4 pilihan jawapan serentak menggunakan Gemini AI"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-teal-300" />
-                        <span>⚡ Cadang Terjemahan BM</span>
+                        {isTranslatingOptions ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                        ) : (
+                          <Bot className="w-3.5 h-3.5 text-amber-300" />
+                        )}
+                        <span>✨ Terjemah 4 Pilihan (Gemini AI)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleAutoTranslateOptions}
+                        className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm"
+                        title="Isi terjemahan Bahasa Melayu bagi 4 pilihan jawapan daripada Glosari STAM luar talian"
+                      >
+                        <Sparkles className="w-3 h-3 text-teal-300" />
+                        <span>Glosari Asas</span>
                       </button>
                     </div>
                   </div>
@@ -1605,6 +2078,20 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                           )}
                         </label>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => handleGeminiTranslateSingleOption('a')}
+                        disabled={translatingOptionKey === 'a'}
+                        className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-teal-900/60 border border-slate-700 hover:border-teal-500/40 text-teal-300 text-[10px] font-semibold flex items-center gap-1 transition-all"
+                        title="Terjemah pilihan (A) sahaja dengan Gemini AI"
+                      >
+                        {translatingOptionKey === 'a' ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                        )}
+                        <span>Terjemah (A)</span>
+                      </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
@@ -1649,6 +2136,20 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                           )}
                         </label>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => handleGeminiTranslateSingleOption('b')}
+                        disabled={translatingOptionKey === 'b'}
+                        className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-teal-900/60 border border-slate-700 hover:border-teal-500/40 text-teal-300 text-[10px] font-semibold flex items-center gap-1 transition-all"
+                        title="Terjemah pilihan (B) sahaja dengan Gemini AI"
+                      >
+                        {translatingOptionKey === 'b' ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                        )}
+                        <span>Terjemah (B)</span>
+                      </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
@@ -1693,6 +2194,20 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                           )}
                         </label>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => handleGeminiTranslateSingleOption('c')}
+                        disabled={translatingOptionKey === 'c'}
+                        className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-teal-900/60 border border-slate-700 hover:border-teal-500/40 text-teal-300 text-[10px] font-semibold flex items-center gap-1 transition-all"
+                        title="Terjemah pilihan (C) sahaja dengan Gemini AI"
+                      >
+                        {translatingOptionKey === 'c' ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                        )}
+                        <span>Terjemah (C)</span>
+                      </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
@@ -1736,6 +2251,20 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                           )}
                         </label>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => handleGeminiTranslateSingleOption('d')}
+                        disabled={translatingOptionKey === 'd'}
+                        className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-teal-900/60 border border-slate-700 hover:border-teal-500/40 text-teal-300 text-[10px] font-semibold flex items-center gap-1 transition-all"
+                        title="Terjemah pilihan (D) sahaja dengan Gemini AI"
+                      >
+                        {translatingOptionKey === 'd' ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                        )}
+                        <span>Terjemah (D)</span>
+                      </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
@@ -1774,9 +2303,25 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">
-                      Huraian Skema Jawapan (Bahasa Melayu):
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-slate-300">
+                        Huraian Skema Jawapan (Bahasa Melayu):
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleGeminiTranslateExplanation}
+                        disabled={isTranslatingExplanation}
+                        className="px-2 py-0.5 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-[10px] font-bold flex items-center gap-1 transition-all"
+                        title="Terjemahkan huraian jawapan dengan Gemini AI"
+                      >
+                        {isTranslatingExplanation ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin text-white" />
+                        ) : (
+                          <Bot className="w-2.5 h-2.5 text-amber-300" />
+                        )}
+                        <span>✨ Terjemah Huraian</span>
+                      </button>
+                    </div>
                     <textarea
                       rows={2}
                       value={formExplanationMalay}

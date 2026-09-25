@@ -359,7 +359,9 @@ export async function updateStudentProfileInFirebase(params: {
  */
 export async function saveCurriculumToFirebase(
   questions: Question[],
-  topics: TopicInfo[]
+  topics: TopicInfo[],
+  deletedQuestionIds?: string[],
+  trashQuestions?: Question[]
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const nowIso = new Date().toISOString();
@@ -376,9 +378,11 @@ export async function saveCurriculumToFirebase(
     const safeMantiq = JSON.parse(JSON.stringify(mantiq));
     const safeCustom = JSON.parse(JSON.stringify(custom));
     const safeTopics = JSON.parse(JSON.stringify(topics));
+    const safeTrash = trashQuestions ? JSON.parse(JSON.stringify(trashQuestions)) : [];
+    const safeDeletedIds = deletedQuestionIds || [];
 
-    // Save each subject section and topics in parallel
-    await Promise.all([
+    // Save each subject section, topics, and deleted registry in parallel
+    const savePromises = [
       setDoc(doc(db, 'curriculum', 'questions_tauhid'), {
         id: 'questions_tauhid',
         subject: 'tauhid',
@@ -413,7 +417,21 @@ export async function saveCurriculumToFirebase(
         count: safeTopics.length,
         topics: safeTopics,
       }),
-    ]);
+    ];
+
+    if (deletedQuestionIds !== undefined || trashQuestions !== undefined) {
+      savePromises.push(
+        setDoc(doc(db, 'curriculum', 'deleted_registry'), {
+          id: 'deleted_registry',
+          updatedAt: nowIso,
+          count: safeDeletedIds.length,
+          deletedQuestionIds: safeDeletedIds,
+          trashQuestions: safeTrash,
+        })
+      );
+    }
+
+    await Promise.all(savePromises);
 
     return { success: true };
   } catch (err: any) {
@@ -423,13 +441,13 @@ export async function saveCurriculumToFirebase(
 }
 
 /**
- * Real-time listener for curriculum (questions & topics) updates from Firestore.
- * Automatically synchronizes Normal Mode across all student devices whenever
- * the teacher saves changes.
+ * Real-time listener for curriculum (questions, topics & deleted registry) updates from Firestore.
+ * Automatically synchronizes Normal Mode and deletions across all student & teacher devices.
  */
 export function subscribeToCloudCurriculum(callbacks: {
   onQuestions?: (questions: Question[]) => void;
   onTopics?: (topics: TopicInfo[]) => void;
+  onDeletedRegistry?: (deletedIds: string[], trashQuestions?: Question[]) => void;
   onError?: (err: Error) => void;
 }) {
   try {
@@ -439,11 +457,14 @@ export function subscribeToCloudCurriculum(callbacks: {
       (snapshot) => {
         let hasQuestions = false;
         let hasTopics = false;
+        let hasDeletedRegistry = false;
         let tauhidQuestions: Question[] = [];
         let firaqQuestions: Question[] = [];
         let mantiqQuestions: Question[] = [];
         let customQuestions: Question[] = [];
         let fetchedTopics: TopicInfo[] = [];
+        let fetchedDeletedIds: string[] = [];
+        let fetchedTrash: Question[] = [];
 
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
@@ -462,8 +483,16 @@ export function subscribeToCloudCurriculum(callbacks: {
           } else if (docSnap.id === 'topics' && Array.isArray(data.topics)) {
             fetchedTopics = data.topics;
             hasTopics = true;
+          } else if (docSnap.id === 'deleted_registry') {
+            fetchedDeletedIds = Array.isArray(data.deletedQuestionIds) ? data.deletedQuestionIds : [];
+            fetchedTrash = Array.isArray(data.trashQuestions) ? data.trashQuestions : [];
+            hasDeletedRegistry = true;
           }
         });
+
+        if (hasDeletedRegistry && callbacks.onDeletedRegistry) {
+          callbacks.onDeletedRegistry(fetchedDeletedIds, fetchedTrash);
+        }
 
         if (hasQuestions && callbacks.onQuestions) {
           const combined = [

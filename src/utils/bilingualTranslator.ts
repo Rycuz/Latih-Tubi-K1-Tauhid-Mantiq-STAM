@@ -426,3 +426,198 @@ export function autoTranslateArabicQuestion(questionArabic: string): string {
 
   return '';
 }
+
+// Reverse STAM dictionary for Malay -> Arabic translations
+const REVERSE_STAM_DICTIONARY = new Map<string, string>();
+for (const [ar, my] of Object.entries(STAM_DICTIONARY)) {
+  const cleanMy = my.toLowerCase().trim();
+  if (!REVERSE_STAM_DICTIONARY.has(cleanMy)) {
+    REVERSE_STAM_DICTIONARY.set(cleanMy, ar);
+  }
+}
+
+/**
+ * Smart Arabic to Malay translator using glossary, phrase replacement, and sentence pattern matching
+ */
+export function translateArabicToMalaySmart(text: string): string {
+  if (!text || !text.trim()) return '';
+  const trimmed = text.trim();
+
+  // 1. Direct question match
+  const qMatch = autoTranslateArabicQuestion(trimmed);
+  if (qMatch) return qMatch;
+
+  // 2. Direct option match
+  const optMatch = autoTranslateArabicOption(trimmed);
+  if (optMatch) return optMatch;
+
+  // 3. Quranic verse citation: ﴿ ... ﴾
+  if (trimmed.includes('﴿') && trimmed.includes('﴾')) {
+    return trimmed.replace(/﴿([^﴾]+)﴾/g, 'Firman Allah Taala: ﴿$1﴾');
+  }
+
+  // 4. Word-by-word / Subphrase replacement using STAM dictionary
+  let result = trimmed;
+  // Sort dictionary keys by length descending to replace longest phrases first
+  const sortedEntries = Object.entries(STAM_DICTIONARY).sort((a, b) => b[0].length - a[0].length);
+
+  for (const [arTerm, myTerm] of sortedEntries) {
+    if (result.includes(arTerm)) {
+      result = result.split(arTerm).join(myTerm);
+    }
+  }
+
+  // Common particle and interrogative translations
+  const particles: Record<string, string> = {
+    'ما هو ': 'Apakah ',
+    'ما هي ': 'Apakah ',
+    'ما ': 'Apakah ',
+    'من هو ': 'Siapakah ',
+    'من هي ': 'Siapakah ',
+    'من هم ': 'Siapakah golongan ',
+    'أين ': 'Di manakah ',
+    'كيف ': 'Bagaimanakah ',
+    'متى ': 'Bilakah ',
+    'لماذا ': 'Mengapakah ',
+    'هل ': 'Adakah ',
+    'اختر ': 'Pilih ',
+    'حكم ': 'Hukum ',
+    'تعريف ': 'Takrif ',
+    'معنى ': 'Maksud ',
+    'شروط ': 'Syarat-syarat ',
+    'أركان ': 'Rukun-rukun ',
+    'أقسام ': 'Bahagian-bahagian ',
+    'أنواع ': 'Jenis-jenis ',
+    'مثال ': 'Contoh ',
+    'دليل ': 'Dalil ',
+    'سبب ': 'Sebab ',
+    'علة ': 'Illah / Sebab ',
+    'في ': 'dalam ',
+    'من ': 'daripada ',
+    'إلى ': 'kepada ',
+    'على ': 'atas ',
+    'عن ': 'tentang ',
+    'مع ': 'bersama ',
+    'هو ': 'adalah ',
+    'هي ': 'adalah ',
+    'أن ': 'bahawa ',
+    'أنه ': 'bahawa ia ',
+    'لا ': 'tidak ',
+    'ليس ': 'bukan ',
+    'غير ': 'selain ',
+    'كل ': 'setiap ',
+    'بعض ': 'sebahagian ',
+  };
+
+  for (const [arP, myP] of Object.entries(particles)) {
+    if (result.includes(arP)) {
+      result = result.split(arP).join(myP);
+    }
+  }
+
+  return result.trim();
+}
+
+/**
+ * Smart Malay to Arabic translator
+ */
+export function translateMalayToArabicSmart(text: string): string {
+  if (!text || !text.trim()) return '';
+  const trimmed = text.trim();
+  const lower = trimmed.toLowerCase();
+
+  // 1. Direct dictionary match
+  if (REVERSE_STAM_DICTIONARY.has(lower)) {
+    return REVERSE_STAM_DICTIONARY.get(lower)!;
+  }
+
+  // 2. Exact match in questions cache
+  for (const [ar, my] of QUESTIONS_STEM_CACHE.entries()) {
+    if (my.toLowerCase().trim() === lower) return ar;
+  }
+
+  // 3. Exact match in options cache
+  for (const [ar, my] of QUESTIONS_OPTIONS_CACHE.entries()) {
+    if (my.toLowerCase().trim() === lower) return ar;
+  }
+
+  // 4. Number combinations (1 dan 2 -> ١ و ٢)
+  const numMatch = trimmed
+    .replace(/\b1\b/g, '١')
+    .replace(/\b2\b/g, '٢')
+    .replace(/\b3\b/g, '٣')
+    .replace(/\b4\b/g, '٤')
+    .replace(/\bdan\b/gi, 'و')
+    .replace(/,\s*/g, ' ، ');
+  if (/[١-٤]/.test(numMatch)) {
+    return numMatch;
+  }
+
+  return trimmed;
+}
+
+/**
+ * Full Question Offline Translation Fallback
+ */
+export function translateQuestionFullOffline(params: {
+  questionArabic?: string;
+  questionMalay?: string;
+  options?: Array<{ id: string; textArabic?: string; textMalay?: string }>;
+  explanationArabic?: string;
+  explanationMalay?: string;
+  diagramArabic?: string;
+  targetLanguage?: string;
+}) {
+  const isToMalay = params.targetLanguage !== 'ar';
+
+  let translatedQuestion = '';
+  if (isToMalay) {
+    translatedQuestion =
+      autoTranslateArabicQuestion(params.questionArabic || '') ||
+      translateArabicToMalaySmart(params.questionArabic || '') ||
+      'Pilih jawapan yang paling tepat berdasarkan teks di atas.';
+  } else {
+    translatedQuestion =
+      translateMalayToArabicSmart(params.questionMalay || '') ||
+      params.questionMalay ||
+      'اختر الإجابة الصحيحة مما يأتي:';
+  }
+
+  const translatedOptions = (params.options || []).map((opt) => {
+    let text = '';
+    if (isToMalay) {
+      text =
+        autoTranslateArabicOption(opt.textArabic || '') ||
+        translateArabicToMalaySmart(opt.textArabic || '') ||
+        opt.textArabic ||
+        '';
+    } else {
+      text =
+        translateMalayToArabicSmart(opt.textMalay || '') ||
+        opt.textMalay ||
+        '';
+    }
+    return {
+      id: opt.id,
+      translatedText: text,
+    };
+  });
+
+  let translatedExplanation = '';
+  if (isToMalay) {
+    translatedExplanation = params.explanationArabic
+      ? translateArabicToMalaySmart(params.explanationArabic)
+      : '';
+  } else {
+    translatedExplanation = params.explanationMalay
+      ? translateMalayToArabicSmart(params.explanationMalay)
+      : '';
+  }
+
+  return {
+    translatedQuestion,
+    translatedDiagram: params.diagramArabic || '',
+    translatedOptions,
+    translatedExplanation,
+  };
+}
