@@ -6,17 +6,19 @@ import { MANTIQ_QUESTIONS_PART1 } from '../data/questions/mantiqPart1';
 
 /**
  * Normalizes Arabic text for flexible matching:
+ * - Removes tatweel / kashida (ـ)
  * - Removes diacritics / tashkeel (fathah, kasrah, dammah, tanween, sukun, shaddah, etc.)
  * - Unifies alef forms (أ, إ, آ, ٱ -> ا)
  * - Normalizes hamza forms (ؤ -> و, ئ -> ي)
  * - Normalizes ta marbuta (ة -> ه)
  * - Normalizes alif maqsura (ى -> ي)
- * - Removes tatweel (ـ)
  * - Normalizes punctuation and collapses whitespace
  */
 export function normalizeArabicText(text: string): string {
   if (!text) return '';
   return text
+    // Remove Tatweel / Kashida first
+    .replace(/ـ/g, '')
     // Remove diacritics / tashkeel / Quranic signs
     .replace(/[\u0617-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
     // Unify Alefs
@@ -28,17 +30,100 @@ export function normalizeArabicText(text: string): string {
     .replace(/ة/g, 'ه')
     // Unify Alif Maqsura
     .replace(/ى/g, 'ي')
-    // Remove Tatweel / Kashida
-    .replace(/ـ/g, '')
-    // Remove punctuation & brackets
-    .replace(/[﴿﴾«»""''()\[\]{}،,:;؟?!\.\-]/g, ' ')
+    // Remove punctuation & brackets (keep hyphens separate for split logic)
+    .replace(/[﴿﴾«»""''()\[\]{}،,:;؟?!\.]/g, ' ')
     // Collapse whitespace
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-// Expanded STAM vocabulary translations (Tauhid, Firaq, Mantiq, Usuluddin, Akhlak)
+/**
+ * Removes tatweel and diacritics while preserving original letters
+ */
+export function cleanArabicDiacritics(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/ـ/g, '')
+    .replace(/[\u0617-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+    .trim();
+}
+
+// Comprehensive STAM vocabulary translations (Maqasid Syariah, Jinayat, Fiqh, Tauhid, Firaq, Mantiq)
 export const STAM_DICTIONARY: Record<string, string> = {
+  // Maqasid Syariah & Ad-Daruriyyat Al-Khams (Five Essentials)
+  'الضروريات الخمس': 'Ad-Daruriyyat Al-Khams (Lima Keperluan Asas Maqasid Syariah)',
+  'مقاصد الشريعة': 'Maqasid Syariah',
+  'حفظ الدين': 'Memelihara Agama (Hifz ad-Din)',
+  'حفظ النفس': 'Memelihara Nyawa (Hifz an-Nafs)',
+  'حفظ العقل': 'Memelihara Akal (Hifz al-\'Aql)',
+  'حفظ النسل': 'Memelihara Keturunan (Hifz an-Nasl)',
+  'حفظ العرض': 'Memelihara Kehormatan/Maruah (Hifz al-\'Irdh)',
+  'حفظ المال': 'Memelihara Harta (Hifz al-Mal)',
+  'حفظ الدين والنفس': 'Memelihara Agama dan Nyawa',
+  'حفظ العقل والمال': 'Memelihara Akal dan Harta',
+
+  // Jinayat & Hudud (Punishments & Rulings)
+  'حد القذف': 'Hukuman Had Qazaf (Menuduh Zina)',
+  'حد شرب الخمر': 'Hukuman Had Minum Arak',
+  'حد السرقة': 'Hukuman Had Mencuri',
+  'حد الزنا': 'Hukuman Had Zina',
+  'حد الردة': 'Hukuman Had Murtad',
+  'حد الحرابة': 'Hukuman Had Menyamun (Hirabah)',
+  'شرب الخمر': 'Minum arak',
+  'شرب المسكر': 'Minum minuman memabukkan',
+  'قطاع الطرق': 'Penyamun (Qutta\' at-Tariq)',
+  'القصاص والدية': 'Qisas dan Diyat',
+  'القتل العمد': 'Pembunuhan sengaja',
+  'القتل شبه العمد': 'Pembunuhan mirip sengaja',
+  'القتل الخطأ': 'Pembunuhan tidak sengaja / tersilap',
+  'القصاص في النفس': 'Qisas nyawa',
+  'القصاص فيما دون النفس': 'Qisas anggota tubuh selain nyawa',
+  'عقوبة تعزيرية': 'Hukuman ta\'zir',
+  'العقوبة التعزيرية': 'Hukuman ta\'zir',
+  'أحكام الجنايات': 'Hukum-hukum jenayah (Jinayat)',
+  'كتاب الجنايات': 'Kitab Jinayat (Jenayah Syariah)',
+  'كتاب الحدود': 'Kitab Hudud',
+
+  // Maqasid Syariah Term Matches (Pairs & Entities)
+  'العرض': 'Maruah (Kehormatan Diri)',
+  'عرض': 'Maruah (Kehormatan Diri)',
+  'المال': 'Harta',
+  'مال': 'Harta',
+  'العقل': 'Akal',
+  'عقل': 'Akal',
+  'النفس': 'Nyawa / Jiwa',
+  'نفس': 'Nyawa / Jiwa',
+  'الدين': 'Agama',
+  'دين': 'Agama',
+  'النسل': 'Keturunan',
+  'نسل': 'Keturunan',
+  'القتال': 'Peperangan / Jihad',
+  'قتال': 'Peperangan / Jihad',
+  'الجهاد': 'Jihad',
+  'جهاد': 'Jihad',
+  'القذف': 'Qazaf (Menuduh Zina)',
+  'قذف': 'Qazaf (Menuduh Zina)',
+  'الخمر': 'Arak',
+  'خمر': 'Arak',
+  'المسكر': 'Benda memabukkan',
+  'المسكرات': 'Minuman memabukkan',
+  'السرقة': 'Mencuri',
+  'سرقة': 'Mencuri',
+  'الزنا': 'Zina',
+  'زنا': 'Zina',
+  'الردة': 'Murtad',
+  'ردة': 'Murtad',
+  'القصاص': 'Qisas (Hukuman Balas)',
+  'قصاص': 'Qisas',
+  'الدية': 'Diyat (Pampasan)',
+  'دية': 'Diyat',
+  'الحرابة': 'Hirabah (Menyamun di jalanan)',
+  'حرابة': 'Hirabah (Menyamun)',
+  'التعزير': 'Ta\'zir',
+  'تعزير': 'Ta\'zir',
+  'الحدود': 'Hukuman-hukuman Hudud',
+  'حدود': 'Hukuman-hukuman Hudud',
+
   // Common Questions & Examination Directives
   'في ضوء عقيدة أهل السنة والجماعة': 'menurut akidah Ahli Sunnah wal Jamaah',
   'في ضوء عقيدة اهل السنة والجماعة': 'menurut akidah Ahli Sunnah wal Jamaah',
@@ -348,8 +433,58 @@ initCaches();
 
 /**
  * Common Arabic individual words to Malay mapping for complete fallback
+ * (IMPORTANT: No single letter roots that collide with Islamic law like 'حد' -> 'terma')
  */
 const COMMON_ARABIC_WORDS: Record<string, string> = {
+  // Maqasid & Jinayat core nouns
+  'العرض': 'Maruah (Kehormatan Diri)',
+  'عرض': 'maruah',
+  'المال': 'Harta',
+  'مال': 'harta',
+  'أموال': 'harta-benda',
+  'العقل': 'Akal',
+  'عقل': 'akal',
+  'عقول': 'akal fikiran',
+  'النفس': 'Nyawa / Jiwa',
+  'نفس': 'nyawa/jiwa',
+  'نفوس': 'nyawa',
+  'الدين': 'Agama',
+  'دين': 'agama',
+  'النسل': 'Keturunan',
+  'نسل': 'keturunan',
+  'القتال': 'Peperangan / Jihad',
+  'قتال': 'peperangan',
+  'الجهاد': 'Jihad',
+  'جهاد': 'jihad',
+  'القذف': 'Qazaf (menuduh zina)',
+  'قذف': 'qazaf',
+  'الخمر': 'arak',
+  'خمر': 'arak',
+  'خمور': 'arak',
+  'شرب': 'minum',
+  'شارب': 'peminum',
+  'السرقة': 'mencuri',
+  'سرقة': 'mencuri',
+  'سارق': 'pencuri',
+  'الزنا': 'zina',
+  'زنا': 'zina',
+  'زاني': 'penzina',
+  'الردة': 'murtad',
+  'ردة': 'murtad',
+  'مرتد': 'orang murtad',
+  'القصاص': 'qisas (hukuman balas)',
+  'قصاص': 'qisas',
+  'الدية': 'diyat (pampasan)',
+  'دية': 'diyat',
+  'الحرابة': 'hirabah (menyamun)',
+  'حرابة': 'hirabah',
+  'التعزير': 'ta\'zir',
+  'تعزير': 'ta\'zir',
+  'الحدود': 'hukuman-hukuman hudud',
+  'حدود': 'hukuman hudud',
+  'حد': 'hukuman had / batasan',
+
+  // Theological terms
   'الله': 'Allah',
   'تعالى': 'Taala',
   'رسول': 'rasul',
@@ -390,15 +525,13 @@ const COMMON_ARABIC_WORDS: Record<string, string> = {
   'فرقة': 'aliran/golongan',
   'فرق': 'aliran-aliran',
   'مذهب': 'mazhab',
-  'مذاهb': 'mazhab-mazhab',
+  'مذاهب': 'mazhab-mazhab',
   'مؤسس': 'pengasas',
   'موسس': 'pengasas',
   'قضية': 'proposisi',
   'القضية': 'proposisi',
   'قياس': 'silogisme',
   'القياس': 'silogisme',
-  'حد': 'terma',
-  'الحد': 'terma',
   'أوسط': 'tengah (had ausat)',
   'اوسط': 'tengah (had ausat)',
   'الأوسط': 'tengah (had ausat)',
@@ -472,8 +605,6 @@ const COMMON_ARABIC_WORDS: Record<string, string> = {
   'اجماع': 'ijmak ulama',
   'الإجماع': 'ijmak ulama',
   'الاجماع': 'ijmak ulama',
-  'عقل': 'akal',
-  'العقل': 'akal',
   'شرع': 'syarak',
   'الشرع': 'syarak',
   'عقلا': 'menurut akal',
@@ -560,20 +691,21 @@ const NORMALIZED_COMMON_WORDS: NormalizedEntry[] = Object.entries(COMMON_ARABIC_
  */
 export function autoTranslateArabicOption(textArabic: string): string {
   if (!textArabic || !textArabic.trim()) return '';
-  const trimmed = textArabic.trim();
+  // Clean diacritics and tatweel
+  const cleaned = cleanArabicDiacritics(textArabic.trim());
 
   // 1. Exact match in standard STAM glossary
-  if (STAM_DICTIONARY[trimmed]) {
-    return STAM_DICTIONARY[trimmed];
+  if (STAM_DICTIONARY[cleaned]) {
+    return STAM_DICTIONARY[cleaned];
   }
 
   // 2. Exact match in existing question bank options
-  if (QUESTIONS_OPTIONS_CACHE.has(trimmed)) {
-    return QUESTIONS_OPTIONS_CACHE.get(trimmed)!;
+  if (QUESTIONS_OPTIONS_CACHE.has(cleaned)) {
+    return QUESTIONS_OPTIONS_CACHE.get(cleaned)!;
   }
 
   // 3. Numbers combinations (e.g. ١ و ٢, 1 dan 2, ١ ، ٢ و ٣)
-  const normalizedNumbers = trimmed
+  const normalizedNumbers = cleaned
     .replace(/[١1]/g, '1')
     .replace(/[٢2]/g, '2')
     .replace(/[٣3]/g, '3')
@@ -596,7 +728,7 @@ export function autoTranslateArabicOption(textArabic: string): string {
   }
 
   // 4. Normalized match in standard STAM glossary
-  const normalized = normalizeArabicText(trimmed);
+  const normalized = normalizeArabicText(cleaned);
   if (NORMALIZED_DICTIONARY.has(normalized)) {
     return NORMALIZED_DICTIONARY.get(normalized)!;
   }
@@ -607,11 +739,11 @@ export function autoTranslateArabicOption(textArabic: string): string {
   }
 
   // 6. Quranic citation pattern: ﴿ ... ﴾
-  if (trimmed.startsWith('﴿') || trimmed.includes('﴿')) {
-    return `Firman Allah Taala: (${trimmed})`;
+  if (cleaned.startsWith('﴿') || cleaned.includes('﴿')) {
+    return `Firman Allah Taala: (${cleaned})`;
   }
 
-  return translateArabicPhraseToMalay(trimmed);
+  return translateArabicPhraseToMalay(cleaned);
 }
 
 /**
@@ -619,15 +751,15 @@ export function autoTranslateArabicOption(textArabic: string): string {
  */
 export function autoTranslateArabicQuestion(questionArabic: string): string {
   if (!questionArabic || !questionArabic.trim()) return '';
-  const trimmed = questionArabic.trim();
+  const cleaned = cleanArabicDiacritics(questionArabic.trim());
 
   // 1. Exact match in questions database
-  if (QUESTIONS_STEM_CACHE.has(trimmed)) {
-    return QUESTIONS_STEM_CACHE.get(trimmed)!;
+  if (QUESTIONS_STEM_CACHE.has(cleaned)) {
+    return QUESTIONS_STEM_CACHE.get(cleaned)!;
   }
 
   // 2. Normalized match in questions database
-  const normalized = normalizeArabicText(trimmed);
+  const normalized = normalizeArabicText(cleaned);
   if (NORMALIZED_STEM_CACHE.has(normalized)) {
     return NORMALIZED_STEM_CACHE.get(normalized)!;
   }
@@ -752,7 +884,7 @@ export function autoTranslateArabicQuestion(questionArabic: string): string {
     }
   }
 
-  return translateArabicPhraseToMalay(trimmed);
+  return translateArabicPhraseToMalay(cleaned);
 }
 
 /**
@@ -812,29 +944,48 @@ export function arabicToRumiPhonetic(arabicText: string): string {
  */
 export function translateArabicPhraseToMalay(phrase: string): string {
   if (!phrase || !phrase.trim()) return '';
-  const trimmed = phrase.trim();
+  // 0. Remove tatweel (ـ) and diacritics
+  const cleaned = cleanArabicDiacritics(phrase.trim());
 
-  // 1. Direct dictionary match on exact phrase
-  if (STAM_DICTIONARY[trimmed]) {
-    return STAM_DICTIONARY[trimmed];
+  // 1. Check for hyphen/dash separators (e.g. "العرض - حد القذف", "الـمال - حد شرب الـخمر")
+  if (/[-–—]/.test(cleaned)) {
+    const parts = cleaned.split(/\s*[-–—]\s*/);
+    if (parts.length > 1) {
+      const translatedParts = parts.map((part) => translateArabicPhraseToMalay(part));
+      return translatedParts.join(' - ');
+    }
   }
 
-  // 2. Normalized dictionary match
-  const normalized = normalizeArabicText(trimmed);
+  // 2. Check for colon separator (e.g. "حفظ النفس: القصاص")
+  if (cleaned.includes(':') || cleaned.includes('：')) {
+    const parts = cleaned.split(/\s*[:：]\s*/);
+    if (parts.length > 1) {
+      const translatedParts = parts.map((part) => translateArabicPhraseToMalay(part));
+      return translatedParts.join(': ');
+    }
+  }
+
+  // 3. Direct dictionary match on cleaned phrase
+  if (STAM_DICTIONARY[cleaned]) {
+    return STAM_DICTIONARY[cleaned];
+  }
+
+  // 4. Normalized dictionary match
+  const normalized = normalizeArabicText(cleaned);
   if (NORMALIZED_DICTIONARY.has(normalized)) {
     return NORMALIZED_DICTIONARY.get(normalized)!;
   }
 
   let result = normalized;
 
-  // 3. Multi-word phrases in normalized STAM dictionary (longest first)
+  // 5. Multi-word phrases in normalized STAM dictionary (longest first)
   for (const item of NORMALIZED_STAM_ENTRIES) {
     if (result.includes(item.normKey)) {
       result = result.split(item.normKey).join(` ${item.val} `);
     }
   }
 
-  // 4. Handle attached prefixes (e.g. بالملايكه -> kepada para malaikat)
+  // 6. Handle attached prefixes (e.g. بالملايكه -> kepada para malaikat)
   const prefixPatterns: Array<{ regex: RegExp; replace: string }> = [
     { regex: /(^|\s)بالملايكه(\s|$)/g, replace: '$1kepada para malaikat$2' },
     { regex: /(^|\s)بالرسل(\s|$)/g, replace: '$1kepada para rasul$2' },
@@ -865,7 +1016,7 @@ export function translateArabicPhraseToMalay(phrase: string): string {
     result = result.replace(p.regex, p.replace);
   }
 
-  // 5. Common single words
+  // 7. Common single words
   for (const item of NORMALIZED_COMMON_WORDS) {
     if (result.includes(item.normKey)) {
       const reg = new RegExp(`(^|\\s)${item.normKey}(\\s|$)`, 'g');
@@ -873,7 +1024,7 @@ export function translateArabicPhraseToMalay(phrase: string): string {
     }
   }
 
-  // 6. Particles and connectives
+  // 8. Particles and connectives
   const particles: Record<string, string> = {
     'ما هو ': 'apakah ',
     'ما هي ': 'apakah ',
@@ -936,7 +1087,7 @@ export function translateArabicPhraseToMalay(phrase: string): string {
     }
   }
 
-  // 7. Ensure NO Arabic script remains outside Quran brackets
+  // 9. Ensure NO Arabic script remains outside Quran brackets
   if (/[\u0600-\u06FF]/.test(result)) {
     result = arabicToRumiPhonetic(result);
   }
@@ -969,23 +1120,23 @@ for (const [ar, my] of Object.entries(STAM_DICTIONARY)) {
  */
 export function translateArabicToMalaySmart(text: string): string {
   if (!text || !text.trim()) return '';
-  const trimmed = text.trim();
+  const cleaned = cleanArabicDiacritics(text.trim());
 
   // 1. Direct question match
-  const qMatch = autoTranslateArabicQuestion(trimmed);
+  const qMatch = autoTranslateArabicQuestion(cleaned);
   if (qMatch && !/[\u0600-\u06FF]/.test(qMatch)) return qMatch;
 
   // 2. Direct option match
-  const optMatch = autoTranslateArabicOption(trimmed);
+  const optMatch = autoTranslateArabicOption(cleaned);
   if (optMatch && !/[\u0600-\u06FF]/.test(optMatch)) return optMatch;
 
   // 3. Quranic verse citation: ﴿ ... ﴾
-  if (trimmed.includes('﴿') && trimmed.includes('﴾')) {
-    return trimmed.replace(/﴿([^﴾]+)﴾/g, 'Firman Allah Taala: ﴿$1﴾');
+  if (cleaned.includes('﴿') && cleaned.includes('﴾')) {
+    return cleaned.replace(/﴿([^﴾]+)﴾/g, 'Firman Allah Taala: ﴿$1﴾');
   }
 
   // 4. Full phrase translation guarantee (100% Malay Rumi, no leftover Arabic)
-  return translateArabicPhraseToMalay(trimmed);
+  return translateArabicPhraseToMalay(cleaned);
 }
 
 /**

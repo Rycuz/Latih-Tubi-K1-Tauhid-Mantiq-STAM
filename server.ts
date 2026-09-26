@@ -114,19 +114,24 @@ app.post('/api/translate/text', async (req: Request, res: Response) => {
 
   try {
     const directionPrompt = isToMalay
-      ? 'Terjemahkan KESELURUHAN teks peperiksaan STAM berikut daripada Bahasa Arab ke Bahasa Melayu dengan 100% LENGKAP. WAJIB terjemah setiap perkataan dari awal sampai habis ke dalam ejaan Rumi Bahasa Melayu, DILARANG SAMA SEKALI membiarkan sebahagian ayat dalam aksara Arab:'
-      : 'Terjemahkan teks berikut daripada Bahasa Melayu ke Bahasa Arab standard STAM:';
+      ? 'Terjemahkan KESELURUHAN teks peperiksaan STAM berikut daripada Bahasa Arab ke Bahasa Melayu dengan 100% LENGKAP. Berikan TEKS HASIL TERJEMAHAN SAHAJA tanpa sebarang tajuk awalan, tanpa pengenalan seperti "**Terjemahan Bahasa Melayu:**", dan tanpa mukadimah. WAJIB terjemah setiap perkataan dari awal sampai habis ke dalam ejaan Rumi Bahasa Melayu standard STAM:'
+      : 'Terjemahkan teks berikut daripada Bahasa Melayu ke Bahasa Arab standard STAM. Berikan teks terjemahan sahaja tanpa sebarang tajuk awalan atau mukadimah:';
 
     const response = await generateContentWithRetry({
       contents: `${directionPrompt}\n\nTeks Asal:\n${text.trim()}`,
       config: {
-        systemInstruction: STAM_SYSTEM_INSTRUCTION,
+        systemInstruction: STAM_SYSTEM_INSTRUCTION + '\n\nPERINGATAN FORMAT:\nBerikan teks hasil terjemahan secara terus tanpa meletakkan sebarang tajuk awalan, pengenalan, atau mukadimah seperti "**Terjemahan Bahasa Melayu:**".',
         temperature: 0.2,
       },
     });
 
     let translatedText = response.text ? response.text.trim() : '';
     if (translatedText) {
+      // Clean accidental conversational headers like "**Terjemahan Bahasa Melayu:**" or "Terjemahan:"
+      translatedText = translatedText
+        .replace(/^\s*\*{0,2}Terjemahan\s*(Bahasa\s*Melayu|Bahasa\s*Arab)?\s*:?\*{0,2}\s*\n*/i, '')
+        .trim();
+
       if (isToMalay) {
         translatedText = ensureCleanMalayTranslation(translatedText);
       }
