@@ -9,6 +9,7 @@ import {
   translateMalayToArabicSmart,
   translateQuestionFullOffline,
   autoTranslateArabicOption,
+  ensureCleanMalayTranslation,
 } from './src/utils/bilingualTranslator.ts';
 
 dotenv.config();
@@ -32,19 +33,24 @@ const ai = new GoogleGenAI({
   },
 });
 
-const STAM_SYSTEM_INSTRUCTION = `Anda adalah pakar bahasa dan penterjemah kurikulum STAM (Sijil Tinggi Agama Malaysia) bagi sukatan Al-Dirasat Al-Islamiah (Tauhid, Firaq, dan Mantiq).
-Tugas anda adalah menterjemahkan teks soalan peperiksaan objektif, pilihan jawapan (A, B, C, D), rajah/jadual teks, dan huraian jawapan antara Bahasa Arab dan Bahasa Melayu dengan standard kualiti tertinggi.
+const STAM_SYSTEM_INSTRUCTION = `Anda adalah pakar bahasa dan penterjemah kurikulum STAM (Sijil Tinggi Agama Malaysia) bagi subjek Al-Dirasat Al-Islamiah (Tauhid, Firaq, dan Mantiq).
+Tugas anda adalah menterjemahkan teks soalan peperiksaan objektif, pilihan jawapan (A, B, C, D), rajah/jadual teks, dan huraian jawapan antara Bahasa Arab dan Bahasa Melayu dengan KELENGKAPAN SEPENUHNYA (100% lengkap).
 
-Panduan Terjemahan STAM:
-1. Ketepatan Istilah Teknologis Agama: Kekalkan istilah ilmu Kalam, Usuluddin, Firaq dan Mantiq (contoh: Al-Sam'iyyat, Al-Ghaibiyyat, Mu'tazilah, Khawarij, Qadhiyyah Hamliyyah, Qadhiyyah Syartiyyah, Had Ausat, Al-Burhan, Al-Mizan, Titian Sirat, Maqasid Syariah, dsb.) dengan padanan rasmi silibus STAM Malaysia.
-2. Pemeliharaan Format Tag: Kekalkan dengan rapi sebarang tag teks garis seperti <u>perkataan</u> atau [u]perkataan[/u] sekiranya ada dalam teks asal.
-3. Ayat al-Quran & Hadis: Kekalkan teks ayat al-Quran dalam kurungan ﴿ ﴾ dengan teks Arabnya yang asli atau sertakan maksud firman Allah jika dikehendaki.
-4. Gaya Bahasa Peperiksaan: Gunakan laras bahasa Melayu standard peperiksaan Malaysia (contoh: "Antara berikut, yang manakah...", "Pilih pernyataan yang tepat:", "Apakah bahagian bagi perkataan yang bergaris...").
-5. Hasil mestilah ringkas, kemas dan bersesuaian dengan format aneka pilihan (MCQ).`;
+PANDUAN DAN SYARAT MUTLAK TERJEMAHAN BAHASA ARAB KE BAHASA MELAYU (BA -> BM):
+1. WAJIB TERJEMAH KESELURUHAN AYAT (100% LENGKAP):
+   - Wajib terjemahkan keseluruhan soalan, pilihan jawapan, dan huraian dari perkataan pertama hingga terakhir ke dalam Bahasa Melayu standard STAM.
+   - DILARANG SAMA SEKALI menterjemah separuh atau sekerat jalan (contoh dilarang: "Apakah hukum الإيمان بالملائكة...").
+   - DILARANG meninggalkan sebarang huruf atau perkataan dalam tulisan/abjad Arab di tengah-tengah ayat Bahasa Melayu!
+2. ISTILAH AGAMA & ILMU DALAM EJAAN RUMI BAKU:
+   - Semua istilah ilmu Tauhid, Firaq, Mantiq, dan Usuluddin MESTI ditulis dalam tulisan RUMI Bahasa Melayu standard silibus STAM Malaysia (contoh: Ahli Sunnah wal Jamaah, Al-Sam'iyyat, Al-Ghaibiyyat, Mu'tazilah, Khawarij, Syiah, Qadhiyyah Hamliyyah, Qadhiyyah Syartiyyah, Had Ausat, Al-Maudhu', Al-Mahmul, Al-Burhan, Titian Sirat, Al-Mizan, Alam Barzakh, dsb.), BUKAN dalam abjad Arab!
+3. PENGECUALIAN AYAT AL-QURAN:
+   - Hanya teks firman Allah (ayat Al-Quran) yang berada dalam tanda kurungan khas ﴿ ... ﴾ sahaja yang dibenarkan mengekalkan teks Arab.
+4. KEKALKAN FORMAT TAG KATA KUNCI:
+   - Sekiranya terdapat tag pemformatan penekanan kata kunci seperti <b>...</b> atau <merah>...</merah>, kekalkan tag tersebut dengan membungkus perkataan terjemahan yang sepadan.`;
 
 function formatGeminiError(error: any, defaultMsg: string): string {
   const rawMsg = String(error?.message || '');
-  if (rawMsg.includes('503') || rawMsg.includes('UNAVAILABLE') || rawMsg.includes('high demand')) {
+  if (rawMsg.includes('503') || rawMsg.includes('UNAVAILABLE') || rawMsg.includes('high demand') || rawMsg.includes('overloaded')) {
     return 'Pelayan Gemini AI sedang menerima permintaan tinggi buat sementara waktu. Sila cuba lagi dalam beberapa saat.';
   }
   if (rawMsg.includes('429') || rawMsg.includes('quota') || rawMsg.includes('RESOURCE_EXHAUSTED')) {
@@ -52,8 +58,9 @@ function formatGeminiError(error: any, defaultMsg: string): string {
   }
   return error?.message || defaultMsg;
 }
-async function generateContentWithRetry(params: any, retries = 2) {
-  const models = ['gemini-3.8-flash', 'gemini-flash-latest'];
+
+async function generateContentWithRetry(params: any, retries = 3) {
+  const models = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
   let lastError: any;
   for (const model of models) {
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -62,7 +69,9 @@ async function generateContentWithRetry(params: any, retries = 2) {
           ...params,
           model,
         });
-        return response;
+        if (response && response.text) {
+          return response;
+        }
       } catch (err: any) {
         lastError = err;
         const msg = String(err?.message || '');
@@ -70,12 +79,13 @@ async function generateContentWithRetry(params: any, retries = 2) {
           msg.includes('503') ||
           msg.includes('429') ||
           msg.includes('UNAVAILABLE') ||
-          msg.includes('high demand');
+          msg.includes('high demand') ||
+          msg.includes('overloaded');
         if (isTransient && attempt < retries) {
           await new Promise((resolve) => setTimeout(resolve, 800 * (attempt + 1)));
           continue;
         }
-        break; // try next model
+        break; // try next model in candidate list
       }
     }
   }
@@ -104,7 +114,7 @@ app.post('/api/translate/text', async (req: Request, res: Response) => {
 
   try {
     const directionPrompt = isToMalay
-      ? 'Terjemahkan teks berikut daripada Bahasa Arab ke Bahasa Melayu standard STAM:'
+      ? 'Terjemahkan KESELURUHAN teks peperiksaan STAM berikut daripada Bahasa Arab ke Bahasa Melayu dengan 100% LENGKAP. WAJIB terjemah setiap perkataan dari awal sampai habis ke dalam ejaan Rumi Bahasa Melayu, DILARANG SAMA SEKALI membiarkan sebahagian ayat dalam aksara Arab:'
       : 'Terjemahkan teks berikut daripada Bahasa Melayu ke Bahasa Arab standard STAM:';
 
     const response = await generateContentWithRetry({
@@ -115,8 +125,11 @@ app.post('/api/translate/text', async (req: Request, res: Response) => {
       },
     });
 
-    const translatedText = response.text ? response.text.trim() : '';
+    let translatedText = response.text ? response.text.trim() : '';
     if (translatedText) {
+      if (isToMalay) {
+        translatedText = ensureCleanMalayTranslation(translatedText);
+      }
       res.json({ translatedText, fallback: false });
       return;
     }
@@ -125,14 +138,18 @@ app.post('/api/translate/text', async (req: Request, res: Response) => {
   }
 
   // Graceful offline fallback
-  const fallbackText = isToMalay
+  let fallbackText = isToMalay
     ? translateArabicToMalaySmart(text)
     : translateMalayToArabicSmart(text);
+
+  if (isToMalay && fallbackText) {
+    fallbackText = ensureCleanMalayTranslation(fallbackText);
+  }
 
   res.json({
     translatedText: fallbackText || text,
     fallback: true,
-    notice: 'Terjemahan dijana melalui Glosari Pintar STAM (Mod Luar Talian).',
+    notice: 'Terjemahan dijana melalui Glosari Pintar STAM (Mod Sandaran Lengkap).',
   });
 });
 
@@ -151,10 +168,10 @@ app.post('/api/translate/question-full', async (req: Request, res: Response) => 
   const isToMalay = targetLanguage === 'ms';
 
   try {
-    const prompt = `Sila terjemahkan komponen soalan STAM berikut ${
+    const prompt = `Sila terjemahkan KESELURUHAN komponen soalan peperiksaan STAM berikut ${
       isToMalay
-        ? 'daripada Bahasa Arab ke Bahasa Melayu'
-        : 'daripada Bahasa Melayu ke Bahasa Arab'
+        ? 'daripada Bahasa Arab ke Bahasa Melayu dengan 100% LENGKAP dan SEMPURNA (semua istilah Tauhid, Firaq, Mantiq ditulis dalam tulisan RUMI Bahasa Melayu standard STAM. DILARANG membiarkan ayat sekerat atau meninggalkan perkataan dalam aksara Arab).'
+        : 'daripada Bahasa Melayu ke Bahasa Arab standard kurikulum STAM.'
     }.
 
 Komponen Soalan:
@@ -182,7 +199,7 @@ Sila kembalikan hasil terjemahan dalam format JSON berstruktur yang ditetapkan.`
             translatedQuestion: {
               type: Type.STRING,
               description: isToMalay
-                ? 'Terjemahan soalan dalam Bahasa Melayu'
+                ? 'Terjemahan soalan penuh dalam Bahasa Melayu Rumi (100% lengkap tanpa aksara Arab)'
                 : 'Terjemahan soalan dalam Bahasa Arab',
             },
             translatedDiagram: {
@@ -191,12 +208,12 @@ Sila kembalikan hasil terjemahan dalam format JSON berstruktur yang ditetapkan.`
             },
             translatedOptions: {
               type: Type.ARRAY,
-              description: 'Senarai 4 pilihan jawapan yang telah diterjemahkan',
+              description: 'Senarai 4 pilihan jawapan yang telah diterjemahkan lengkap',
               items: {
                 type: Type.OBJECT,
                 properties: {
                   id: { type: Type.STRING, description: 'id pilihan: a, b, c, atau d' },
-                  translatedText: { type: Type.STRING, description: 'Teks terjemahan pilihan jawapan' },
+                  translatedText: { type: Type.STRING, description: 'Teks terjemahan lengkap pilihan jawapan' },
                 },
                 required: ['id', 'translatedText'],
               },
@@ -216,6 +233,21 @@ Sila kembalikan hasil terjemahan dalam format JSON berstruktur yang ditetapkan.`
     const parsedData = JSON.parse(jsonText);
 
     if (parsedData && parsedData.translatedQuestion) {
+      if (isToMalay) {
+        parsedData.translatedQuestion = ensureCleanMalayTranslation(parsedData.translatedQuestion);
+        if (parsedData.translatedDiagram) {
+          parsedData.translatedDiagram = ensureCleanMalayTranslation(parsedData.translatedDiagram);
+        }
+        if (parsedData.translatedExplanation) {
+          parsedData.translatedExplanation = ensureCleanMalayTranslation(parsedData.translatedExplanation);
+        }
+        if (Array.isArray(parsedData.translatedOptions)) {
+          parsedData.translatedOptions = parsedData.translatedOptions.map((opt: any) => ({
+            ...opt,
+            translatedText: ensureCleanMalayTranslation(opt.translatedText),
+          }));
+        }
+      }
       res.json({ ...parsedData, fallback: false });
       return;
     }
@@ -237,7 +269,7 @@ Sila kembalikan hasil terjemahan dalam format JSON berstruktur yang ditetapkan.`
   res.json({
     ...offlineData,
     fallback: true,
-    notice: 'Terjemahan dijana melalui Glosari Pintar STAM (Mod Luar Talian).',
+    notice: 'Terjemahan dijana melalui Glosari Pintar STAM (Mod Sandaran Lengkap).',
   });
 });
 
@@ -254,7 +286,9 @@ app.post('/api/translate/options-batch', async (req: Request, res: Response) => 
 
   try {
     const prompt = `Sila terjemahkan 4 pilihan jawapan aneka pilihan (MCQ) peperiksaan STAM berikut ${
-      isToMalay ? 'daripada Bahasa Arab ke Bahasa Melayu' : 'daripada Bahasa Melayu ke Bahasa Arab'
+      isToMalay
+        ? 'daripada Bahasa Arab ke Bahasa Melayu dengan 100% LENGKAP (setiap pilihan diterjemahkan sepenuhnya ke dalam tulisan Rumi Bahasa Melayu standard STAM tanpa perkataan Arab yang tertinggal)'
+        : 'daripada Bahasa Melayu ke Bahasa Arab standard kurikulum STAM'
     }:
 
 ${options
@@ -264,7 +298,7 @@ ${options
   )
   .join('\n')}
 
-Kekalkan istilah teknikal subjek STAM (Tauhid, Firaq, Mantiq).`;
+Semua istilah teknikal subjek STAM (Tauhid, Firaq, Mantiq) mesti dieja dalam tulisan RUMI Bahasa Melayu standard.`;
 
     const response = await generateContentWithRetry({
       contents: prompt,
@@ -296,6 +330,12 @@ Kekalkan istilah teknikal subjek STAM (Tauhid, Firaq, Mantiq).`;
     const parsedData = JSON.parse(jsonText);
 
     if (parsedData && Array.isArray(parsedData.translatedOptions)) {
+      if (isToMalay) {
+        parsedData.translatedOptions = parsedData.translatedOptions.map((opt: any) => ({
+          ...opt,
+          translatedText: ensureCleanMalayTranslation(opt.translatedText),
+        }));
+      }
       res.json({ ...parsedData, fallback: false });
       return;
     }
@@ -305,24 +345,27 @@ Kekalkan istilah teknikal subjek STAM (Tauhid, Firaq, Mantiq).`;
 
   // Graceful offline fallback
   const translatedOptions = options.map((opt: any) => {
-    const text = isToMalay
+    let text = isToMalay
       ? autoTranslateArabicOption(opt.textArabic || '') ||
         translateArabicToMalaySmart(opt.textArabic || '') ||
-        opt.textArabic ||
         ''
       : translateMalayToArabicSmart(opt.textMalay || '') ||
         opt.textMalay ||
         '';
+
+    if (isToMalay && text) {
+      text = ensureCleanMalayTranslation(text);
+    }
     return {
       id: opt.id,
-      translatedText: text,
+      translatedText: text || (isToMalay ? `Pilihan ${opt.id.toUpperCase()}` : opt.textArabic || ''),
     };
   });
 
   res.json({
     translatedOptions,
     fallback: true,
-    notice: 'Pilihan jawapan diterjemahkan menggunakan Glosari Pintar STAM.',
+    notice: 'Pilihan jawapan diterjemahkan menggunakan Glosari Pintar STAM (Mod Sandaran Lengkap).',
   });
 });
 

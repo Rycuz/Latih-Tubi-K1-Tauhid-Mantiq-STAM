@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bold, Underline } from 'lucide-react';
+import { Bold } from 'lucide-react';
 
 interface RichTextFormattingToolbarProps {
   value: string;
@@ -72,13 +72,13 @@ export const RichTextFormattingToolbar: React.FC<RichTextFormattingToolbarProps>
         type="button"
         onClick={() => applyWrap('<b>', '</b>', isArabic ? 'كلمة_مهمة' : 'kata_kunci')}
         className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 border border-slate-700 hover:border-slate-600 text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-sm"
-        title="Tebalkan perkataan (Bold: <b>...</b> atau **...**)"
+        title="Tebalkan perkataan (Bold: <b>...</b>)"
       >
         <Bold className="w-3.5 h-3.5 text-white" />
         <span className="text-[11px]">Tebal (Bold)</span>
       </button>
 
-      {/* 2. WARNA MERAH (KATA KUNCI MERAH) */}
+      {/* 2. WARNA MERAH (HIGHLIGHT KATA KUNCI MERAH) */}
       <button
         type="button"
         onClick={() => applyWrap('<merah>', '</merah>', isArabic ? 'كلمة_حمراء' : 'kata_kunci')}
@@ -88,30 +88,6 @@ export const RichTextFormattingToolbar: React.FC<RichTextFormattingToolbarProps>
         <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50"></span>
         <span className="text-[11px] text-rose-200">Warna Merah</span>
       </button>
-
-      {/* 3. UNDERLINE (GARIS BAWAH) */}
-      <button
-        type="button"
-        onClick={() => applyWrap('<u>', '</u>', isArabic ? 'كلمة_مخطوطة' : 'perkataan')}
-        className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 transition-all shadow-sm"
-        title="Garis bawahkan perkataan (<u>...</u>)"
-      >
-        <Underline className="w-3.5 h-3.5 text-amber-300" />
-        <span className="text-[11px] hidden sm:inline">Garis</span>
-      </button>
-
-      {/* 4. QURAN BRACKETS (ARABIC ONLY) */}
-      {isArabic && (
-        <button
-          type="button"
-          onClick={() => applyWrap('﴿ ', ' ﴾', 'آية_قرآنية')}
-          className="px-2 py-1 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 active:scale-95 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1 transition-all shadow-sm"
-          title="Sisip Kurungan Khas Ayat Al-Quran (﴿ ﴾)"
-        >
-          <span className="font-arabic text-sm">﴿ ﴾</span>
-          <span className="text-[11px] hidden sm:inline">Quran</span>
-        </button>
-      )}
     </div>
   );
 };
