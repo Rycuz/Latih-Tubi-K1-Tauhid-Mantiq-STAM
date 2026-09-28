@@ -23,7 +23,8 @@ import {
   ArrowRight,
   LogOut,
   Medal,
-  Award
+  Award,
+  BookOpen
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Question, MultiDeviceRoom, MultiDevicePlayer, MultiDeviceAnswer } from '../types';
@@ -50,7 +51,7 @@ interface MultiDeviceLiveChallengeProps {
     schoolOrClass?: string;
   };
   onUnlockGroupBadge: () => void;
-  onBackToModeSelect: () => void;
+  onClose?: () => void;
 }
 
 export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> = ({
@@ -58,7 +59,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   languageMode,
   currentStudent,
   onUnlockGroupBadge,
-  onBackToModeSelect,
+  onClose,
 }) => {
   // Navigation inside Live view: 'join_or_host' | 'hosting_lobby' | 'player_lobby' | 'game'
   const [viewState, setViewState] = useState<'join_or_host' | 'hosting_lobby' | 'player_lobby' | 'game'>('join_or_host');
@@ -67,6 +68,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   const [roomCode, setRoomCode] = useState('');
   const [inputRoomCode, setInputRoomCode] = useState('');
   const [roomTitle, setRoomTitle] = useState('Piala Dirasat Islamiyyah STAM');
+  const [selectedSubject, setSelectedSubject] = useState<'all' | 'tauhid' | 'firaq' | 'mantiq'>('all');
   const [roundCount, setRoundCount] = useState(8);
   const [timeLimit, setTimeLimit] = useState(25);
   const [isHost, setIsHost] = useState(false);
@@ -100,7 +102,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
 
     const unsubRoom = subscribeToLiveChallengeRoom(roomCode, (room) => {
       if (!room) {
-        setErrorMessage('Bilik telah ditamatkan oleh hos.');
+        setErrorMessage('Bilik telah ditamatkan.');
         setViewState('join_or_host');
         setCurrentRoom(null);
         return;
@@ -182,6 +184,41 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
     }
   }, [currentRoomStatus, onUnlockGroupBadge]);
 
+  // Comprehensive reset function to return cleanly to menu or close
+  const handleExitToMenu = () => {
+    soundEffects.playClick();
+    setRoomCode('');
+    setCurrentRoom(null);
+    setPlayers([]);
+    setAnswers([]);
+    setSelectedOption(null);
+    setHasSubmittedAnswer(false);
+    setViewState('join_or_host');
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  const handleRestartNewRound = () => {
+    soundEffects.playClick();
+    setRoomCode('');
+    setCurrentRoom(null);
+    setPlayers([]);
+    setAnswers([]);
+    setSelectedOption(null);
+    setHasSubmittedAnswer(false);
+    setViewState('join_or_host');
+  };
+
+  // Filter available questions pool based on host subject selection
+  const allPool = questions && questions.length > 0 ? questions : QUESTIONS_DATA;
+  const subjectFilteredPool = selectedSubject === 'all' 
+    ? allPool 
+    : allPool.filter((q) => q.subject === selectedSubject);
+
+  // Available count for selected subject
+  const availableQuestionCount = subjectFilteredPool.length;
+
   // HOST: Create Room
   const handleHostCreateRoom = async () => {
     if (!playerName.trim()) {
@@ -192,14 +229,27 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
     setErrorMessage(null);
     soundEffects.playClick();
 
-    // Select questions randomly
-    const pool = questions && questions.length > 0 ? questions : QUESTIONS_DATA;
-    const shuffled = [...pool].sort(() => 0.5 - Math.random()).slice(0, roundCount);
+    // Select questions randomly from the chosen subject pool
+    const poolToUse = subjectFilteredPool.length > 0 ? subjectFilteredPool : allPool;
+    const finalRoundCount = Math.min(roundCount, poolToUse.length);
+    const shuffled = [...poolToUse].sort(() => 0.5 - Math.random()).slice(0, finalRoundCount);
+
+    const subjectLabels = {
+      all: 'Campuran Subjek',
+      tauhid: 'Tauhid (Ilmu Kalam)',
+      firaq: 'Firaq (Aliran Pemikiran)',
+      mantiq: 'Mantiq (Logik Islam)',
+    };
+
+    const generatedTitle = selectedSubject === 'all' 
+      ? roomTitle 
+      : `${roomTitle} - ${subjectLabels[selectedSubject]}`;
 
     const res = await createLiveChallengeRoom({
       hostId: playerId,
       hostName: playerName,
-      title: roomTitle,
+      title: generatedTitle,
+      subject: selectedSubject,
       questions: shuffled,
       timeLimitSeconds: timeLimit,
     });
@@ -359,12 +409,14 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
               </div>
             </div>
 
-            <button
-              onClick={onBackToModeSelect}
-              className="text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 transition-colors"
-            >
-              Kembali
-            </button>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 transition-colors"
+              >
+                Tutup
+              </button>
+            )}
           </div>
 
           {/* Quick Rules */}
@@ -455,14 +507,69 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                   <h3 className="font-bold text-white text-base">Buka Bilik Baharu (Hos/Guru)</h3>
                 </div>
                 <p className="text-xs text-slate-400">
-                  Jadi Hos untuk mengawal perlawanan. Paparkan kod bilik kepada murid pada projektor atau skrin.
+                  Pilih fokus subjek, masa dan bilangan soalan. Paparkan kod kepada murid di smartboard.
                 </p>
               </div>
 
               <div className="space-y-3">
+                {/* 1. Subject Focus Selection (Tauhid, Firaq, Mantiq, Campuran) */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold block mb-1">
+                    🎯 Fokus Bahagian / Subjek:
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubject('all')}
+                      className={`p-2 rounded-xl border text-center transition-all ${
+                        selectedSubject === 'all'
+                          ? 'bg-emerald-600 border-emerald-400 text-white font-bold shadow'
+                          : 'bg-slate-950 border-slate-700 text-slate-300 hover:bg-slate-800'
+                      }`}
+                    >
+                      🌟 Campuran
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubject('tauhid')}
+                      className={`p-2 rounded-xl border text-center transition-all ${
+                        selectedSubject === 'tauhid'
+                          ? 'bg-emerald-600 border-emerald-400 text-white font-bold shadow'
+                          : 'bg-slate-950 border-slate-700 text-slate-300 hover:bg-slate-800'
+                      }`}
+                    >
+                      📖 Tauhid
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubject('firaq')}
+                      className={`p-2 rounded-xl border text-center transition-all ${
+                        selectedSubject === 'firaq'
+                          ? 'bg-emerald-600 border-emerald-400 text-white font-bold shadow'
+                          : 'bg-slate-950 border-slate-700 text-slate-300 hover:bg-slate-800'
+                      }`}
+                    >
+                      ⚖️ Firaq
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubject('mantiq')}
+                      className={`p-2 rounded-xl border text-center transition-all ${
+                        selectedSubject === 'mantiq'
+                          ? 'bg-emerald-600 border-emerald-400 text-white font-bold shadow'
+                          : 'bg-slate-950 border-slate-700 text-slate-300 hover:bg-slate-800'
+                      }`}
+                    >
+                      🧠 Mantiq
+                    </button>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <label className="text-[10px] text-slate-400 block mb-1">Pusingan Soalan:</label>
+                    <label className="text-[10px] text-slate-400 block mb-1">
+                      Bilangan Soalan (Maks: {availableQuestionCount}):
+                    </label>
                     <select
                       value={roundCount}
                       onChange={(e) => setRoundCount(Number(e.target.value))}
@@ -472,19 +579,25 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                       <option value={8}>8 Soalan</option>
                       <option value={10}>10 Soalan</option>
                       <option value={15}>15 Soalan</option>
+                      <option value={20}>20 Soalan</option>
                     </select>
                   </div>
+
                   <div>
-                    <label className="text-[10px] text-slate-400 block mb-1">Masa / Soalan:</label>
+                    <label className="text-[10px] text-slate-400 block mb-1">
+                      Masa Menjawab (Sehingga 1 Minit):
+                    </label>
                     <select
                       value={timeLimit}
                       onChange={(e) => setTimeLimit(Number(e.target.value))}
                       className="w-full bg-slate-950 border border-slate-700 rounded-xl px-2 py-2 text-slate-200 font-semibold"
                     >
-                      <option value={15}>15 Saat (Pantas)</option>
-                      <option value={20}>20 Saat</option>
+                      <option value={15}>15 Saat (Pantas Kilat)</option>
+                      <option value={20}>20 Saat (Cepat)</option>
                       <option value={25}>25 Saat (Standard)</option>
-                      <option value={30}>30 Saat (Santai)</option>
+                      <option value={30}>30 Saat (Selesa)</option>
+                      <option value={45}>45 Saat (Panjang)</option>
+                      <option value={60}>60 Saat (1 Minit Penuh)</option>
                     </select>
                   </div>
                 </div>
@@ -517,7 +630,14 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
               {isHost ? '👑 Anda adalah Hos Bilik' : '🎮 Anda Sedang Menunggu di Lobi'}
             </span>
             <h2 className="text-2xl font-black text-white">{currentRoom?.title || 'Bilik Cabaran STAM'}</h2>
-            <p className="text-xs text-slate-400">
+            
+            {currentRoom?.subject && (
+              <span className="inline-block px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold border border-indigo-500/30">
+                Fokus: {currentRoom.subject.toUpperCase()} • {currentRoom.timeLimitSeconds}s / Soalan
+              </span>
+            )}
+
+            <p className="text-xs text-slate-400 mt-2">
               Minta semua peserta membuka aplikasi di telefon masing-masing dan masukkan PIN ini:
             </p>
 
@@ -594,10 +714,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             )}
 
             <button
-              onClick={() => {
-                setRoomCode('');
-                setViewState('join_or_host');
-              }}
+              onClick={handleExitToMenu}
               className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
             >
               <LogOut className="w-4 h-4" /> Keluar
@@ -713,19 +830,16 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
 
           <div className="flex gap-3">
             <button
-              onClick={() => {
-                setRoomCode('');
-                setViewState('join_or_host');
-              }}
+              onClick={handleRestartNewRound}
               className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold rounded-xl transition-all"
             >
               Main Pusingan Baharu
             </button>
             <button
-              onClick={onBackToModeSelect}
+              onClick={handleExitToMenu}
               className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-xs"
             >
-              Tutup
+              Tutup & Tamatkan
             </button>
           </div>
         </div>

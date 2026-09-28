@@ -546,6 +546,7 @@ export async function createLiveChallengeRoom(params: {
   hostId: string;
   hostName: string;
   title: string;
+  subject?: 'all' | 'tauhid' | 'firaq' | 'mantiq';
   questions: Question[];
   timeLimitSeconds?: number;
 }): Promise<{ success: boolean; roomCode?: string; error?: string }> {
@@ -559,6 +560,7 @@ export async function createLiveChallengeRoom(params: {
     const roomData = {
       roomCode,
       title: params.title || 'Cabaran Live STAM',
+      subject: params.subject || 'all',
       hostId: params.hostId || 'host-user',
       hostName: params.hostName || 'Guru Pembimbing',
       status: 'lobby',

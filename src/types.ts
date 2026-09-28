@@ -180,6 +180,7 @@ export interface MultiDeviceAnswer {
 export interface MultiDeviceRoom {
   roomCode: string;
   title: string;
+  subject?: 'all' | 'tauhid' | 'firaq' | 'mantiq';
   hostId: string;
   hostName: string;
   status: 'lobby' | 'active' | 'question_result' | 'finished';

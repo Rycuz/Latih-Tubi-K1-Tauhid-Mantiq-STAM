@@ -1205,6 +1205,7 @@ export default function App() {
               name: studentProfile.name || 'Pelajar STAM',
               schoolOrClass: studentProfile.studentClass ? `${studentProfile.school} (${studentProfile.studentClass})` : studentProfile.school,
             }}
+            onClose={() => setCurrentTab('practice')}
           />
         )}
 
