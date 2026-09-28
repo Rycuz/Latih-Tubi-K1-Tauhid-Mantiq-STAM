@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Question, MultiDeviceRoom, MultiDevicePlayer, MultiDeviceAnswer } from '../types';
+import { QUESTIONS_DATA } from '../data/questions';
 import { soundEffects } from '../utils/audio';
 import { FormattedQuestionStem } from './FormattedQuestionStem';
 import { QuestionDiagramRenderer } from './QuestionDiagramRenderer';
@@ -192,7 +193,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
     soundEffects.playClick();
 
     // Select questions randomly
-    const pool = questions.length > 0 ? questions : [];
+    const pool = questions && questions.length > 0 ? questions : QUESTIONS_DATA;
     const shuffled = [...pool].sort(() => 0.5 - Math.random()).slice(0, roundCount);
 
     const res = await createLiveChallengeRoom({

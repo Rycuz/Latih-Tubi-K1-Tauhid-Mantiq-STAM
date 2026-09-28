@@ -553,18 +553,21 @@ export async function createLiveChallengeRoom(params: {
     const roomCode = generateRoomCode();
     const roomDocRef = doc(db, 'challenge_rooms', roomCode);
 
-    const roomData: MultiDeviceRoom = {
+    // Sanitize questions to eliminate any `undefined` values that Firestore rejects
+    const cleanQuestions = JSON.parse(JSON.stringify(params.questions || []));
+
+    const roomData = {
       roomCode,
       title: params.title || 'Cabaran Live STAM',
-      hostId: params.hostId,
+      hostId: params.hostId || 'host-user',
       hostName: params.hostName || 'Guru Pembimbing',
       status: 'lobby',
       currentQuestionIndex: 0,
       questionStartTime: 0,
       timeLimitSeconds: params.timeLimitSeconds || 25,
-      questions: params.questions,
+      questions: cleanQuestions,
       createdAt: new Date().toISOString(),
-      totalQuestions: params.questions.length,
+      totalQuestions: cleanQuestions.length,
     };
 
     await setDoc(roomDocRef, roomData);
@@ -578,7 +581,7 @@ export async function createLiveChallengeRoom(params: {
       score: 0,
       streak: 0,
       isHost: true,
-    } as MultiDevicePlayer);
+    });
 
     return { success: true, roomCode };
   } catch (err: any) {
@@ -619,7 +622,7 @@ export async function joinLiveChallengeRoom(params: {
       score: 0,
       streak: 0,
       isHost: false,
-    } as MultiDevicePlayer);
+    });
 
     return { success: true, room: roomData };
   } catch (err: any) {
