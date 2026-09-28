@@ -7,6 +7,8 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
+  updateDoc,
   where,
   onSnapshot,
   query,
@@ -16,7 +18,7 @@ import {
   arrayUnion,
 } from 'firebase/firestore';
 import config from '../../firebase-applet-config.json';
-import { StudentRecord, StudentQuizHistory, SubjectId, Question, TopicInfo } from '../types';
+import { StudentRecord, StudentQuizHistory, SubjectId, Question, TopicInfo, MultiDeviceRoom, MultiDevicePlayer, MultiDeviceAnswer } from '../types';
 
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(config) : getApp();
@@ -520,4 +522,286 @@ export function subscribeToCloudCurriculum(callbacks: {
     return () => {};
   }
 }
+
+// ==========================================
+// MULTI-DEVICE REAL-TIME CHALLENGE ROOMS
+// ==========================================
+
+/**
+ * Generate 6-digit room code
+ */
+export function generateRoomCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+/**
+ * Host creates a new multi-device live challenge room
+ */
+export async function createLiveChallengeRoom(params: {
+  hostId: string;
+  hostName: string;
+  title: string;
+  questions: Question[];
+  timeLimitSeconds?: number;
+}): Promise<{ success: boolean; roomCode?: string; error?: string }> {
+  try {
+    const roomCode = generateRoomCode();
+    const roomDocRef = doc(db, 'challenge_rooms', roomCode);
+
+    const roomData: MultiDeviceRoom = {
+      roomCode,
+      title: params.title || 'Cabaran Live STAM',
+      hostId: params.hostId,
+      hostName: params.hostName || 'Guru Pembimbing',
+      status: 'lobby',
+      currentQuestionIndex: 0,
+      questionStartTime: 0,
+      timeLimitSeconds: params.timeLimitSeconds || 25,
+      questions: params.questions,
+      createdAt: new Date().toISOString(),
+      totalQuestions: params.questions.length,
+    };
+
+    await setDoc(roomDocRef, roomData);
+
+    // Add host as player (or host participant)
+    const hostPlayerRef = doc(db, 'challenge_rooms', roomCode, 'players', params.hostId);
+    await setDoc(hostPlayerRef, {
+      id: params.hostId,
+      name: `${params.hostName} (Host)`,
+      joinedAt: new Date().toISOString(),
+      score: 0,
+      streak: 0,
+      isHost: true,
+    } as MultiDevicePlayer);
+
+    return { success: true, roomCode };
+  } catch (err: any) {
+    console.error('Error creating challenge room:', err);
+    return { success: false, error: err.message || 'Gagal mencipta bilik cabaran.' };
+  }
+}
+
+/**
+ * Student / Player joins an existing live room
+ */
+export async function joinLiveChallengeRoom(params: {
+  roomCode: string;
+  playerId: string;
+  playerName: string;
+  schoolOrClass?: string;
+}): Promise<{ success: boolean; room?: MultiDeviceRoom; error?: string }> {
+  try {
+    const cleanCode = params.roomCode.trim().toUpperCase();
+    const roomDocRef = doc(db, 'challenge_rooms', cleanCode);
+    const roomSnap = await getDoc(roomDocRef);
+
+    if (!roomSnap.exists()) {
+      return { success: false, error: 'Kod bilik tidak wujud. Sila semak semula PIN/Kod Bilik.' };
+    }
+
+    const roomData = roomSnap.data() as MultiDeviceRoom;
+    if (roomData.status === 'finished') {
+      return { success: false, error: 'Bilik ini telah selesai.' };
+    }
+
+    const playerRef = doc(db, 'challenge_rooms', cleanCode, 'players', params.playerId);
+    await setDoc(playerRef, {
+      id: params.playerId,
+      name: params.playerName.trim() || 'Peserta',
+      schoolOrClass: params.schoolOrClass?.trim() || 'Umum',
+      joinedAt: new Date().toISOString(),
+      score: 0,
+      streak: 0,
+      isHost: false,
+    } as MultiDevicePlayer);
+
+    return { success: true, room: roomData };
+  } catch (err: any) {
+    console.error('Error joining room:', err);
+    return { success: false, error: err.message || 'Gagal menyertai bilik.' };
+  }
+}
+
+/**
+ * Host updates room status or advances question
+ */
+export async function updateChallengeRoomStatus(
+  roomCode: string,
+  update: Partial<MultiDeviceRoom>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const roomRef = doc(db, 'challenge_rooms', roomCode.toUpperCase());
+    await updateDoc(roomRef, update);
+    return { success: true };
+  } catch (err: any) {
+    console.error('Error updating room status:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Player submits an answer for current question
+ * Speed bonus: faster correct answer gets higher points!
+ */
+export async function submitLiveChallengeAnswer(params: {
+  roomCode: string;
+  playerId: string;
+  playerName: string;
+  questionIndex: number;
+  selectedOption: 'a' | 'b' | 'c' | 'd';
+  isCorrect: boolean;
+  timeTakenSeconds: number;
+  timeLimitSeconds: number;
+  currentStreak: number;
+}): Promise<{ success: boolean; pointsEarned: number; newStreak: number; error?: string }> {
+  try {
+    const cleanCode = params.roomCode.trim().toUpperCase();
+    let pointsEarned = 0;
+    let newStreak = 0;
+
+    if (params.isCorrect) {
+      newStreak = params.currentStreak + 1;
+      // Base score: 100 points
+      // Speed multiplier: up to 100 extra points for fast answer
+      const fractionRemaining = Math.max(0, (params.timeLimitSeconds - params.timeTakenSeconds) / params.timeLimitSeconds);
+      const speedBonus = Math.round(fractionRemaining * 100);
+      // Streak bonus: 15 per streak up to 45
+      const streakBonus = Math.min(newStreak * 15, 45);
+      pointsEarned = 100 + speedBonus + streakBonus;
+    }
+
+    const answerId = `${params.questionIndex}_${params.playerId}`;
+    const answerRef = doc(db, 'challenge_rooms', cleanCode, 'answers', answerId);
+
+    const answerData: MultiDeviceAnswer = {
+      playerId: params.playerId,
+      playerName: params.playerName,
+      questionIndex: params.questionIndex,
+      selectedOption: params.selectedOption,
+      isCorrect: params.isCorrect,
+      timeTakenSeconds: Math.round(params.timeTakenSeconds * 10) / 10,
+      scoreEarned: pointsEarned,
+      answeredAt: new Date().toISOString(),
+    };
+
+    await setDoc(answerRef, answerData);
+
+    // Update player record in room
+    const playerRef = doc(db, 'challenge_rooms', cleanCode, 'players', params.playerId);
+    const playerSnap = await getDoc(playerRef);
+    const prevScore = playerSnap.exists() ? (playerSnap.data().score || 0) : 0;
+
+    await updateDoc(playerRef, {
+      score: prevScore + pointsEarned,
+      streak: newStreak,
+      lastAnswerOption: params.selectedOption,
+      lastPointsEarned: pointsEarned,
+      lastAnswerTimeMs: Date.now(),
+    });
+
+    return { success: true, pointsEarned, newStreak };
+  } catch (err: any) {
+    console.error('Error submitting live answer:', err);
+    return { success: false, pointsEarned: 0, newStreak: 0, error: err.message };
+  }
+}
+
+/**
+ * Subscribe to Live Room changes (realtime state)
+ */
+export function subscribeToLiveChallengeRoom(
+  roomCode: string,
+  onRoomUpdate: (room: MultiDeviceRoom | null) => void,
+  onError?: (err: Error) => void
+) {
+  try {
+    const roomRef = doc(db, 'challenge_rooms', roomCode.toUpperCase());
+    return onSnapshot(
+      roomRef,
+      (snap) => {
+        if (!snap.exists()) {
+          onRoomUpdate(null);
+          return;
+        }
+        onRoomUpdate(snap.data() as MultiDeviceRoom);
+      },
+      (error) => {
+        console.warn('Room subscription error:', error);
+        if (onError) onError(error);
+      }
+    );
+  } catch (err) {
+    console.warn('Failed to listen to room:', err);
+    return () => {};
+  }
+}
+
+/**
+ * Subscribe to Live Players in room
+ */
+export function subscribeToLiveChallengePlayers(
+  roomCode: string,
+  onPlayersUpdate: (players: MultiDevicePlayer[]) => void,
+  onError?: (err: Error) => void
+) {
+  try {
+    const playersColRef = collection(db, 'challenge_rooms', roomCode.toUpperCase(), 'players');
+    return onSnapshot(
+      playersColRef,
+      (snap) => {
+        const players: MultiDevicePlayer[] = [];
+        snap.forEach((docSnap) => {
+          players.push(docSnap.data() as MultiDevicePlayer);
+        });
+        // Sort descending by score
+        players.sort((a, b) => b.score - a.score);
+        onPlayersUpdate(players);
+      },
+      (error) => {
+        console.warn('Players subscription error:', error);
+        if (onError) onError(error);
+      }
+    );
+  } catch (err) {
+    console.warn('Failed to listen to players:', err);
+    return () => {};
+  }
+}
+
+/**
+ * Subscribe to Live Answers for current question
+ */
+export function subscribeToLiveChallengeAnswers(
+  roomCode: string,
+  onAnswersUpdate: (answers: MultiDeviceAnswer[]) => void,
+  onError?: (err: Error) => void
+) {
+  try {
+    const answersColRef = collection(db, 'challenge_rooms', roomCode.toUpperCase(), 'answers');
+    return onSnapshot(
+      answersColRef,
+      (snap) => {
+        const answers: MultiDeviceAnswer[] = [];
+        snap.forEach((docSnap) => {
+          answers.push(docSnap.data() as MultiDeviceAnswer);
+        });
+        onAnswersUpdate(answers);
+      },
+      (error) => {
+        console.warn('Answers subscription error:', error);
+        if (onError) onError(error);
+      }
+    );
+  } catch (err) {
+    console.warn('Failed to listen to answers:', err);
+    return () => {};
+  }
+}
+
 

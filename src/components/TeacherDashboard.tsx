@@ -151,14 +151,14 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [newStudentFiraqScore, setNewStudentFiraqScore] = useState<number>(80);
   const [newStudentMantiqScore, setNewStudentMantiqScore] = useState<number>(75);
 
-  // Enrich students with matching cloud submissions if quizHistory is missing or empty
+  // Enrich students with matching cloud submissions if quizHistory is missing or empty,
+  // and compute the most accurate lastActive date/timestamp for sorting and display
   const enrichedStudents = useMemo(() => {
     return students.map((std) => {
       const existingHistory = std.quizHistory || [];
       const matchingSubs = cloudSubmissions.filter(
         (sub) => sub.studentId === std.id || sub.studentName.trim().toLowerCase() === std.name.trim().toLowerCase()
       );
-      if (matchingSubs.length === 0) return std;
 
       const historyIds = new Set(existingHistory.map((h) => h.id));
       const newHistoryEntries: StudentQuizHistory[] = matchingSubs
@@ -180,9 +180,37 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           timeSpentSeconds: sub.timeSpentSeconds,
         }));
 
+      const allHistory = [...existingHistory, ...newHistoryEntries];
+
+      // Find the most recent timestamp from quiz submissions or fallback to lastActive
+      let latestTimestamp = 0;
+      matchingSubs.forEach((sub) => {
+        const t = new Date(sub.completedAt).getTime();
+        if (!isNaN(t) && t > latestTimestamp) latestTimestamp = t;
+      });
+
+      if (latestTimestamp === 0 && std.lastActive) {
+        const parsed = new Date(std.lastActive).getTime();
+        if (!isNaN(parsed)) latestTimestamp = parsed;
+      }
+
+      // Format human-friendly display label for last active
+      let formattedLastActive = std.lastActive || 'Baru sahaja';
+      if (latestTimestamp > 0) {
+        formattedLastActive = new Date(latestTimestamp).toLocaleString('ms-MY', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+
       return {
         ...std,
-        quizHistory: [...existingHistory, ...newHistoryEntries],
+        lastActive: formattedLastActive,
+        lastActiveTimestamp: latestTimestamp,
+        quizHistory: allHistory,
       };
     });
   }, [students, cloudSubmissions]);
@@ -303,11 +331,18 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         return true;
       })
       .sort((a, b) => {
+        if (sortBy === 'recent') {
+          // Sort by latest submission or activity timestamp descending
+          const timeA = a.lastActiveTimestamp || 0;
+          const timeB = b.lastActiveTimestamp || 0;
+          if (timeB !== timeA) return timeB - timeA;
+          return b.totalXp - a.totalXp;
+        }
         if (sortBy === 'accuracy') return b.accuracy - a.accuracy;
         if (sortBy === 'xp') return b.totalXp - a.totalXp;
         if (sortBy === 'quizzes') return b.quizzesCompleted - a.quizzesCompleted;
-        // 'recent' by default or quizzes count
-        return b.quizzesCompleted - a.quizzesCompleted;
+        // Default to XP
+        return b.totalXp - a.totalXp;
       });
   }, [enrichedStudents, teacherSchool, schoolFilterMode, selectedSpecificSchool, searchQuery, sortBy]);
 
@@ -784,11 +819,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-emerald-500"
+              className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium"
             >
-              <option value="xp">Skor / XP Tertinggi</option>
-              <option value="accuracy">Ketepatan Jawapan (%)</option>
-              <option value="quizzes">Paling Banyak Latihan</option>
+              <option value="recent">⚡ Terkini Menjawab (Masa)</option>
+              <option value="xp">🏆 Skor / XP Tertinggi</option>
+              <option value="accuracy">🎯 Ketepatan Jawapan (%)</option>
+              <option value="quizzes">📚 Paling Banyak Latihan</option>
             </select>
           </div>
         </div>
@@ -925,7 +961,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5 truncate">
+                      <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5 truncate flex-wrap">
                         <span className="truncate">{student.schoolOrClass}</span>
                         {student.classCode && (
                           <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 border border-slate-700 shrink-0">
@@ -933,7 +969,14 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           </span>
                         )}
                         <span className="text-slate-600">•</span>
-                        <span className="text-[11px] text-slate-500 shrink-0">{student.lastActive}</span>
+                        <span className={`text-[11px] shrink-0 inline-flex items-center gap-1 ${
+                          sortBy === 'recent'
+                            ? 'text-emerald-400 font-semibold bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-500/30'
+                            : 'text-slate-400'
+                        }`}>
+                          <Clock className="w-3 h-3 text-slate-500" />
+                          <span>{student.lastActive}</span>
+                        </span>
                       </div>
                     </div>
                   </div>

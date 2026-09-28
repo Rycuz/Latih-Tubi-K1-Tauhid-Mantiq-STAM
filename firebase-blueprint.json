@@ -50,6 +50,23 @@
         "count": { "type": "number", "description": "Item count" }
       },
       "required": ["id", "updatedAt"]
+    },
+    "ChallengeRoom": {
+      "title": "ChallengeRoom",
+      "description": "Multi-device real-time group challenge room for competitive live quizzes",
+      "type": "object",
+      "properties": {
+        "roomCode": { "type": "string", "description": "6-character room PIN/code" },
+        "title": { "type": "string", "description": "Challenge room title" },
+        "hostName": { "type": "string", "description": "Name of room host or teacher" },
+        "hostId": { "type": "string", "description": "Unique device or student ID of host" },
+        "status": { "type": "string", "description": "lobby, active, question_result, or finished" },
+        "currentQuestionIndex": { "type": "number", "description": "Index of active question" },
+        "questionStartTime": { "type": "number", "description": "Timestamp when current question was started" },
+        "timeLimitSeconds": { "type": "number", "description": "Time limit per question in seconds" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of creation" }
+      },
+      "required": ["roomCode", "title", "hostId", "status"]
     }
   },
   "firestore": {
@@ -64,6 +81,10 @@
     "/curriculum/{documentId}": {
       "schema": "CurriculumSection",
       "description": "Global curriculum questions and topics synchronized across all devices in normal and teacher mode"
+    },
+    "/challenge_rooms/{roomCode}": {
+      "schema": "ChallengeRoom",
+      "description": "Live multi-device challenge game sessions synchronized across all players"
     }
   }
 }

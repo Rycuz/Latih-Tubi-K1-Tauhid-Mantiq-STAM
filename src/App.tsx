@@ -1200,6 +1200,11 @@ export default function App() {
             onUnlockGroupBadge={handleUnlockGroupBadge}
             languageMode={languageMode}
             questions={allQuestions}
+            currentStudent={{
+              id: studentProfile.studentId || 'std-user',
+              name: studentProfile.name || 'Pelajar STAM',
+              schoolOrClass: studentProfile.studentClass ? `${studentProfile.school} (${studentProfile.studentClass})` : studentProfile.school,
+            }}
           />
         )}
 

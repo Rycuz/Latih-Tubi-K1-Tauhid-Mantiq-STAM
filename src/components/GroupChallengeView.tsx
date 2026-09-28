@@ -11,7 +11,11 @@ import {
   RotateCcw, 
   Play, 
   Share2,
-  Swords
+  Swords,
+  Radio,
+  Smartphone,
+  Layers,
+  Zap
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Question, GroupChallengeState } from '../types';
@@ -19,18 +23,28 @@ import { QUESTIONS_DATA } from '../data/questions';
 import { soundEffects } from '../utils/audio';
 import { FormattedQuestionStem } from './FormattedQuestionStem';
 import { QuestionDiagramRenderer } from './QuestionDiagramRenderer';
+import { MultiDeviceLiveChallenge } from './MultiDeviceLiveChallenge';
 
 interface GroupChallengeViewProps {
   onUnlockGroupBadge: () => void;
   languageMode: 'bilingual' | 'arabic' | 'malay';
   questions?: Question[];
+  currentStudent?: {
+    id: string;
+    name: string;
+    schoolOrClass?: string;
+  };
 }
 
 export const GroupChallengeView: React.FC<GroupChallengeViewProps> = ({
   onUnlockGroupBadge,
   languageMode,
   questions = QUESTIONS_DATA,
+  currentStudent = { id: 'std-user', name: 'Pelajar STAM', schoolOrClass: 'SMKA' },
 }) => {
+  // Mode selection: 'live_multi_device' (Kahoot/Quizizz multi-phone style) vs 'single_device' (Halaqah turn-based)
+  const [challengeMode, setChallengeMode] = useState<'live_multi_device' | 'single_device'>('live_multi_device');
+
   const [gameState, setGameState] = useState<GroupChallengeState>({
     roomId: 'HALAQAH-786',
     roomName: 'Halaqah Dirasat Islamiyyah',
@@ -66,6 +80,45 @@ export const GroupChallengeView: React.FC<GroupChallengeViewProps> = ({
   const [tempTeamAName, setTempTeamAName] = useState('Kumpulan Al-Ghazali');
   const [tempTeamBName, setTempTeamBName] = useState('Kumpulan Al-Asy\'ari');
   const [roundCount, setRoundCount] = useState(6);
+
+  // If user chooses Live Multi-Device mode
+  if (challengeMode === 'live_multi_device') {
+    return (
+      <div className="space-y-4">
+        {/* Toggle Bar between Live Multi-Device and Single Device */}
+        <div className="max-w-2xl mx-auto px-4 pt-3 flex items-center justify-between">
+          <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-2xl gap-1 text-xs">
+            <button
+              onClick={() => setChallengeMode('live_multi_device')}
+              className="px-3.5 py-1.5 rounded-xl font-bold bg-indigo-600 text-white flex items-center gap-1.5 shadow"
+            >
+              <Radio className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Multi-Device (Live)</span>
+            </button>
+            <button
+              onClick={() => setChallengeMode('single_device')}
+              className="px-3.5 py-1.5 rounded-xl font-medium text-slate-400 hover:text-slate-200 flex items-center gap-1.5"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>1 Peranti (Halaqah)</span>
+            </button>
+          </div>
+
+          <span className="text-[11px] text-emerald-400 font-mono hidden sm:inline">
+            ⚡ Sambungan Masa Nyata Awan
+          </span>
+        </div>
+
+        <MultiDeviceLiveChallenge
+          questions={questions}
+          languageMode={languageMode}
+          currentStudent={currentStudent}
+          onUnlockGroupBadge={onUnlockGroupBadge}
+          onBackToModeSelect={() => setChallengeMode('single_device')}
+        />
+      </div>
+    );
+  }
 
   // Timer countdown
   useEffect(() => {
@@ -193,6 +246,30 @@ export const GroupChallengeView: React.FC<GroupChallengeViewProps> = ({
   if (gameState.status === 'setup') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-6 pb-28">
+        {/* Mode Toggle Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-2xl gap-1 text-xs">
+            <button
+              onClick={() => setChallengeMode('live_multi_device')}
+              className="px-3.5 py-1.5 rounded-xl font-medium text-slate-400 hover:text-slate-200 flex items-center gap-1.5"
+            >
+              <Radio className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Multi-Device (Live)</span>
+            </button>
+            <button
+              onClick={() => setChallengeMode('single_device')}
+              className="px-3.5 py-1.5 rounded-xl font-bold bg-indigo-600 text-white flex items-center gap-1.5 shadow"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>1 Peranti (Halaqah)</span>
+            </button>
+          </div>
+
+          <span className="text-[11px] text-slate-400 font-mono hidden sm:inline">
+            Mod Bersemuka / Giliran
+          </span>
+        </div>
+
         <div className="bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-3xl p-6 shadow-2xl">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shadow-inner">
@@ -201,14 +278,14 @@ export const GroupChallengeView: React.FC<GroupChallengeViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold text-white tracking-tight">
-                  Mod Cabaran Berkumpulan
+                  Mod Cabaran 1 Peranti (Halaqah)
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
-                  Kolaboratif
+                  Bergilir
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Belajar bersama rakan sekelas secara bersemuka atau berkumpulan dengan sistem giliran dan perbincangan hujah.
+                Sesuai untuk projektor smartboard di dalam kelas atau satu telefon dikongsi bersama ahli kumpulan.
               </p>
             </div>
           </div>

@@ -126,6 +126,7 @@ export interface StudentRecord {
   };
   weakTopics?: string[];
   lastActive: string;
+  lastActiveTimestamp?: number;
   quizHistory: StudentQuizHistory[];
   isCurrentUser?: boolean;
 }
@@ -151,3 +152,42 @@ export interface GroupChallengeState {
   totalRounds: number;
   winnerTeamId?: string;
 }
+
+export interface MultiDevicePlayer {
+  id: string;
+  name: string;
+  schoolOrClass?: string;
+  joinedAt: string;
+  score: number;
+  streak: number;
+  lastAnswerOption?: 'a' | 'b' | 'c' | 'd';
+  lastAnswerTimeMs?: number;
+  lastPointsEarned?: number;
+  isHost?: boolean;
+}
+
+export interface MultiDeviceAnswer {
+  playerId: string;
+  playerName: string;
+  questionIndex: number;
+  selectedOption: 'a' | 'b' | 'c' | 'd';
+  isCorrect: boolean;
+  timeTakenSeconds: number;
+  scoreEarned: number;
+  answeredAt: string;
+}
+
+export interface MultiDeviceRoom {
+  roomCode: string;
+  title: string;
+  hostId: string;
+  hostName: string;
+  status: 'lobby' | 'active' | 'question_result' | 'finished';
+  currentQuestionIndex: number;
+  questionStartTime: number;
+  timeLimitSeconds: number;
+  questions: Question[];
+  createdAt: string;
+  totalQuestions: number;
+}
+
