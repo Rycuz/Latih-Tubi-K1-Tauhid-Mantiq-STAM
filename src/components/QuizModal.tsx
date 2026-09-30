@@ -27,7 +27,6 @@ import {
   AlertTriangle,
   Edit3
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { Question, QuestionAttempt, SubjectId } from '../types';
 import { soundEffects } from '../utils/audio';
 import { cleanRepeatedText } from '../utils/sanitizeText';
@@ -287,14 +286,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       setCurrentIndex((prev) => prev + 1);
     } else {
       setQuizCompleted(true);
-      if (!reviewMode) {
-        soundEffects.playFanfare();
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      }
+      // Clean completion: no background fanfare sound and no confetti/fireworks to prevent lagging and errors
     }
   };
 

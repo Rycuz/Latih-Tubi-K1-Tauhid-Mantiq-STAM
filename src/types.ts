@@ -157,6 +157,7 @@ export interface MultiDevicePlayer {
   id: string;
   name: string;
   schoolOrClass?: string;
+  avatar?: string;
   joinedAt: string;
   score: number;
   streak: number;

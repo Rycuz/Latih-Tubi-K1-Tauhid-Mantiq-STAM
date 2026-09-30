@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   SubjectId, 
@@ -1035,12 +1035,6 @@ export default function App() {
         }
 
         if (shouldUnlock && !badge.unlocked) {
-          soundEffects.playFanfare();
-          confetti({
-            particleCount: 70,
-            spread: 60,
-            origin: { y: 0.5 },
-          });
           return {
             ...badge,
             currentProgress: badge.maxProgress,
@@ -1150,9 +1144,11 @@ export default function App() {
     setActiveQuizQuestions(null);
   };
 
-  const handleUnlockGroupBadge = () => {
-    setBadges((prev) =>
-      prev.map((b) => {
+  const handleUnlockGroupBadge = useCallback(() => {
+    setBadges((prev) => {
+      const isAlreadyUnlocked = prev.some((b) => b.id === 'badge-group-champion' && b.unlocked);
+      if (isAlreadyUnlocked) return prev;
+      return prev.map((b) => {
         if (b.id === 'badge-group-champion' && !b.unlocked) {
           return {
             ...b,
@@ -1162,9 +1158,9 @@ export default function App() {
           };
         }
         return b;
-      })
-    );
-  };
+      });
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">

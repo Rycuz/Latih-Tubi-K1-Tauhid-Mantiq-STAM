@@ -1,7 +1,9 @@
 import express, { Request, Response } from 'express';
+import http from 'http';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { WebSocketServer } from 'ws';
 import { GoogleGenAI, Type } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import {
@@ -11,6 +13,7 @@ import {
   autoTranslateArabicOption,
   ensureCleanMalayTranslation,
 } from './src/utils/bilingualTranslator.ts';
+import { setupLiveRoomEndpoints, setupLiveWebSocketServer } from './src/lib/liveServer.ts';
 
 dotenv.config();
 
@@ -374,6 +377,9 @@ Semua istilah teknikal subjek STAM (Tauhid, Firaq, Mantiq) mesti dieja dalam tul
   });
 });
 
+// Setup Live Room REST Endpoints (WebRTC/Real-Time engine with 0 Firebase quota)
+setupLiveRoomEndpoints(app);
+
 // Vite or Static file serving
 async function setupViteOrStatic() {
   if (process.env.NODE_ENV === 'production') {
@@ -392,7 +398,25 @@ async function setupViteOrStatic() {
     app.use(vite.middlewares);
   }
 
-  app.listen(port, '0.0.0.0', () => {
+  const server = http.createServer(app);
+  const wss = new WebSocketServer({ noServer: true });
+
+  setupLiveWebSocketServer(wss);
+
+  server.on('upgrade', (request, socket, head) => {
+    try {
+      const { pathname } = new URL(request.url || '', `http://${request.headers.host || 'localhost'}`);
+      if (pathname === '/ws/live') {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          wss.emit('connection', ws, request);
+        });
+      }
+    } catch (e) {
+      socket.destroy();
+    }
+  });
+
+  server.listen(port, '0.0.0.0', () => {
     console.log(`Server is running at http://0.0.0.0:${port}`);
   });
 }

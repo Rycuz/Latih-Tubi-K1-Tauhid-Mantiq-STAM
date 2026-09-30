@@ -24,9 +24,13 @@ import {
   LogOut,
   Medal,
   Award,
-  BookOpen
+  BookOpen,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { Question, MultiDeviceRoom, MultiDevicePlayer, MultiDeviceAnswer } from '../types';
 import { QUESTIONS_DATA } from '../data/questions';
 import { soundEffects } from '../utils/audio';
@@ -40,7 +44,55 @@ import {
   subscribeToLiveChallengeRoom,
   subscribeToLiveChallengePlayers,
   subscribeToLiveChallengeAnswers
-} from '../lib/firebase';
+} from '../lib/liveRealtimeClient';
+
+export const AVATAR_CATEGORIES = [
+  {
+    id: 'human',
+    label: 'Manusia',
+    icon: '👤',
+    avatars: [
+      { emoji: '🧑‍🎓', name: 'Pelajar Pintar' },
+      { emoji: '👦', name: 'Danish' },
+      { emoji: '👧', name: 'Aisyah' },
+      { emoji: '🧕', name: 'Fatimah' },
+      { emoji: '👳‍♂️', name: 'Ustaz Muda' },
+      { emoji: '🦸‍♂️', name: 'Wira Muslim' },
+      { emoji: '🥷', name: 'Pendekar' },
+      { emoji: '🕵️‍♂️', name: 'Penyelidik Mantiq' },
+    ],
+  },
+  {
+    id: 'animal',
+    label: 'Haiwan',
+    icon: '🐾',
+    avatars: [
+      { emoji: '🦁', name: 'Singa Berani' },
+      { emoji: '🦅', name: 'Helang Pantas' },
+      { emoji: '🐯', name: 'Harimau Tangkas' },
+      { emoji: '🐺', name: 'Serigala Pintar' },
+      { emoji: '🐬', name: 'Lumba-lumba' },
+      { emoji: '🦊', name: 'Musang Cerdik' },
+      { emoji: '🐼', name: 'Panda Tenang' },
+      { emoji: '🐱', name: 'Kucing Comel' },
+    ],
+  },
+  {
+    id: 'monster',
+    label: 'Raksasa & Mitos',
+    icon: '👾',
+    avatars: [
+      { emoji: '👾', name: 'Raksasa Angkasa' },
+      { emoji: '🤖', name: 'Robot Logik' },
+      { emoji: '🐲', name: 'Naga Emas' },
+      { emoji: '🧌', name: 'Gergasi Cergas' },
+      { emoji: '👻', name: 'Hantu Comel' },
+      { emoji: '🦄', name: 'Kuda Sakti' },
+      { emoji: '🦖', name: 'T-Rex Perkasa' },
+      { emoji: '🧙‍♂️', name: 'Pendeta Ilmu' },
+    ],
+  },
+] as const;
 
 interface MultiDeviceLiveChallengeProps {
   questions: Question[];
@@ -78,6 +130,15 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   const [playerName, setPlayerName] = useState(currentStudent.name || 'Pelajar STAM');
   const [playerSchool, setPlayerSchool] = useState(currentStudent.schoolOrClass || '');
   const [playerId] = useState(currentStudent.id || `player-${Date.now()}`);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(() => {
+    try {
+      return localStorage.getItem('stam_student_live_avatar') || '🧑‍🎓';
+    } catch {
+      return '🧑‍🎓';
+    }
+  });
+  const [activeAvatarTab, setActiveAvatarTab] = useState<'human' | 'animal' | 'monster'>('human');
+  const [showAvatarPicker, setShowAvatarPicker] = useState<boolean>(false);
 
   // Real-time Firestore state
   const [currentRoom, setCurrentRoom] = useState<MultiDeviceRoom | null>(null);
@@ -85,6 +146,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   const [answers, setAnswers] = useState<MultiDeviceAnswer[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showAllLeaderboard, setShowAllLeaderboard] = useState(false);
 
   // Current Question Player State
   const [selectedOption, setSelectedOption] = useState<'a' | 'b' | 'c' | 'd' | null>(null);
@@ -95,6 +157,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   // Local question countdown timer
   const [timeLeft, setTimeLeft] = useState(timeLimit);
   const questionStartTimeRef = useRef<number>(Date.now());
+  const hasHandledFinishRef = useRef<boolean>(false);
 
   // Real-time Firestore Subscriptions when roomCode is active
   useEffect(() => {
@@ -171,22 +234,22 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
     return () => clearInterval(interval);
   }, [currentRoomStatus, timeLeft, isHost, roomCode]);
 
-  // Fanfare when game finishes
+  // Clean finish handler without music/fanfare or particles (prevents lagging and re-render loops)
   useEffect(() => {
-    if (currentRoomStatus === 'finished') {
-      soundEffects.playFanfare();
-      onUnlockGroupBadge();
-      confetti({
-        particleCount: 120,
-        spread: 90,
-        origin: { y: 0.5 },
-      });
+    if (currentRoomStatus === 'finished' && !hasHandledFinishRef.current) {
+      hasHandledFinishRef.current = true;
+      try {
+        onUnlockGroupBadge();
+      } catch {
+        // Safe catch
+      }
     }
   }, [currentRoomStatus, onUnlockGroupBadge]);
 
   // Comprehensive reset function to return cleanly to menu or close
   const handleExitToMenu = () => {
     soundEffects.playClick();
+    hasHandledFinishRef.current = false;
     setRoomCode('');
     setCurrentRoom(null);
     setPlayers([]);
@@ -201,6 +264,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
 
   const handleRestartNewRound = () => {
     soundEffects.playClick();
+    hasHandledFinishRef.current = false;
     setRoomCode('');
     setCurrentRoom(null);
     setPlayers([]);
@@ -227,6 +291,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
     }
     setIsProcessing(true);
     setErrorMessage(null);
+    hasHandledFinishRef.current = false;
     soundEffects.playClick();
 
     // Select questions randomly from the chosen subject pool
@@ -252,6 +317,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
       subject: selectedSubject,
       questions: shuffled,
       timeLimitSeconds: timeLimit,
+      avatar: selectedAvatar,
+      hostAvatar: selectedAvatar,
     });
 
     setIsProcessing(false);
@@ -278,6 +345,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
 
     setIsProcessing(true);
     setErrorMessage(null);
+    hasHandledFinishRef.current = false;
     soundEffects.playClick();
 
     const res = await joinLiveChallengeRoom({
@@ -285,6 +353,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
       playerId,
       playerName,
       schoolOrClass: playerSchool,
+      avatar: selectedAvatar,
     });
 
     setIsProcessing(false);
@@ -395,12 +464,15 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                 <Radio className="w-6 h-6 animate-pulse" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-xl font-bold text-white tracking-tight">
                     Cabaran Live Multi-Device
                   </h2>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Live Sync
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Live Real-Time
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30 flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-amber-400" /> Sifar Kuota Firebase (Multi-Hos)
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">
@@ -431,33 +503,123 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             </ul>
           </div>
 
-          {/* Player Info Box */}
-          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 mb-6 space-y-3">
-            <span className="text-[11px] font-bold uppercase text-slate-400 tracking-wider block">
-              Profil Anda Dalam Permainan:
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] text-slate-400 mb-1 block">Nama Penuh / Gelaran:</label>
-                <input
-                  type="text"
-                  value={playerName}
-                  onChange={(e) => setPlayerName(e.target.value)}
-                  placeholder="Contoh: Muhammad Danish"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-medium focus:outline-none focus:border-indigo-500"
-                />
+          {/* Player Info Box with Cartoon Avatar Selector */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 mb-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase text-slate-400 tracking-wider block">
+                Profil & Avatar Anda:
+              </span>
+              <span className="text-[10px] text-indigo-400 font-medium">
+                Pilih avatar kartun kegemaran anda
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              {/* Avatar Selector Button */}
+              <div className="flex flex-col items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarPicker(!showAvatarPicker)}
+                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900/60 border-2 border-indigo-500/50 hover:border-indigo-400 active:scale-95 transition-all flex items-center justify-center text-3xl shadow-lg relative group cursor-pointer"
+                  title="Klik untuk tukar avatar kartun"
+                >
+                  <span>{selectedAvatar}</span>
+                  <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-[10px] text-white border border-slate-900">
+                    ✏️
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarPicker(!showAvatarPicker)}
+                  className="text-[10px] text-indigo-300 hover:text-indigo-200 underline font-semibold"
+                >
+                  {showAvatarPicker ? 'Tutup Pilihan' : 'Tukar Avatar'}
+                </button>
               </div>
-              <div>
-                <label className="text-[10px] text-slate-400 mb-1 block">Sekolah / Kelas:</label>
-                <input
-                  type="text"
-                  value={playerSchool}
-                  onChange={(e) => setPlayerSchool(e.target.value)}
-                  placeholder="Contoh: SMKA Maahad Hamidiah (STAM-6A)"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-medium focus:outline-none focus:border-indigo-500"
-                />
+
+              {/* Name and School Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 w-full">
+                <div>
+                  <label className="text-[10px] text-slate-400 mb-1 block">Nama Penuh / Gelaran:</label>
+                  <input
+                    type="text"
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    placeholder="Contoh: Muhammad Danish"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-medium focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 mb-1 block">Sekolah / Kelas:</label>
+                  <input
+                    type="text"
+                    value={playerSchool}
+                    onChange={(e) => setPlayerSchool(e.target.value)}
+                    placeholder="Contoh: SMKA Maahad Hamidiah (STAM-6A)"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-medium focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Cartoon Avatar Picker Modal / Drawer */}
+            {showAvatarPicker && (
+              <div className="p-3.5 bg-slate-900 border border-indigo-500/40 rounded-2xl space-y-3 shadow-2xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Pilih Kategori Avatar Kartun:
+                  </span>
+                  {/* Category Tabs: Manusia, Haiwan, Raksasa */}
+                  <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+                    {AVATAR_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setActiveAvatarTab(cat.id as any)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                          activeAvatarTab === cat.id
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Grid of Avatars for selected category */}
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 pt-1">
+                  {AVATAR_CATEGORIES.find((c) => c.id === activeAvatarTab)?.avatars.map((av) => {
+                    const isSelected = selectedAvatar === av.emoji;
+                    return (
+                      <button
+                        key={av.emoji}
+                        type="button"
+                        onClick={() => {
+                          setSelectedAvatar(av.emoji);
+                          soundEffects.playClick();
+                          try {
+                            localStorage.setItem('stam_student_live_avatar', av.emoji);
+                          } catch (e) {}
+                        }}
+                        className={`p-2 rounded-xl flex flex-col items-center gap-1 border transition-all active:scale-90 ${
+                          isSelected
+                            ? 'bg-indigo-600/30 border-indigo-500 ring-2 ring-indigo-400 text-white scale-105 shadow-md'
+                            : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-800/50 text-slate-300'
+                        }`}
+                      >
+                        <span className="text-2xl sm:text-3xl leading-none">{av.emoji}</span>
+                        <span className="text-[9px] text-slate-400 font-medium truncate max-w-full text-center">
+                          {av.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {errorMessage && (
@@ -682,8 +844,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                           : 'bg-slate-900 border-slate-800 text-slate-300'
                       }`}
                     >
-                      <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs shrink-0 text-emerald-400">
-                        {p.isHost ? '👑' : '👤'}
+                      <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-base shrink-0">
+                        {p.avatar || (p.isHost ? '👑' : '🧑‍🎓')}
                       </div>
                       <div className="truncate flex-1 min-w-0">
                         <p className="font-bold truncate">{p.name} {isMe && '(Saya)'}</p>
@@ -744,9 +906,46 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   const currentAnswers = answers.filter((a) => a.questionIndex === currentRoom.currentQuestionIndex);
   const correctAnswersCount = currentAnswers.filter((a) => a.isCorrect).length;
 
-  // Podium Sort
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
-  const myPlayerRecord = players.find((p) => p.id === playerId);
+  // Calculate scores before this question vs after to find exact rank delta
+  const playersWithStats = players.map((p) => {
+    const roundAnswer = currentAnswers.find((a) => a.playerId === p.id);
+    const roundPoints = roundAnswer?.scoreEarned || 0;
+    const prevScore = Math.max(0, p.score - roundPoints);
+    return {
+      ...p,
+      roundPoints,
+      prevScore,
+      isCorrectThisRound: roundAnswer?.isCorrect ?? false,
+      roundSpeed: roundAnswer?.timeTakenSeconds,
+      selectedOptionThisRound: roundAnswer?.selectedOption,
+    };
+  });
+
+  // Calculate previous rank (before current question points)
+  const prevRankSorted = [...playersWithStats].sort((a, b) => b.prevScore - a.prevScore);
+  // Calculate current rank (after current question points)
+  const sortedPlayers = [...playersWithStats].sort((a, b) => b.score - a.score);
+
+  const playersWithDelta = sortedPlayers.map((p, idx) => {
+    const currentRank = idx + 1;
+    const prevIdx = prevRankSorted.findIndex((x) => x.id === p.id);
+    const prevRank = prevIdx >= 0 ? prevIdx + 1 : currentRank;
+    const rankDelta = prevRank - currentRank; // > 0 means climbed up (e.g. was 4th, now 2nd -> +2)
+    return {
+      ...p,
+      currentRank,
+      prevRank,
+      rankDelta,
+    };
+  });
+
+  // Find highest climber this round (if climbed at least 1 spot)
+  const highestClimber = [...playersWithDelta]
+    .filter((p) => p.rankDelta > 0)
+    .sort((a, b) => b.rankDelta - a.rankDelta)[0];
+
+  const myPlayerRecord = playersWithDelta.find((p) => p.id === playerId);
+  const highestScore = sortedPlayers[0]?.score || 1;
 
   // If Finished Screen
   if (isGameFinished) {
@@ -769,7 +968,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             {/* Rank 2 */}
             {sortedPlayers[1] && (
               <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-3 text-center space-y-1">
-                <span className="text-xl">🥈</span>
+                <span className="text-3xl block">{sortedPlayers[1].avatar || '🥈'}</span>
+                <span className="text-xs">🥈</span>
                 <p className="text-xs font-bold text-white truncate">{sortedPlayers[1].name}</p>
                 <p className="text-xs text-indigo-400 font-mono font-bold">{sortedPlayers[1].score} XP</p>
                 <span className="inline-block text-[9px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">#2</span>
@@ -780,7 +980,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             {sortedPlayers[0] && (
               <div className="bg-gradient-to-b from-amber-950/80 to-slate-900 border-2 border-amber-500/60 rounded-2xl p-4 text-center space-y-1 shadow-xl transform -translate-y-2">
                 <Crown className="w-6 h-6 text-amber-400 mx-auto" />
-                <span className="text-2xl">🥇</span>
+                <span className="text-4xl block my-0.5">{sortedPlayers[0].avatar || '🥇'}</span>
+                <span className="text-xs">🥇</span>
                 <p className="text-sm font-black text-white truncate">{sortedPlayers[0].name}</p>
                 <p className="text-sm text-amber-400 font-mono font-black">{sortedPlayers[0].score} XP</p>
                 <span className="inline-block text-[10px] bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded-full">JUARA</span>
@@ -790,7 +991,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             {/* Rank 3 */}
             {sortedPlayers[2] && (
               <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-3 text-center space-y-1">
-                <span className="text-xl">🥉</span>
+                <span className="text-3xl block">{sortedPlayers[2].avatar || '🥉'}</span>
+                <span className="text-xs">🥉</span>
                 <p className="text-xs font-bold text-white truncate">{sortedPlayers[2].name}</p>
                 <p className="text-xs text-cyan-400 font-mono font-bold">{sortedPlayers[2].score} XP</p>
                 <span className="inline-block text-[9px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">#3</span>
@@ -813,6 +1015,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                 >
                   <div className="flex items-center gap-2">
                     <span className="w-5 text-slate-500 font-mono font-bold">{idx + 1}.</span>
+                    <span className="text-base">{p.avatar || '🧑‍🎓'}</span>
                     <span>{p.name} {p.id === playerId && '(Anda)'}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -882,6 +1085,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
       {myPlayerRecord && (
         <div className="bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-1.5 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-slate-300">
+            <span className="text-base shrink-0">{myPlayerRecord.avatar || selectedAvatar}</span>
             <span>Kedudukan Anda:</span>
             <span className="font-bold text-white">
               #{sortedPlayers.findIndex((p) => p.id === playerId) + 1}
@@ -915,16 +1119,17 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
           />
         )}
 
+        {/* Group challenge strictly in Arabic (no Malay translation for questions/options) */}
         <FormattedQuestionStem
           questionArabic={currentQ.questionArabic}
-          questionMalay={currentQ.questionMalay}
-          showArabic={languageMode !== 'malay'}
-          showMalay={languageMode !== 'arabic'}
+          questionMalay=""
+          showArabic={true}
+          showMalay={false}
           fontSizeClass="text-lg sm:text-xl"
         />
       </div>
 
-      {/* Options Grid (Kahoot / Quizizz style fast buttons) */}
+      {/* Options Grid (Arabic only for Group Challenge) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         {currentQ.options.map((opt) => {
           const isSelected = selectedOption === opt.id;
@@ -951,11 +1156,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                 {opt.id.toUpperCase()}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="font-arabic text-base font-bold text-right dir-rtl mb-1" dir="rtl">
+                <p className="font-arabic text-lg font-bold text-right dir-rtl leading-relaxed" dir="rtl">
                   {opt.textArabic}
-                </p>
-                <p className="text-xs text-slate-300">
-                  {opt.textMalay}
                 </p>
               </div>
               {isQuestionResult && isCorrect && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
@@ -977,56 +1179,268 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
         </div>
       )}
 
-      {/* Question Result Discussion & Leaderboard snippet */}
+      {/* Question Result Discussion & Live Ranking Shift */}
       {isQuestionResult && (
-        <div className="bg-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-bold text-white">
-              <HelpCircle className="w-4 h-4 text-emerald-400" />
-              <span>Huraian Dalil & Jawapan:</span>
-            </div>
-            <span className="text-xs text-emerald-400 font-mono">
-              🎯 {correctAnswersCount} daripada {currentAnswers.length} orang betul!
-            </span>
-          </div>
-
-          {currentQ.explanationArabic && (
-            <div className="font-arabic text-xs text-slate-200 text-right dir-rtl bg-slate-800/80 p-3 rounded-xl border border-slate-700/60" dir="rtl">
-              {currentQ.explanationArabic}
-            </div>
-          )}
-
-          {currentQ.explanationMalay && (
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {currentQ.explanationMalay}
-            </p>
-          )}
-
-          {/* Current Question Top Answerers by Speed */}
-          <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-              ⚡ Terpantas Menjawab Betul Soalan Ini:
-            </span>
-            <div className="space-y-1">
-              {currentAnswers
-                .filter((a) => a.isCorrect)
-                .sort((a, b) => a.timeTakenSeconds - b.timeTakenSeconds)
-                .slice(0, 3)
-                .map((a, idx) => (
-                  <div key={a.playerId} className="flex items-center justify-between text-xs py-1 border-b border-slate-800/50 last:border-0">
-                    <span className="text-slate-300 font-medium">
-                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'} {a.playerName}
-                    </span>
+        <div className="space-y-4">
+          {/* 1. Student Personal Feedback Card */}
+          {myPlayerRecord && (
+            <div className={`p-4 rounded-3xl border shadow-xl relative overflow-hidden transition-all ${
+              myPlayerRecord.rankDelta > 0
+                ? 'bg-gradient-to-r from-emerald-950/90 via-slate-900 to-indigo-950/90 border-emerald-500/50 shadow-emerald-950/50'
+                : myPlayerRecord.rankDelta < 0
+                ? 'bg-gradient-to-r from-slate-900 via-slate-900 to-rose-950/60 border-slate-700'
+                : 'bg-gradient-to-r from-slate-900 to-indigo-950/80 border-indigo-500/30'
+            }`}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shadow-inner ${
+                    myPlayerRecord.rankDelta > 0
+                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
+                      : myPlayerRecord.rankDelta < 0
+                      ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
+                      : 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
+                  }`}>
+                    {myPlayerRecord.rankDelta > 0 ? (
+                      <TrendingUp className="w-6 h-6 animate-bounce" />
+                    ) : myPlayerRecord.rankDelta < 0 ? (
+                      <TrendingDown className="w-6 h-6" />
+                    ) : (
+                      <Minus className="w-6 h-6" />
+                    )}
+                  </div>
+                  <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-400 font-mono text-[11px]">{a.timeTakenSeconds}s</span>
-                      <span className="text-emerald-400 font-mono font-bold">+{a.scoreEarned} XP</span>
+                      <span className="text-xl shrink-0">{myPlayerRecord.avatar || selectedAvatar}</span>
+                      <span className="text-sm font-black text-white">
+                        Kedudukan #{myPlayerRecord.currentRank}
+                      </span>
+                      {/* Rank Delta Pill */}
+                      {myPlayerRecord.rankDelta > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-black flex items-center gap-0.5 animate-pulse">
+                          ▲ +{myPlayerRecord.rankDelta} Tangga!
+                        </span>
+                      )}
+                      {myPlayerRecord.rankDelta < 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[11px] font-bold flex items-center gap-0.5">
+                          ▼ {Math.abs(myPlayerRecord.rankDelta)} Tangga
+                        </span>
+                      )}
+                      {myPlayerRecord.rankDelta === 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[11px] font-bold">
+                          Kekal
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-300 mt-0.5">
+                      {myPlayerRecord.rankDelta > 0
+                        ? `Syabas! Anda melonjak naik dengan kutipan pantas!`
+                        : myPlayerRecord.rankDelta < 0
+                        ? `Rakan lain memotong laju. Soalan seterusnya ada peluang pintas kembali!`
+                        : `Kedudukan anda stabil. Teruskan momentum!`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Points earned this question badge */}
+                <div className="text-right shrink-0">
+                  <div className="text-sm font-black text-emerald-400 font-mono">
+                    +{myPlayerRecord.roundPoints} XP
+                  </div>
+                  {myPlayerRecord.roundSpeed && (
+                    <div className="text-[10px] text-slate-400 font-mono">
+                      ⚡ {myPlayerRecord.roundSpeed}s
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. Highest Climber Spotlight (if someone jumped up) */}
+          {highestClimber && highestClimber.rankDelta > 0 && (
+            <div className="p-3 bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/10 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-inner">
+                  <Flame className="w-4 h-4 fill-current animate-pulse" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">
+                    Pelompat Tertinggi Pusingan Ini:
+                  </span>
+                  <p className="font-bold text-white flex items-center gap-1.5">
+                    <span className="text-base shrink-0">{highestClimber.avatar || '🚀'}</span>
+                    <span>
+                      <span className="text-amber-300">{highestClimber.name}</span> melonjak{' '}
+                      <span className="text-emerald-400 font-black">+{highestClimber.rankDelta}</span> anak tangga ke Tempat Ke-#{highestClimber.currentRank}!
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs font-mono font-bold text-amber-400 px-2.5 py-1 bg-amber-500/20 rounded-lg border border-amber-500/30">
+                +{highestClimber.roundPoints} XP
+              </span>
+            </div>
+          )}
+
+          {/* 3. Live Leaderboard with Animated Ranking Shifts */}
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-amber-400" />
+                <h3 className="font-bold text-white text-sm">
+                  Papan Kedudukan Langsung ({players.length} Peserta)
+                </h3>
+              </div>
+              <span className="text-[11px] text-emerald-400 font-mono">
+                🎯 {correctAnswersCount}/{currentAnswers.length} Betul
+              </span>
+            </div>
+
+            {/* List of Players with Delta Shifts */}
+            <div className="space-y-2">
+              {(showAllLeaderboard ? playersWithDelta : playersWithDelta.slice(0, 5)).map((p, idx) => {
+                const isMe = p.id === playerId;
+                const percentage = Math.max(8, Math.round((p.score / (highestScore || 1)) * 100));
+
+                return (
+                  <div
+                    key={p.id}
+                    className={`relative p-3 rounded-2xl border transition-all duration-500 ${
+                      isMe
+                        ? 'bg-indigo-950/70 border-indigo-500/60 ring-1 ring-indigo-500/40 shadow-lg'
+                        : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700'
+                    }`}
+                  >
+                    {/* Background Progress Fill based on relative score */}
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-2xl bg-indigo-500/5 transition-all duration-700 pointer-events-none"
+                      style={{ width: `${percentage}%` }}
+                    />
+
+                    <div className="relative flex items-center justify-between gap-3">
+                      {/* Left: Position & Delta */}
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {/* Rank Badge */}
+                        <div className={`w-8 h-8 rounded-xl font-mono font-black text-xs flex items-center justify-center shrink-0 border ${
+                          idx === 0
+                            ? 'bg-amber-500/20 border-amber-500/60 text-amber-300 shadow-md'
+                            : idx === 1
+                            ? 'bg-slate-400/20 border-slate-400/50 text-slate-200'
+                            : idx === 2
+                            ? 'bg-amber-700/20 border-amber-700/50 text-amber-400'
+                            : 'bg-slate-800/80 border-slate-700 text-slate-400'
+                        }`}>
+                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                        </div>
+
+                        {/* Rank Shift Indicator */}
+                        <div className="w-12 shrink-0">
+                          {p.rankDelta > 0 ? (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-md">
+                              ▲ +{p.rankDelta}
+                            </span>
+                          ) : p.rankDelta < 0 ? (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 rounded-md">
+                              ▼ {Math.abs(p.rankDelta)}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center text-[10px] text-slate-500 bg-slate-800/80 px-1.5 py-0.5 rounded-md">
+                              -
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Name and School */}
+                        <div className="min-w-0">
+                          <p className={`text-xs font-bold truncate flex items-center gap-1.5 ${isMe ? 'text-indigo-200' : 'text-slate-200'}`}>
+                            <span className="text-base shrink-0">{p.avatar || '🧑‍🎓'}</span>
+                            <span className="truncate">{p.name}</span> {isMe && <span className="text-[10px] text-indigo-400 font-normal shrink-0">(Anda)</span>}
+                            {p.streak > 1 && (
+                              <span className="text-[10px] text-amber-400 font-mono font-bold flex items-center gap-0.5">
+                                <Flame className="w-3 h-3 fill-current" /> {p.streak}
+                              </span>
+                            )}
+                          </p>
+                          {p.schoolOrClass && (
+                            <p className="text-[10px] text-slate-400 truncate">{p.schoolOrClass}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right: Round points & Total XP */}
+                      <div className="text-right shrink-0 flex items-center gap-2.5">
+                        {p.roundPoints > 0 && (
+                          <span className="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                            +{p.roundPoints}
+                          </span>
+                        )}
+                        <span className="text-xs font-mono font-black text-white min-w-[60px] text-right">
+                          {p.score} <span className="text-[10px] text-slate-400 font-normal">XP</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                ))}
-              {currentAnswers.filter((a) => a.isCorrect).length === 0 && (
-                <p className="text-[11px] text-slate-500 py-1">Tiada peserta menjawab betul soalan ini.</p>
-              )}
+                );
+              })}
             </div>
+
+            {/* Expand / Collapse Leaderboard if more than 5 players */}
+            {playersWithDelta.length > 5 && (
+              <button
+                onClick={() => setShowAllLeaderboard(!showAllLeaderboard)}
+                className="w-full py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs text-indigo-300 font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                {showAllLeaderboard ? (
+                  <>
+                    <ChevronUp className="w-3.5 h-3.5" /> Ringkaskan Papan Kedudukan
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-3.5 h-3.5" /> Tunjukkan Semua ({playersWithDelta.length} Peserta)
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Current Question Top Answerers by Speed */}
+            <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 pt-2.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                ⚡ Terpantas Menjawab Betul Soalan Ini:
+              </span>
+              <div className="space-y-1">
+                {currentAnswers
+                  .filter((a) => a.isCorrect)
+                  .sort((a, b) => a.timeTakenSeconds - b.timeTakenSeconds)
+                  .slice(0, 3)
+                  .map((a, idx) => (
+                    <div key={a.playerId} className="flex items-center justify-between text-xs py-1 border-b border-slate-800/50 last:border-0">
+                      <span className="text-slate-300 font-medium">
+                        {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'} {a.playerName}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400 font-mono text-[11px]">{a.timeTakenSeconds}s</span>
+                        <span className="text-emerald-400 font-mono font-bold">+{a.scoreEarned} XP</span>
+                      </div>
+                    </div>
+                  ))}
+                {currentAnswers.filter((a) => a.isCorrect).length === 0 && (
+                  <p className="text-[11px] text-slate-500 py-1">Tiada peserta menjawab betul soalan ini.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Dalil & Explanation */}
+            {currentQ.explanationArabic && (
+              <div className="pt-2 border-t border-slate-800 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                  <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Huraian Dalil & Jawapan:</span>
+                </div>
+                <div className="font-arabic text-sm text-slate-100 text-right dir-rtl bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 leading-relaxed" dir="rtl">
+                  {currentQ.explanationArabic}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
