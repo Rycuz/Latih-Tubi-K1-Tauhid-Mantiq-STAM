@@ -87,6 +87,167 @@ export function hasLiveServerConfigured(): boolean {
   return Boolean(url && url.length > 0);
 }
 
+export type LiveServerStatus = 'online' | 'offline' | 'checking' | 'waking';
+
+export interface LiveServerHealthState {
+  status: LiveServerStatus;
+  ok: boolean;
+  serverUrl: string;
+  statusText: string;
+  latencyMs: number | null;
+  lastChecked: Date | null;
+}
+
+let currentHealthState: LiveServerHealthState = {
+  status: hasLiveServerConfigured() ? 'checking' : 'offline',
+  ok: false,
+  serverUrl: getLiveServerBaseUrl(),
+  statusText: hasLiveServerConfigured() ? 'Menyemak sambungan pelayan...' : 'Tiada URL pelayan disetkan',
+  latencyMs: null,
+  lastChecked: null,
+};
+
+const healthSubscribers = new Set<(state: LiveServerHealthState) => void>();
+
+function notifyHealthSubscribers() {
+  currentHealthState.serverUrl = getLiveServerBaseUrl();
+  const snapshot = { ...currentHealthState };
+  healthSubscribers.forEach((cb) => {
+    try {
+      cb(snapshot);
+    } catch {}
+  });
+}
+
+export function subscribeToServerHealth(callback: (state: LiveServerHealthState) => void): () => void {
+  healthSubscribers.add(callback);
+  callback({ ...currentHealthState });
+  return () => {
+    healthSubscribers.delete(callback);
+  };
+}
+
+export function getCurrentServerHealth(): LiveServerHealthState {
+  return { ...currentHealthState };
+}
+
+export function isWebSocketOpen(): boolean {
+  return Boolean(socket && socket.readyState === WebSocket.OPEN);
+}
+
+/**
+ * Health check test for the live backend server
+ */
+export async function testServerConnection(options?: {
+  timeoutMs?: number;
+  isWakingPing?: boolean;
+}): Promise<{ ok: boolean; statusText: string; timeTakenMs: number }> {
+  const url = getLiveServerBaseUrl();
+  if (!url) {
+    currentHealthState = {
+      status: 'offline',
+      ok: false,
+      serverUrl: '',
+      statusText: 'Tiada URL pelayan ditetapkan (Menggunakan Mod Firebase)',
+      latencyMs: null,
+      lastChecked: new Date(),
+    };
+    notifyHealthSubscribers();
+    return { ok: false, statusText: 'Tiada URL pelayan ditetapkan (Menggunakan Mod Firebase)', timeTakenMs: 0 };
+  }
+
+  const timeoutMs = options?.timeoutMs || (options?.isWakingPing ? 50000 : 15000);
+
+  currentHealthState = {
+    ...currentHealthState,
+    status: options?.isWakingPing ? 'waking' : 'checking',
+    statusText: options?.isWakingPing
+      ? 'Membangunkan pelayan dari tidur (Render Cold Start ~30s)...'
+      : 'Menyemak sambungan pelayan...',
+  };
+  notifyHealthSubscribers();
+
+  const start = Date.now();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(getHttpUrl('/api/health'), {
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    });
+    clearTimeout(timeoutId);
+    const timeTakenMs = Date.now() - start;
+
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      if (data && data.status === 'ok') {
+        const statusText = `Pelayan Aktif & Berjaga (${timeTakenMs}ms)`;
+        currentHealthState = {
+          status: 'online',
+          ok: true,
+          serverUrl: url,
+          statusText,
+          latencyMs: timeTakenMs,
+          lastChecked: new Date(),
+        };
+        notifyHealthSubscribers();
+        return { ok: true, statusText, timeTakenMs };
+      }
+    }
+    const statusText = `Pelayan membalas dengan status ${res.status}`;
+    currentHealthState = {
+      status: 'offline',
+      ok: false,
+      serverUrl: url,
+      statusText,
+      latencyMs: null,
+      lastChecked: new Date(),
+    };
+    notifyHealthSubscribers();
+    return { ok: false, statusText, timeTakenMs };
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    const timeTakenMs = Date.now() - start;
+    let statusText = err?.message || 'Gagal berhubung ke pelayan';
+    if (err?.name === 'AbortError') {
+      statusText = 'Pelayan sedang bangun dari mod tidur (Cold Start). Sila tunggu sebentar lagi.';
+    }
+    currentHealthState = {
+      status: 'offline',
+      ok: false,
+      serverUrl: url,
+      statusText,
+      latencyMs: null,
+      lastChecked: new Date(),
+    };
+    notifyHealthSubscribers();
+    return { ok: false, statusText, timeTakenMs };
+  }
+}
+
+/**
+ * Explicit trigger to wake up Render server with long timeout
+ */
+export async function wakeUpLiveServer(): Promise<{ ok: boolean; statusText: string; timeTakenMs: number }> {
+  return testServerConnection({ timeoutMs: 55000, isWakingPing: true });
+}
+
+// Background health polling every 35 seconds
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    if (hasLiveServerConfigured()) {
+      testServerConnection({ timeoutMs: 12000 });
+    }
+  }, 1200);
+
+  setInterval(() => {
+    if (hasLiveServerConfigured() && currentHealthState.status !== 'waking') {
+      testServerConnection({ timeoutMs: 12000 });
+    }
+  }, 35000);
+}
+
 function determineInitialMode(): 'auto' | 'server' | 'firebase' {
   if (typeof window === 'undefined') return 'auto';
   const serverUrl = getLiveServerBaseUrl();
@@ -146,6 +307,12 @@ export function initWebSocketIfNeeded() {
 
     socket.onopen = () => {
       activeMode = 'server';
+      currentHealthState.status = 'online';
+      currentHealthState.ok = true;
+      currentHealthState.statusText = 'Pelayan WebSockets Aktif & Berhubung';
+      currentHealthState.lastChecked = new Date();
+      notifyHealthSubscribers();
+
       // Re-join current room if active
       if (currentJoinedRoomCode) {
         socket?.send(JSON.stringify({
@@ -210,6 +377,11 @@ export function initWebSocketIfNeeded() {
       clearInterval(pingTimer);
       // Auto reconnect after 2 seconds if still in server mode
       if (activeMode !== 'firebase') {
+        currentHealthState.status = 'offline';
+        currentHealthState.ok = false;
+        currentHealthState.statusText = 'Soket pelayan terputus, menyambung semula...';
+        notifyHealthSubscribers();
+
         clearTimeout(reconnectTimer);
         reconnectTimer = setTimeout(() => {
           initWebSocketIfNeeded();
@@ -363,12 +535,26 @@ export async function createLiveChallengeRoom(params: {
     return fbLive.createLiveChallengeRoom(params);
   }
 
+  const controller = new AbortController();
+  // Allow up to 55 seconds for Render free tier cold-start wakeups
+  const timeoutId = setTimeout(() => controller.abort(), 55000);
+
+  // If request takes more than 3 seconds, inform subscribers that server is waking up
+  const wakingTimer = setTimeout(() => {
+    currentHealthState.status = 'waking';
+    currentHealthState.statusText = 'Pelayan sedang bangun dari tidur (Cold Start ~30-45s)...';
+    notifyHealthSubscribers();
+  }, 3500);
+
   try {
     const res = await fetch(getHttpUrl('/api/live/rooms/create'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
+    clearTimeout(wakingTimer);
 
     const contentType = res.headers.get('content-type') || '';
     // If Vercel or any static host rewrote the request to HTML or endpoint is missing
@@ -384,6 +570,12 @@ export async function createLiveChallengeRoom(params: {
     }
 
     activeMode = 'server';
+    currentHealthState.status = 'online';
+    currentHealthState.ok = true;
+    currentHealthState.statusText = 'Pelayan Aktif & Berhubung';
+    currentHealthState.lastChecked = new Date();
+    notifyHealthSubscribers();
+
     currentJoinedRoomCode = data.roomCode;
     currentJoinedPlayerId = params.hostId;
     currentJoinedAvatar = params.avatar || params.hostAvatar || '🧑‍🏫';
@@ -402,9 +594,31 @@ export async function createLiveChallengeRoom(params: {
 
     return { success: true, roomCode: data.roomCode };
   } catch (err: any) {
-    console.warn('Server live create failed, falling back to Firebase mode:', err);
+    clearTimeout(timeoutId);
+    clearTimeout(wakingTimer);
+    console.warn('Server live create failed or timed out:', err);
+
+    if (err?.name === 'AbortError') {
+      currentHealthState.status = 'offline';
+      currentHealthState.ok = false;
+      currentHealthState.statusText = 'Masa tamat menunggu pelayan bangun (Cold Start). Sila tekan sekali lagi.';
+      notifyHealthSubscribers();
+      return {
+        success: false,
+        error: 'Pelayan Render sedang mengambil masa lebih lama untuk bangun dari mod tidur (Cold Start). Sila tekan butang sekali lagi sekarang kerana pelayan kini sedang memulakan proses.',
+      };
+    }
+
+    // Try fallback to firebase
     switchToFirebaseMode();
-    return fbLive.createLiveChallengeRoom(params);
+    const fbRes = await fbLive.createLiveChallengeRoom(params);
+    if (!fbRes.success) {
+      return {
+        success: false,
+        error: `Pelayan tidak dapat dihubungi (${err?.message || 'Gagal'}). Percubaan sandaran Firebase juga gagal: ${fbRes.error}`,
+      };
+    }
+    return fbRes;
   }
 }
 
@@ -431,6 +645,9 @@ export async function joinLiveChallengeRoom(params: {
     });
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 45000);
+
   try {
     const res = await fetch(getHttpUrl('/api/live/rooms/join'), {
       method: 'POST',
@@ -442,7 +659,9 @@ export async function joinLiveChallengeRoom(params: {
         schoolOrClass: params.schoolOrClass,
         avatar: params.avatar || '🧑‍🎓',
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     const contentType = res.headers.get('content-type') || '';
     if (!res.ok || contentType.includes('text/html') || !contentType.includes('application/json')) {
@@ -463,6 +682,12 @@ export async function joinLiveChallengeRoom(params: {
     }
 
     activeMode = 'server';
+    currentHealthState.status = 'online';
+    currentHealthState.ok = true;
+    currentHealthState.statusText = 'Pelayan Aktif & Berhubung';
+    currentHealthState.lastChecked = new Date();
+    notifyHealthSubscribers();
+
     currentJoinedRoomCode = cleanCode;
     currentJoinedPlayerId = params.playerId;
     currentJoinedAvatar = params.avatar || '🧑‍🎓';
@@ -481,7 +706,16 @@ export async function joinLiveChallengeRoom(params: {
 
     return { success: true, room: data.room };
   } catch (err: any) {
-    console.warn('Server live join failed, falling back to Firebase mode:', err);
+    clearTimeout(timeoutId);
+    console.warn('Server live join failed or timed out:', err);
+
+    if (err?.name === 'AbortError') {
+      return {
+        success: false,
+        error: 'Pelayan sedang bangun dari mod tidur (Cold Start). Sila tekan butang sekali lagi dalam beberapa saat.',
+      };
+    }
+
     switchToFirebaseMode(cleanCode);
     return fbLive.joinLiveChallengeRoom({
       roomCode: cleanCode,
@@ -720,4 +954,62 @@ function cleanupSubscriptionIfEmpty(roomCode: string) {
     if (sub.fbUnsubAnswers) sub.fbUnsubAnswers();
     subscriptions.delete(roomCode);
   }
+}
+
+/**
+ * Force reconnect and refresh the room state.
+ * Useful when session gets disconnected, stuck, or network drops.
+ */
+export async function forceReconnectRoom(roomCode: string): Promise<{ success: boolean; message: string }> {
+  const code = roomCode.trim().toUpperCase();
+
+  // Also refresh health check in background
+  if (hasLiveServerConfigured()) {
+    testServerConnection({ timeoutMs: 15000 }).catch(() => {});
+  }
+
+  // If in Firebase mode, notify user that Firebase listeners are active
+  if (activeMode === 'firebase') {
+    return { success: true, message: 'Sambungan masa nyata Firebase telah disegarkan.' };
+  }
+
+  // If in server mode, close existing socket to force a clean re-handshake
+  if (socket) {
+    try {
+      socket.close();
+    } catch {}
+    socket = null;
+  }
+  clearInterval(pingTimer);
+  clearTimeout(reconnectTimer);
+
+  // Force re-init socket
+  initWebSocketIfNeeded();
+
+  // Also fetch immediately via REST to ensure the latest state is loaded without waiting for WS
+  try {
+    const res = await fetch(getHttpUrl(`/api/live/rooms/${code}`), {
+      headers: { Accept: 'application/json' },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.room) {
+        const sub = subscriptions.get(code);
+        if (sub) {
+          sub.lastRoom = data.room;
+          sub.lastPlayers = data.players || [];
+          sub.lastAnswers = data.answers || [];
+
+          sub.roomCallbacks.forEach((cb) => cb(sub.lastRoom));
+          sub.playersCallbacks.forEach((cb) => cb(sub.lastPlayers));
+          sub.answersCallbacks.forEach((cb) => cb(sub.lastAnswers));
+        }
+        return { success: true, message: 'Berjaya menyambung semula ke pelayan live!' };
+      }
+    }
+  } catch (err: any) {
+    console.warn('REST poll during force reconnect notice:', err);
+  }
+
+  return { success: true, message: 'Menyambung semula soket pelayan live...' };
 }

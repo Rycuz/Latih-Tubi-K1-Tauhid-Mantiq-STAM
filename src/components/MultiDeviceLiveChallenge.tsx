@@ -32,7 +32,7 @@ import {
   ChevronUp,
   Server,
   Wifi,
-  Settings
+  X
 } from 'lucide-react';
 import { Question, MultiDeviceRoom, MultiDevicePlayer, MultiDeviceAnswer } from '../types';
 import { QUESTIONS_DATA } from '../data/questions';
@@ -48,8 +48,12 @@ import {
   subscribeToLiveChallengePlayers,
   subscribeToLiveChallengeAnswers,
   getLiveServerBaseUrl,
-  setCustomLiveServerUrl,
-  detectIsStaticHosting
+  detectIsStaticHosting,
+  forceReconnectRoom,
+  subscribeToServerHealth,
+  getCurrentServerHealth,
+  wakeUpLiveServer,
+  LiveServerHealthState
 } from '../lib/liveRealtimeClient';
 
 export const AVATAR_CATEGORIES = [
@@ -165,16 +169,45 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   const questionStartTimeRef = useRef<number>(Date.now());
   const hasHandledFinishRef = useRef<boolean>(false);
 
-  // Render / Backend Server Configuration State
-  const [showServerConfig, setShowServerConfig] = useState(false);
-  const [customServerUrlInput, setCustomServerUrlInput] = useState(() => getLiveServerBaseUrl());
-  const [serverSavedSuccess, setServerSavedSuccess] = useState(false);
+  // Render / Backend Server Status State
+  const [isTestingServer, setIsTestingServer] = useState(false);
+  const [serverHealth, setServerHealth] = useState<LiveServerHealthState>(getCurrentServerHealth);
 
-  const handleSaveServerUrl = () => {
+  useEffect(() => {
+    const unsub = subscribeToServerHealth((state) => {
+      setServerHealth(state);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleWakeUpServer = async () => {
     soundEffects.playClick();
-    setCustomLiveServerUrl(customServerUrlInput);
-    setServerSavedSuccess(true);
-    setTimeout(() => setServerSavedSuccess(false), 3000);
+    setIsTestingServer(true);
+    try {
+      await wakeUpLiveServer();
+    } finally {
+      setIsTestingServer(false);
+    }
+  };
+
+  // Reconnection state for force reconnect button
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  const [reconnectToast, setReconnectToast] = useState<string | null>(null);
+
+  const handleForceReconnect = async () => {
+    if (!roomCode) return;
+    soundEffects.playClick();
+    setIsReconnecting(true);
+    setReconnectToast('Sedang menyambung semula ke pelayan...');
+    try {
+      const res = await forceReconnectRoom(roomCode);
+      setReconnectToast(res.message);
+    } catch {
+      setReconnectToast('Percubaan menyambung semula selesai.');
+    } finally {
+      setIsReconnecting(false);
+      setTimeout(() => setReconnectToast(null), 3500);
+    }
   };
 
   // Real-time Firestore Subscriptions when roomCode is active
@@ -222,6 +255,9 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   const currentQuestionIdx = currentRoom?.currentQuestionIndex ?? 0;
   const currentRoomStatus = currentRoom?.status;
 
+  // Animated ranking stage after each question: 'initial' (suspense / old rank) -> 'transitioning' (smooth glide) -> 'settled'
+  const [rankAnimStage, setRankAnimStage] = useState<'initial' | 'transitioning' | 'settled'>('settled');
+
   useEffect(() => {
     if (currentRoomStatus === 'active') {
       setSelectedOption(null);
@@ -229,6 +265,28 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
       setLastPointsEarned(null);
       questionStartTimeRef.current = Date.now();
       setTimeLeft(currentRoom?.timeLimitSeconds || 25);
+      setRankAnimStage('initial');
+    } else if (currentRoomStatus === 'question_result') {
+      // Start in initial state showing previous ranking
+      setRankAnimStage('initial');
+
+      // After 750ms suspense delay, trigger smooth rank glide transition
+      const t1 = setTimeout(() => {
+        setRankAnimStage('transitioning');
+        try {
+          soundEffects.playCorrect();
+        } catch {}
+      }, 750);
+
+      // Settle after animation completes
+      const t2 = setTimeout(() => {
+        setRankAnimStage('settled');
+      }, 1900);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
   }, [currentQuestionIdx, currentRoomStatus, currentRoom?.timeLimitSeconds]);
 
@@ -312,40 +370,45 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
     hasHandledFinishRef.current = false;
     soundEffects.playClick();
 
-    // Select questions randomly from the chosen subject pool
-    const poolToUse = subjectFilteredPool.length > 0 ? subjectFilteredPool : allPool;
-    const finalRoundCount = Math.min(roundCount, poolToUse.length);
-    const shuffled = [...poolToUse].sort(() => 0.5 - Math.random()).slice(0, finalRoundCount);
+    try {
+      // Select questions randomly from the chosen subject pool
+      const poolToUse = subjectFilteredPool.length > 0 ? subjectFilteredPool : allPool;
+      const finalRoundCount = Math.min(roundCount, poolToUse.length);
+      const shuffled = [...poolToUse].sort(() => 0.5 - Math.random()).slice(0, finalRoundCount);
 
-    const subjectLabels = {
-      all: 'Campuran Subjek',
-      tauhid: 'Tauhid (Ilmu Kalam)',
-      firaq: 'Firaq (Aliran Pemikiran)',
-      mantiq: 'Mantiq (Logik Islam)',
-    };
+      const subjectLabels = {
+        all: 'Campuran Subjek',
+        tauhid: 'Tauhid (Ilmu Kalam)',
+        firaq: 'Firaq (Aliran Pemikiran)',
+        mantiq: 'Mantiq (Logik Islam)',
+      };
 
-    const generatedTitle = selectedSubject === 'all' 
-      ? roomTitle 
-      : `${roomTitle} - ${subjectLabels[selectedSubject]}`;
+      const generatedTitle = selectedSubject === 'all' 
+        ? roomTitle 
+        : `${roomTitle} - ${subjectLabels[selectedSubject]}`;
 
-    const res = await createLiveChallengeRoom({
-      hostId: playerId,
-      hostName: playerName,
-      title: generatedTitle,
-      subject: selectedSubject,
-      questions: shuffled,
-      timeLimitSeconds: timeLimit,
-      avatar: selectedAvatar,
-      hostAvatar: selectedAvatar,
-    });
+      const res = await createLiveChallengeRoom({
+        hostId: playerId,
+        hostName: playerName,
+        title: generatedTitle,
+        subject: selectedSubject,
+        questions: shuffled,
+        timeLimitSeconds: timeLimit,
+        avatar: selectedAvatar,
+        hostAvatar: selectedAvatar,
+      });
 
-    setIsProcessing(false);
-    if (res.success && res.roomCode) {
-      setRoomCode(res.roomCode);
-      setIsHost(true);
-      setViewState('hosting_lobby');
-    } else {
-      setErrorMessage(res.error || 'Gagal membuka bilik.');
+      if (res.success && res.roomCode) {
+        setRoomCode(res.roomCode);
+        setIsHost(true);
+        setViewState('hosting_lobby');
+      } else {
+        setErrorMessage(res.error || 'Gagal membuka bilik.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Ralat semasa menghubungi pelayan bilik.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -366,21 +429,26 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
     hasHandledFinishRef.current = false;
     soundEffects.playClick();
 
-    const res = await joinLiveChallengeRoom({
-      roomCode: cleanCode,
-      playerId,
-      playerName,
-      schoolOrClass: playerSchool,
-      avatar: selectedAvatar,
-    });
+    try {
+      const res = await joinLiveChallengeRoom({
+        roomCode: cleanCode,
+        playerId,
+        playerName,
+        schoolOrClass: playerSchool,
+        avatar: selectedAvatar,
+      });
 
-    setIsProcessing(false);
-    if (res.success && res.room) {
-      setRoomCode(cleanCode);
-      setIsHost(false);
-      setViewState('player_lobby');
-    } else {
-      setErrorMessage(res.error || 'Tidak dapat menyertai bilik.');
+      if (res.success && res.room) {
+        setRoomCode(cleanCode);
+        setIsHost(false);
+        setViewState('player_lobby');
+      } else {
+        setErrorMessage(res.error || 'Tidak dapat menyertai bilik.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Ralat semasa menyertai bilik.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -502,9 +570,11 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             {onClose && (
               <button
                 onClick={onClose}
-                className="text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 transition-colors"
+                className="text-xs text-slate-300 hover:text-white px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 transition-all flex items-center gap-1.5 font-bold cursor-pointer shrink-0 shadow-sm active:scale-95"
+                title="Tutup Cabaran Live dan kembali ke Latihan"
               >
-                Tutup
+                <X className="w-3.5 h-3.5 text-slate-400" />
+                <span>Tutup</span>
               </button>
             )}
           </div>
@@ -521,90 +591,98 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             </ul>
           </div>
 
-          {/* Render Backend Server Configuration Toggle (0 Kuota Firebase) */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3.5 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className={`p-2 rounded-xl ${getLiveServerBaseUrl() ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`}>
-                  <Server className="w-4 h-4" />
+          {/* Render Backend Server Configuration Toggle (0 Kuota Firebase) with Visual Indicator */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 mb-6 shadow-md">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className={`p-2.5 rounded-xl border shrink-0 ${
+                  serverHealth.status === 'online'
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-sm'
+                    : serverHealth.status === 'waking'
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-sm'
+                    : 'bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-sm'
+                }`}>
+                  <Server className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-xs font-bold text-white">
-                      Enjin Pelayan WebSockets (0 Kuota Firebase)
+                      Status Pelayan Live (WebSockets)
                     </span>
-                    {getLiveServerBaseUrl() ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold border border-emerald-500/30 flex items-center gap-1">
-                        <Wifi className="w-2.5 h-2.5 text-emerald-400" /> Pelayan Aktif
+                    {/* Visual Circle Indicator (Bulatan Kecil Hijau / Merah) */}
+                    <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-950 border border-slate-800 text-[11px] font-semibold">
+                      <span className="relative flex h-2.5 w-2.5">
+                        {serverHealth.status === 'online' && (
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        )}
+                        {serverHealth.status === 'waking' && (
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                        )}
+                        <span
+                          className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                            serverHealth.status === 'online'
+                              ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]'
+                              : serverHealth.status === 'waking'
+                              ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]'
+                              : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)]'
+                          }`}
+                        />
                       </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold border border-amber-500/30">
-                        Mod Sandaran Firebase
+                      <span className={
+                        serverHealth.status === 'online'
+                          ? 'text-emerald-300 font-bold'
+                          : serverHealth.status === 'waking'
+                          ? 'text-amber-300 font-bold'
+                          : 'text-rose-400 font-bold'
+                      }>
+                        {serverHealth.status === 'online'
+                          ? 'Pelayan Aktif (0 Kuota Firebase)'
+                          : serverHealth.status === 'waking'
+                          ? 'Membangunkan Pelayan (Cold Start)...'
+                          : 'Pelayan Sedang Tidur / Terputus'}
+                      </span>
+                    </div>
+
+                    {serverHealth.latencyMs && (
+                      <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                        ⚡ {serverHealth.latencyMs}ms
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-400">
+
+                  <p className="text-[11px] text-slate-400 mt-1">
                     {getLiveServerBaseUrl()
-                      ? `Bersambung ke: ${getLiveServerBaseUrl()} (Sifar kuota Firestore)`
-                      : 'Sambungkan pelayan Render percuma anda untuk 0 kuota Firebase semasa kuiz.'}
+                      ? `URL Pelayan: ${getLiveServerBaseUrl()} (Sifar kuota Firestore)`
+                      : 'Tiada URL pelayan disetkan. Menggunakan sandaran Firebase.'}
                   </p>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowServerConfig(!showServerConfig)}
-                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1 transition-colors border border-slate-700"
-              >
-                <Settings className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{showServerConfig ? 'Tutup' : 'Tetapan URL'}</span>
-              </button>
+              <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                <button
+                  type="button"
+                  onClick={handleWakeUpServer}
+                  disabled={isTestingServer || serverHealth.status === 'waking'}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
+                    serverHealth.status === 'online'
+                      ? 'bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500'
+                  }`}
+                  title="Bangunkan pelayan dari mod tidur (Render Cold Start) atau semak kelajuan ping"
+                >
+                  <Zap className={`w-3.5 h-3.5 ${isTestingServer ? 'animate-bounce text-amber-300' : 'text-amber-400'}`} />
+                  <span>{isTestingServer ? 'Menguji...' : serverHealth.status === 'online' ? 'Semak Ping (ms)' : 'Bangunkan Pelayan'}</span>
+                </button>
+              </div>
             </div>
 
-            {showServerConfig && (
-              <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-2">
-                <label className="text-[11px] font-semibold text-slate-300 block">
-                  URL Pelayan Backend Render (Pilihan 2):
-                </label>
-                <div className="flex flex-col sm:flex-row items-center gap-2">
-                  <input
-                    type="url"
-                    value={customServerUrlInput}
-                    onChange={(e) => setCustomServerUrlInput(e.target.value)}
-                    placeholder="Contoh: https://aldirasat-backend.onrender.com"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-indigo-500"
-                  />
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={handleSaveServerUrl}
-                      className="flex-1 sm:flex-initial px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-colors whitespace-nowrap shadow cursor-pointer"
-                    >
-                      Simpan & Sambung
-                    </button>
-                    {customServerUrlInput && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCustomServerUrlInput('');
-                          setCustomLiveServerUrl('');
-                        }}
-                        className="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-xl text-xs transition-colors cursor-pointer"
-                        title="Padam & guna laluan asal"
-                      >
-                        Reset
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {serverSavedSuccess && (
-                  <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" /> URL pelayan berjaya dikemas kini! Kuiz berkumpulan seterusnya akan berhubung ke pelayan ini.
-                  </p>
-                )}
-                <p className="text-[10px] text-slate-500 leading-relaxed">
-                  💡 <strong>Nota:</strong> Anda boleh menetapkan pembolehubah persekitaran <code>VITE_LIVE_SERVER_URL</code> di tetapan projek Vercel agar semua pelajar di sekolah bersambung ke pelayan Render secara automatik tanpa perlu mengisi ruangan ini secara manual.
-                </p>
+            {/* Quick status tip when server is not online */}
+            {serverHealth.status !== 'online' && (
+              <div className="mt-3 p-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-[11px] text-slate-300 flex items-start gap-2">
+                <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Tip Render.com:</strong> Pelayan percuma tidur automatik jika tiada aktiviti selama 15 minit. Tekan butang hijau <strong>&quot;Bangunkan Pelayan&quot;</strong> di atas sebelum membuka bilik untuk mengelakkan sesi tergantung (~30 saat).
+                </span>
               </div>
             )}
           </div>
@@ -760,9 +838,21 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                 <button
                   onClick={handleJoinRoom}
                   disabled={isProcessing}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all"
+                  className={`w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all ${
+                    isProcessing ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+                  }`}
                 >
-                  <ArrowRight className="w-4 h-4" /> Masuk Bilik Sekarang
+                  {isProcessing ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Sedang Menyertai...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight className="w-4 h-4" />
+                      <span>Masuk Bilik Sekarang</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -870,12 +960,45 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                   </div>
                 </div>
 
+                {errorMessage && (
+                  <div className="p-3 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-300 text-xs leading-relaxed space-y-1">
+                    <div className="font-bold flex items-center gap-1.5">
+                      ⚠️ Makluman Sambungan Bilik:
+                    </div>
+                    <div>{errorMessage}</div>
+                  </div>
+                )}
+
+                {isProcessing && (
+                  <div className="p-3 bg-amber-950/70 border border-amber-500/50 rounded-xl text-amber-200 text-xs flex items-start gap-2 animate-pulse">
+                    <Zap className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 animate-bounce" />
+                    <div className="space-y-0.5">
+                      <span className="font-bold block">Menghubungi Pelayan Live...</span>
+                      <p className="text-[11px] text-slate-300">
+                        Sekiranya pelayan Render baru bangun dari tidur (Cold Start), ia mengambil masa ~30-45 saat untuk permulaan pertama. Sila tunggu seketika tanpa perlu menekan berulang kali.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   onClick={handleHostCreateRoom}
                   disabled={isProcessing}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all"
+                  className={`w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all ${
+                    isProcessing ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+                  }`}
                 >
-                  <Play className="w-4 h-4" /> Buka Bilik Live
+                  {isProcessing ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Sedang Membuka Bilik (Sila Tunggu)...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4" />
+                      <span>Buka Bilik Live</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -892,11 +1015,52 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
     return (
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-6 pb-28">
         <div className="bg-slate-900 border border-indigo-500/40 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+          {/* Top Utility Bar with Reconnect Button & Visual Dot */}
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                {isHost ? '👑 Anda adalah Hos Bilik' : '🎮 Anda Sedang Menunggu di Lobi'}
+              </span>
+              {/* Visual dot indicator */}
+              <div 
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-950 border border-slate-800 text-[10px]"
+                title={`Status Pelayan: ${serverHealth.status}`}
+              >
+                <span
+                  className={`inline-block rounded-full h-2 w-2 ${
+                    serverHealth.status === 'online'
+                      ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                      : serverHealth.status === 'waking'
+                      ? 'bg-amber-400 animate-pulse'
+                      : 'bg-rose-500'
+                  }`}
+                />
+                <span className="text-slate-400 font-mono hidden sm:inline">
+                  {serverHealth.status === 'online' ? 'Online' : serverHealth.status === 'waking' ? 'Bangun...' : 'Offline'}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleForceReconnect}
+              disabled={isReconnecting}
+              className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-100 hover:text-white rounded-xl border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm cursor-pointer"
+              title="Sambung Semula & Segarkan Bilik Jika Terputus atau Tersangkut"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${isReconnecting ? 'animate-spin text-amber-400' : 'text-emerald-400'}`} />
+              <span>{isReconnecting ? 'Menyambung Semula...' : 'Refresh / Sambung Semula'}</span>
+            </button>
+          </div>
+
+          {reconnectToast && (
+            <div className="p-2.5 bg-indigo-950/90 border border-indigo-500/50 rounded-xl text-center text-xs text-indigo-200 mb-4 shadow-lg">
+              {reconnectToast}
+            </div>
+          )}
+
           {/* Header Pin Display */}
           <div className="text-center space-y-2 mb-6">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-              {isHost ? '👑 Anda adalah Hos Bilik' : '🎮 Anda Sedang Menunggu di Lobi'}
-            </span>
             <h2 className="text-2xl font-black text-white">{currentRoom?.title || 'Bilik Cabaran STAM'}</h2>
             
             {currentRoom?.subject && (
@@ -1058,6 +1222,29 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
     return (
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-6 pb-28">
         <div className="bg-slate-900 border border-amber-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-6">
+          {/* Finished View Utility Bar with Refresh / Sambung Semula */}
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              🏆 Keputusan Akhir
+            </span>
+            <button
+              type="button"
+              onClick={handleForceReconnect}
+              disabled={isReconnecting}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white rounded-xl border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer shadow-sm"
+              title="Segarkan data bilik jika ada markah tertangguh"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${isReconnecting ? 'animate-spin text-amber-400' : 'text-emerald-400'}`} />
+              <span>{isReconnecting ? 'Menyambung...' : 'Refresh / Sambung Semula'}</span>
+            </button>
+          </div>
+
+          {reconnectToast && (
+            <div className="p-2.5 bg-indigo-950/90 border border-indigo-500/50 rounded-xl text-center text-xs text-indigo-200 shadow-lg">
+              {reconnectToast}
+            </div>
+          )}
+
           <div className="inline-flex p-4 rounded-3xl bg-amber-500/20 border border-amber-500/30 text-amber-400">
             <Trophy className="w-12 h-12" />
           </div>
@@ -1181,11 +1368,38 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
           </div>
 
           {/* Submissions count */}
-          <div className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-300 font-mono">
+          <div className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-300 font-mono hidden sm:block">
             👥 {currentAnswers.length} / {players.length} Menjawab
           </div>
+
+          {/* Reconnect / Refresh button */}
+          <button
+            type="button"
+            onClick={handleForceReconnect}
+            disabled={isReconnecting}
+            className="p-1.5 px-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-100 hover:text-white rounded-xl border border-slate-700 hover:border-emerald-500/50 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer shadow-sm"
+            title="Sambung Semula & Segarkan Bilik Jika Terputus atau Tersangkut"
+          >
+            <span
+              className={`inline-block rounded-full h-2 w-2 shrink-0 ${
+                serverHealth.status === 'online'
+                  ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]'
+                  : serverHealth.status === 'waking'
+                  ? 'bg-amber-400 animate-pulse'
+                  : 'bg-rose-500'
+              }`}
+            />
+            <RotateCcw className={`w-3.5 h-3.5 ${isReconnecting ? 'animate-spin text-amber-400' : 'text-emerald-400'}`} />
+            <span>{isReconnecting ? 'Menyambung...' : 'Refresh / Sambung Semula'}</span>
+          </button>
         </div>
       </div>
+
+      {reconnectToast && (
+        <div className="p-2.5 bg-indigo-950/90 border border-indigo-500/50 rounded-xl text-center text-xs text-indigo-200 shadow-lg">
+          {reconnectToast}
+        </div>
+      )}
 
       {/* Speed & Streak Banner for Current Player */}
       {myPlayerRecord && (
@@ -1290,8 +1504,10 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
         <div className="space-y-4">
           {/* 1. Student Personal Feedback Card */}
           {myPlayerRecord && (
-            <div className={`p-4 rounded-3xl border shadow-xl relative overflow-hidden transition-all ${
-              myPlayerRecord.rankDelta > 0
+            <div className={`p-4 rounded-3xl border shadow-xl relative overflow-hidden transition-all duration-500 ${
+              rankAnimStage === 'initial'
+                ? 'bg-slate-900 border-indigo-500/30'
+                : myPlayerRecord.rankDelta > 0
                 ? 'bg-gradient-to-r from-emerald-950/90 via-slate-900 to-indigo-950/90 border-emerald-500/50 shadow-emerald-950/50'
                 : myPlayerRecord.rankDelta < 0
                 ? 'bg-gradient-to-r from-slate-900 via-slate-900 to-rose-950/60 border-slate-700'
@@ -1299,14 +1515,18 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             }`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shadow-inner ${
-                    myPlayerRecord.rankDelta > 0
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shadow-inner transition-all duration-500 ${
+                    rankAnimStage === 'initial'
+                      ? 'bg-slate-800 border-slate-700 text-indigo-300'
+                      : myPlayerRecord.rankDelta > 0
                       ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
                       : myPlayerRecord.rankDelta < 0
                       ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
                       : 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
                   }`}>
-                    {myPlayerRecord.rankDelta > 0 ? (
+                    {rankAnimStage === 'initial' ? (
+                      <Sparkles className="w-6 h-6 text-amber-400 animate-spin" />
+                    ) : myPlayerRecord.rankDelta > 0 ? (
                       <TrendingUp className="w-6 h-6 animate-bounce" />
                     ) : myPlayerRecord.rankDelta < 0 ? (
                       <TrendingDown className="w-6 h-6" />
@@ -1318,27 +1538,31 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                     <div className="flex items-center gap-2">
                       <span className="text-xl shrink-0">{myPlayerRecord.avatar || selectedAvatar}</span>
                       <span className="text-sm font-black text-white">
-                        Kedudukan #{myPlayerRecord.currentRank}
+                        Kedudukan #{rankAnimStage === 'initial' ? myPlayerRecord.prevRank : myPlayerRecord.currentRank}
                       </span>
                       {/* Rank Delta Pill */}
-                      {myPlayerRecord.rankDelta > 0 && (
+                      {rankAnimStage === 'initial' ? (
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold animate-pulse">
+                          Mengira Kedudukan...
+                        </span>
+                      ) : myPlayerRecord.rankDelta > 0 ? (
                         <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-black flex items-center gap-0.5 animate-pulse">
                           ▲ +{myPlayerRecord.rankDelta} Tangga!
                         </span>
-                      )}
-                      {myPlayerRecord.rankDelta < 0 && (
+                      ) : myPlayerRecord.rankDelta < 0 ? (
                         <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[11px] font-bold flex items-center gap-0.5">
                           ▼ {Math.abs(myPlayerRecord.rankDelta)} Tangga
                         </span>
-                      )}
-                      {myPlayerRecord.rankDelta === 0 && (
+                      ) : (
                         <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[11px] font-bold">
                           Kekal
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-slate-300 mt-0.5">
-                      {myPlayerRecord.rankDelta > 0
+                      {rankAnimStage === 'initial'
+                        ? 'Menyemak kelajuan dan ketepatan jawapan pusingan ini...'
+                        : myPlayerRecord.rankDelta > 0
                         ? `Syabas! Anda melonjak naik dengan kutipan pantas!`
                         : myPlayerRecord.rankDelta < 0
                         ? `Rakan lain memotong laju. Soalan seterusnya ada peluang pintas kembali!`
@@ -1363,8 +1587,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
           )}
 
           {/* 2. Highest Climber Spotlight (if someone jumped up) */}
-          {highestClimber && highestClimber.rankDelta > 0 && (
-            <div className="p-3 bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/10 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-3 text-xs">
+          {rankAnimStage !== 'initial' && highestClimber && highestClimber.rankDelta > 0 && (
+            <div className="p-3 bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/10 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-3 text-xs animate-fade-in">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-inner">
                   <Flame className="w-4 h-4 fill-current animate-pulse" />
@@ -1397,23 +1621,47 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                   Papan Kedudukan Langsung ({players.length} Peserta)
                 </h3>
               </div>
-              <span className="text-[11px] text-emerald-400 font-mono">
-                🎯 {correctAnswersCount}/{currentAnswers.length} Betul
-              </span>
+              {rankAnimStage === 'initial' ? (
+                <span className="text-[11px] text-indigo-300 font-mono animate-pulse flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" /> Mengira Markah Pusingan...
+                </span>
+              ) : (
+                <span className="text-[11px] text-emerald-400 font-mono">
+                  🎯 {correctAnswersCount}/{currentAnswers.length} Betul
+                </span>
+              )}
             </div>
 
-            {/* List of Players with Delta Shifts */}
-            <div className="space-y-2">
+            {/* List of Players with Animated Delta Shifts */}
+            <div className="space-y-2 relative overflow-hidden p-1">
               {(showAllLeaderboard ? playersWithDelta : playersWithDelta.slice(0, 5)).map((p, idx) => {
                 const isMe = p.id === playerId;
+                const isInitial = rankAnimStage === 'initial';
                 const percentage = Math.max(8, Math.round((p.score / (highestScore || 1)) * 100));
+
+                // Calculate vertical slide offset for smooth glide
+                // If isInitial, position card at its previous rank position
+                // When transitioning to revealed, translateY smoothly goes to 0px
+                const ROW_HEIGHT = 64;
+                const slotDelta = p.prevRank - p.currentRank;
+                const clampedDelta = Math.max(-5, Math.min(5, slotDelta));
+                const translateY = isInitial ? clampedDelta * ROW_HEIGHT : 0;
+                const displayRank = isInitial ? p.prevRank : p.currentRank;
+                const displayScore = isInitial ? p.prevScore : p.score;
 
                 return (
                   <div
                     key={p.id}
-                    className={`relative p-3 rounded-2xl border transition-all duration-500 ${
+                    style={{
+                      transform: `translateY(${translateY}px)`,
+                      transition: isInitial ? 'none' : 'transform 850ms cubic-bezier(0.2, 0.9, 0.3, 1.2), box-shadow 500ms ease, border-color 500ms ease',
+                      zIndex: isInitial ? (10 - Math.min(9, p.prevRank)) : (p.rankDelta > 0 ? 10 : 2),
+                    }}
+                    className={`relative p-3 rounded-2xl border ${
                       isMe
                         ? 'bg-indigo-950/70 border-indigo-500/60 ring-1 ring-indigo-500/40 shadow-lg'
+                        : !isInitial && p.rankDelta > 0
+                        ? 'bg-slate-900 border-emerald-500/40 shadow-emerald-950/30'
                         : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700'
                     }`}
                   >
@@ -1427,22 +1675,26 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                       {/* Left: Position & Delta */}
                       <div className="flex items-center gap-2.5 min-w-0">
                         {/* Rank Badge */}
-                        <div className={`w-8 h-8 rounded-xl font-mono font-black text-xs flex items-center justify-center shrink-0 border ${
-                          idx === 0
+                        <div className={`w-8 h-8 rounded-xl font-mono font-black text-xs flex items-center justify-center shrink-0 border transition-all duration-500 ${
+                          displayRank === 1
                             ? 'bg-amber-500/20 border-amber-500/60 text-amber-300 shadow-md'
-                            : idx === 1
+                            : displayRank === 2
                             ? 'bg-slate-400/20 border-slate-400/50 text-slate-200'
-                            : idx === 2
+                            : displayRank === 3
                             ? 'bg-amber-700/20 border-amber-700/50 text-amber-400'
                             : 'bg-slate-800/80 border-slate-700 text-slate-400'
                         }`}>
-                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                          {displayRank === 1 ? '🥇' : displayRank === 2 ? '🥈' : displayRank === 3 ? '🥉' : `#${displayRank}`}
                         </div>
 
                         {/* Rank Shift Indicator */}
-                        <div className="w-12 shrink-0">
-                          {p.rankDelta > 0 ? (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-md">
+                        <div className="w-14 shrink-0 text-center">
+                          {isInitial ? (
+                            <span className="inline-flex items-center text-[10px] text-slate-500 font-mono animate-pulse bg-slate-900/80 px-1.5 py-0.5 rounded-md">
+                              -
+                            </span>
+                          ) : p.rankDelta > 0 ? (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-md animate-bounce shadow-sm">
                               ▲ +{p.rankDelta}
                             </span>
                           ) : p.rankDelta < 0 ? (
@@ -1451,7 +1703,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                             </span>
                           ) : (
                             <span className="inline-flex items-center text-[10px] text-slate-500 bg-slate-800/80 px-1.5 py-0.5 rounded-md">
-                              -
+                              Kekal
                             </span>
                           )}
                         </div>
@@ -1475,13 +1727,13 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
 
                       {/* Right: Round points & Total XP */}
                       <div className="text-right shrink-0 flex items-center gap-2.5">
-                        {p.roundPoints > 0 && (
-                          <span className="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                        {!isInitial && p.roundPoints > 0 && (
+                          <span className="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-lg border border-emerald-500/30 animate-pulse">
                             +{p.roundPoints}
                           </span>
                         )}
                         <span className="text-xs font-mono font-black text-white min-w-[60px] text-right">
-                          {p.score} <span className="text-[10px] text-slate-400 font-normal">XP</span>
+                          {displayScore} <span className="text-[10px] text-slate-400 font-normal">XP</span>
                         </span>
                       </div>
                     </div>

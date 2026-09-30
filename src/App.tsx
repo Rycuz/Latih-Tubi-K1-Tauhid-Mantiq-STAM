@@ -1176,6 +1176,7 @@ export default function App() {
         studentName={studentProfile.name}
         onOpenProfile={() => setIsProfileModalOpen(true)}
         onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
+        onOpenLiveQuiz={() => setCurrentTab('group')}
       />
 
       {/* Main View Router */}

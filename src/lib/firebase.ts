@@ -574,19 +574,30 @@ export async function createLiveChallengeRoom(params: {
       totalQuestions: cleanQuestions.length,
     };
 
-    await setDoc(roomDocRef, roomData);
+    // Timeout protection: if Firestore quota is exceeded, setDoc hangs waiting for server
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Firebase tidak bertindak balas selepas 8 saat. Kuota harian Firestore mungkin telah dicapai.')), 8000)
+    );
+
+    await Promise.race([
+      setDoc(roomDocRef, roomData),
+      timeoutPromise
+    ]);
 
     // Add host as player (or host participant)
     const hostPlayerRef = doc(db, 'challenge_rooms', roomCode, 'players', params.hostId);
-    await setDoc(hostPlayerRef, {
-      id: params.hostId,
-      name: `${params.hostName} (Host)`,
-      avatar: params.avatar || params.hostAvatar || '🧑‍🏫',
-      joinedAt: new Date().toISOString(),
-      score: 0,
-      streak: 0,
-      isHost: true,
-    });
+    await Promise.race([
+      setDoc(hostPlayerRef, {
+        id: params.hostId,
+        name: `${params.hostName} (Host)`,
+        avatar: params.avatar || params.hostAvatar || '🧑‍🏫',
+        joinedAt: new Date().toISOString(),
+        score: 0,
+        streak: 0,
+        isHost: true,
+      }),
+      timeoutPromise
+    ]);
 
     return { success: true, roomCode };
   } catch (err: any) {

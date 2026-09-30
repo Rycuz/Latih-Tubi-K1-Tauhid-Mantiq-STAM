@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
-import { Flame, Volume2, VolumeX, Globe, Sparkles, BookOpen, ShieldCheck, Lock, Share2, User, Edit3 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Flame, Volume2, VolumeX, Globe, Sparkles, BookOpen, ShieldCheck, Lock, Share2, User, Edit3, Server } from 'lucide-react';
 import { soundEffects } from '../utils/audio';
 import { ShareAppModal } from './ShareAppModal';
+import { 
+  subscribeToServerHealth, 
+  getCurrentServerHealth, 
+  LiveServerHealthState 
+} from '../lib/liveRealtimeClient';
+import { LiveServerStatusModal } from './LiveServerStatusModal';
 
 interface HeaderProps {
   xp: number;
@@ -14,6 +20,7 @@ interface HeaderProps {
   studentName?: string;
   onOpenProfile?: () => void;
   onOpenTeacherModal?: () => void;
+  onOpenLiveQuiz?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -27,8 +34,19 @@ export const Header: React.FC<HeaderProps> = ({
   studentName,
   onOpenProfile,
   onOpenTeacherModal,
+  onOpenLiveQuiz,
 }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isServerModalOpen, setIsServerModalOpen] = useState(false);
+  const [serverHealth, setServerHealth] = useState<LiveServerHealthState>(getCurrentServerHealth);
+
+  useEffect(() => {
+    const unsub = subscribeToServerHealth((state) => {
+      setServerHealth(state);
+    });
+    return () => unsub();
+  }, []);
+
   const xpInCurrentLevel = xp % 100;
   const xpNeededForNext = 100;
 
@@ -113,6 +131,51 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
+          {/* Live Server Visual Indicator (Bulatan Hijau / Merah) */}
+          <button
+            id="btn-live-server-status"
+            onClick={() => {
+              soundEffects.playClick();
+              setIsServerModalOpen(true);
+            }}
+            className={`p-1.5 px-2 rounded-lg border transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer ${
+              serverHealth.status === 'online'
+                ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/40 text-emerald-300'
+                : serverHealth.status === 'waking'
+                ? 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-300'
+                : 'bg-rose-500/15 hover:bg-rose-500/25 border-rose-500/40 text-rose-300'
+            }`}
+            title={
+              serverHealth.status === 'online'
+                ? `Pelayan Live Aktif & Sedia (${serverHealth.latencyMs ? `${serverHealth.latencyMs}ms` : 'Online'}) - Klik untuk status/bantuan`
+                : serverHealth.status === 'waking'
+                ? 'Pelayan Live sedang bangun dari mod tidur (Cold Start)... Klik untuk info'
+                : 'Pelayan Live terputus / sedang tidur. Klik untuk bangunkan atau uji semula'
+            }
+          >
+            {/* Visual Dot: Green / Amber / Red */}
+            <span className="relative flex h-2.5 w-2.5">
+              {serverHealth.status === 'online' && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              )}
+              {serverHealth.status === 'waking' && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              )}
+              <span
+                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                  serverHealth.status === 'online'
+                    ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]'
+                    : serverHealth.status === 'waking'
+                    ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]'
+                    : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)]'
+                }`}
+              />
+            </span>
+            <span className="text-[10px] font-bold hidden sm:inline">
+              {serverHealth.status === 'online' ? 'Server: On' : serverHealth.status === 'waking' ? 'Bangun...' : 'Server: Off'}
+            </span>
+          </button>
+
           {/* Sound Toggle */}
           <button
             onClick={() => {
@@ -172,6 +235,13 @@ export const Header: React.FC<HeaderProps> = ({
       <ShareAppModal 
         isOpen={isShareModalOpen} 
         onClose={() => setIsShareModalOpen(false)} 
+      />
+
+      {/* Live Server Status Modal */}
+      <LiveServerStatusModal
+        isOpen={isServerModalOpen}
+        onClose={() => setIsServerModalOpen(false)}
+        onOpenLiveQuiz={onOpenLiveQuiz}
       />
     </header>
   );
