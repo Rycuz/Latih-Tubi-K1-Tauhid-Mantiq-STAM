@@ -549,6 +549,8 @@ export async function createLiveChallengeRoom(params: {
   subject?: 'all' | 'tauhid' | 'firaq' | 'mantiq';
   questions: Question[];
   timeLimitSeconds?: number;
+  avatar?: string;
+  hostAvatar?: string;
 }): Promise<{ success: boolean; roomCode?: string; error?: string }> {
   try {
     const roomCode = generateRoomCode();
@@ -579,6 +581,7 @@ export async function createLiveChallengeRoom(params: {
     await setDoc(hostPlayerRef, {
       id: params.hostId,
       name: `${params.hostName} (Host)`,
+      avatar: params.avatar || params.hostAvatar || '🧑‍🏫',
       joinedAt: new Date().toISOString(),
       score: 0,
       streak: 0,
@@ -600,6 +603,7 @@ export async function joinLiveChallengeRoom(params: {
   playerId: string;
   playerName: string;
   schoolOrClass?: string;
+  avatar?: string;
 }): Promise<{ success: boolean; room?: MultiDeviceRoom; error?: string }> {
   try {
     const cleanCode = params.roomCode.trim().toUpperCase();
@@ -620,6 +624,7 @@ export async function joinLiveChallengeRoom(params: {
       id: params.playerId,
       name: params.playerName.trim() || 'Peserta',
       schoolOrClass: params.schoolOrClass?.trim() || 'Umum',
+      avatar: params.avatar || '🧑‍🎓',
       joinedAt: new Date().toISOString(),
       score: 0,
       streak: 0,

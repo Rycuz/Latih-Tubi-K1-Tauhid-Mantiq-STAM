@@ -25,6 +25,22 @@ const port = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json({ limit: '10mb' }));
 
+// Enable CORS for cross-origin requests from Vercel deployments
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Health check endpoint for Render/hosting platforms
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok', server: 'al_dirasat_live_engine', time: new Date().toISOString() });
+});
+
 // Initialize Google Gemini AI SDK
 const apiKey = process.env.GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({

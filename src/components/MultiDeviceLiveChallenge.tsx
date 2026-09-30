@@ -29,7 +29,10 @@ import {
   TrendingDown,
   Minus,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Server,
+  Wifi,
+  Settings
 } from 'lucide-react';
 import { Question, MultiDeviceRoom, MultiDevicePlayer, MultiDeviceAnswer } from '../types';
 import { QUESTIONS_DATA } from '../data/questions';
@@ -43,7 +46,10 @@ import {
   submitLiveChallengeAnswer,
   subscribeToLiveChallengeRoom,
   subscribeToLiveChallengePlayers,
-  subscribeToLiveChallengeAnswers
+  subscribeToLiveChallengeAnswers,
+  getLiveServerBaseUrl,
+  setCustomLiveServerUrl,
+  detectIsStaticHosting
 } from '../lib/liveRealtimeClient';
 
 export const AVATAR_CATEGORIES = [
@@ -158,6 +164,18 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   const [timeLeft, setTimeLeft] = useState(timeLimit);
   const questionStartTimeRef = useRef<number>(Date.now());
   const hasHandledFinishRef = useRef<boolean>(false);
+
+  // Render / Backend Server Configuration State
+  const [showServerConfig, setShowServerConfig] = useState(false);
+  const [customServerUrlInput, setCustomServerUrlInput] = useState(() => getLiveServerBaseUrl());
+  const [serverSavedSuccess, setServerSavedSuccess] = useState(false);
+
+  const handleSaveServerUrl = () => {
+    soundEffects.playClick();
+    setCustomLiveServerUrl(customServerUrlInput);
+    setServerSavedSuccess(true);
+    setTimeout(() => setServerSavedSuccess(false), 3000);
+  };
 
   // Real-time Firestore Subscriptions when roomCode is active
   useEffect(() => {
@@ -492,7 +510,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
           </div>
 
           {/* Quick Rules */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 mb-6 text-xs text-slate-300 space-y-2">
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 mb-4 text-xs text-slate-300 space-y-2">
             <h4 className="font-bold text-indigo-300 flex items-center gap-1.5">
               <Zap className="w-4 h-4 text-amber-400" /> Sistem Pemarkahan Kompetitif (Speed Multiplier):
             </h4>
@@ -501,6 +519,94 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
               <li><strong className="text-amber-300">Bonus Kelajuan (+1 hingga +100 mata):</strong> Semakin laju anda menekan jawapan betul, semakin tinggi markah tambahan yang diperolehi.</li>
               <li><strong className="text-indigo-300">Streak Kombo:</strong> Jawapan berturut-turut betul memberi bonus streak sehingga +45 mata.</li>
             </ul>
+          </div>
+
+          {/* Render Backend Server Configuration Toggle (0 Kuota Firebase) */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3.5 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className={`p-2 rounded-xl ${getLiveServerBaseUrl() ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`}>
+                  <Server className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-white">
+                      Enjin Pelayan WebSockets (0 Kuota Firebase)
+                    </span>
+                    {getLiveServerBaseUrl() ? (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold border border-emerald-500/30 flex items-center gap-1">
+                        <Wifi className="w-2.5 h-2.5 text-emerald-400" /> Pelayan Aktif
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold border border-amber-500/30">
+                        Mod Sandaran Firebase
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    {getLiveServerBaseUrl()
+                      ? `Bersambung ke: ${getLiveServerBaseUrl()} (Sifar kuota Firestore)`
+                      : 'Sambungkan pelayan Render percuma anda untuk 0 kuota Firebase semasa kuiz.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowServerConfig(!showServerConfig)}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1 transition-colors border border-slate-700"
+              >
+                <Settings className="w-3.5 h-3.5 text-indigo-400" />
+                <span>{showServerConfig ? 'Tutup' : 'Tetapan URL'}</span>
+              </button>
+            </div>
+
+            {showServerConfig && (
+              <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-2">
+                <label className="text-[11px] font-semibold text-slate-300 block">
+                  URL Pelayan Backend Render (Pilihan 2):
+                </label>
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <input
+                    type="url"
+                    value={customServerUrlInput}
+                    onChange={(e) => setCustomServerUrlInput(e.target.value)}
+                    placeholder="Contoh: https://aldirasat-backend.onrender.com"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-indigo-500"
+                  />
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleSaveServerUrl}
+                      className="flex-1 sm:flex-initial px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-colors whitespace-nowrap shadow cursor-pointer"
+                    >
+                      Simpan & Sambung
+                    </button>
+                    {customServerUrlInput && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomServerUrlInput('');
+                          setCustomLiveServerUrl('');
+                        }}
+                        className="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-xl text-xs transition-colors cursor-pointer"
+                        title="Padam & guna laluan asal"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {serverSavedSuccess && (
+                  <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" /> URL pelayan berjaya dikemas kini! Kuiz berkumpulan seterusnya akan berhubung ke pelayan ini.
+                  </p>
+                )}
+                <p className="text-[10px] text-slate-500 leading-relaxed">
+                  💡 <strong>Nota:</strong> Anda boleh menetapkan pembolehubah persekitaran <code>VITE_LIVE_SERVER_URL</code> di tetapan projek Vercel agar semua pelajar di sekolah bersambung ke pelayan Render secara automatik tanpa perlu mengisi ruangan ini secara manual.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Player Info Box with Cartoon Avatar Selector */}
