@@ -39,7 +39,8 @@ import {
   Languages,
   Bold,
   Highlighter,
-  Palette
+  Palette,
+  Copy
 } from 'lucide-react';
 import { Question, SubjectId, TopicInfo, Difficulty, StudentRecord } from '../types';
 import { TOPICS_DATA } from '../data/questions';
@@ -47,7 +48,6 @@ import { soundEffects } from '../utils/audio';
 import { cleanRepeatedText, sanitizeQuestion } from '../utils/sanitizeText';
 import { renderFormattedUnderlineText } from '../utils/formatTextWithUnderline';
 import { RichTextFormattingToolbar } from './RichTextFormattingToolbar';
-import { autoTranslateArabicOption, autoTranslateArabicQuestion } from '../utils/bilingualTranslator';
 import {
   translateTextWithGemini,
   translateQuestionFullWithGemini,
@@ -332,83 +332,48 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
     setFormEditPosition(1);
   };
 
-  const handleAutoTranslateOptions = () => {
+  // Copy / Duplicate an existing question into the editor form as a brand new question
+  const startCopyQuestion = (q: Question) => {
     soundEffects.playClick();
+    // Setting editingQuestion to null ensures saving generates a NEW question ID
+    setEditingQuestion(null);
 
-    // 1. Check if user has entered any Arabic options yet
-    const hasAnyArabic = Boolean(
-      formOptAArabic.trim() ||
-      formOptBArabic.trim() ||
-      formOptCArabic.trim() ||
-      formOptDArabic.trim()
-    );
+    setFormSubject(q.subject);
+    setFormTopicId(q.topicId);
+    setFormLearningStandard(q.learningStandard || '');
+    setFormQuestionArabic(q.questionArabic || '');
+    setFormQuestionMalay(q.questionMalay || '');
+    const isNone = !q.diagramType || q.diagramType === 'none' || !q.diagramArabic || !q.diagramArabic.trim();
+    setFormDiagramType(isNone ? 'none' : (q.diagramType as 'tree' | 'table' | 'box'));
+    setFormDiagramArabic(isNone ? '' : (q.diagramArabic || ''));
+    
+    const optA = q.options.find((o) => o.id === 'a');
+    const optB = q.options.find((o) => o.id === 'b');
+    const optC = q.options.find((o) => o.id === 'c');
+    const optD = q.options.find((o) => o.id === 'd');
 
-    if (!hasAnyArabic) {
-      setSuccessNotice('⚠️ Sila masukkan teks pilihan jawapan dalam Bahasa Arab (Kolum Kiri) terlebih dahulu.');
-      setTimeout(() => setSuccessNotice(null), 4000);
-      return;
-    }
+    setFormOptAArabic(optA?.textArabic || '');
+    setFormOptAMalay(optA?.textMalay || '');
+    setFormOptBArabic(optB?.textArabic || '');
+    setFormOptBMalay(optB?.textMalay || '');
+    setFormOptCArabic(optC?.textArabic || '');
+    setFormOptCMalay(optC?.textMalay || '');
+    setFormOptDArabic(optD?.textArabic || '');
+    setFormOptDMalay(optD?.textMalay || '');
 
-    // 2. Check if all Malay fields already have content
-    const allFilled = Boolean(
-      formOptAMalay.trim() &&
-      formOptBMalay.trim() &&
-      formOptCMalay.trim() &&
-      formOptDMalay.trim()
-    );
+    setFormCorrectAnswer(q.correctAnswer);
+    setFormExplanationArabic(q.explanationArabic || '');
+    setFormExplanationMalay(q.explanationMalay || '');
+    setFormDifficulty(q.difficulty || 'sederhana');
 
-    if (allFilled) {
-      setSuccessNotice('ℹ️ Kesemua 4 pilihan jawapan telah pun mempunyai terjemahan BM. Kosongkan kotak sekiranya ingin cadangan baharu.');
-      setTimeout(() => setSuccessNotice(null), 3500);
-      return;
-    }
+    // Default position: place right after the copied question in this topic
+    const posInfo = getQuestionTopicPosition(questions, q.id);
+    setFormPositionOption('custom');
+    setFormCustomPosition(posInfo.position + 1);
 
-    let updatedCount = 0;
-    const opts = [
-      { ar: formOptAArabic, my: formOptAMalay, setMy: setFormOptAMalay },
-      { ar: formOptBArabic, my: formOptBMalay, setMy: setFormOptBMalay },
-      { ar: formOptCArabic, my: formOptCMalay, setMy: setFormOptCMalay },
-      { ar: formOptDArabic, my: formOptDMalay, setMy: setFormOptDMalay },
-    ];
-
-    for (const opt of opts) {
-      if (opt.ar.trim() && !opt.my.trim()) {
-        const tr = autoTranslateArabicOption(opt.ar);
-        if (tr) {
-          opt.setMy(tr);
-          updatedCount++;
-        }
-      }
-    }
-
-    if (updatedCount > 0) {
-      setSuccessNotice(`✅ Berjaya mencadangkan ${updatedCount} terjemahan dwi-bahasa secara automatik!`);
-    } else {
-      setSuccessNotice('⚠️ Tiada padanan automatik dalam glosari STAM bagi pilihan ini. Sila taip terjemahan Bahasa Melayu secara manual.');
-    }
-    setTimeout(() => setSuccessNotice(null), 4000);
-  };
-
-  const handleAutoTranslateQuestion = () => {
-    soundEffects.playClick();
-    if (!formQuestionArabic.trim()) {
-      setSuccessNotice('⚠️ Sila masukkan Teks Soalan Bahasa Arab terlebih dahulu.');
-      setTimeout(() => setSuccessNotice(null), 3500);
-      return;
-    }
-    if (formQuestionMalay.trim()) {
-      setSuccessNotice('ℹ️ Soalan telah pun mempunyai terjemahan Bahasa Melayu. Kosongkan kotak jika ingin cadangan baharu.');
-      setTimeout(() => setSuccessNotice(null), 3500);
-      return;
-    }
-    const tr = autoTranslateArabicQuestion(formQuestionArabic);
-    if (tr) {
-      setFormQuestionMalay(tr);
-      setSuccessNotice('✅ Berjaya mencadangkan terjemahan soalan secara automatik!');
-    } else {
-      setSuccessNotice('⚠️ Tiada padanan soalan automatik dalam pangkalan data STAM. Sila taip terjemahan soalan secara manual.');
-    }
-    setTimeout(() => setSuccessNotice(null), 4000);
+    setActiveTab('add'); // Switch to editor form
+    setSuccessNotice(`📋 Soalan telah disalin ke borang! Sila ubah teks soalan atau pilihan jawapan mengikut kehendak anda, kemudian tekan "Simpan & Masukkan Soalan".`);
+    setTimeout(() => setSuccessNotice(null), 6000);
   };
 
   // Gemini AI: Translate Full Question, Diagram, All 4 Options & Explanation in one go
@@ -476,12 +441,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
             }
           }
         }
-        setSuccessNotice(
-          res.notice ||
-            (res.fallback
-              ? '✨ Terjemahan soalan & pilihan jawapan disiapkan menggunakan Glosari Pintar STAM!'
-              : '✨ Berjaya menterjemah soalan dan semua pilihan jawapan menggunakan Gemini AI!')
-        );
+        setSuccessNotice('✨ Berjaya menterjemah soalan dan semua pilihan jawapan menggunakan Gemini AI!');
       } else {
         soundEffects.playWrong();
         setSuccessNotice(`❌ ${res.error || 'Gagal menterjemah dengan Gemini AI. Sila cuba lagi.'}`);
@@ -523,11 +483,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
         } else {
           setFormQuestionArabic(res.translatedText);
         }
-        setSuccessNotice(
-          res.usedFallback
-            ? '✨ Terjemahan soalan disiapkan menggunakan Glosari Pintar STAM!'
-            : '✨ Terjemahan soalan berjaya disiapkan oleh Gemini AI!'
-        );
+        setSuccessNotice('✨ Terjemahan soalan berjaya disiapkan oleh Gemini AI!');
       } else {
         soundEffects.playWrong();
         setSuccessNotice(`❌ ${res.error || 'Gagal menterjemahkan soalan.'}`);
@@ -586,11 +542,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
             if (opt.id === 'd') setFormOptDArabic(opt.translatedText);
           }
         }
-        setSuccessNotice(
-          res.fallback
-            ? '✨ Kesemua 4 pilihan jawapan diterjemahkan menggunakan Glosari Pintar STAM!'
-            : '✨ Kesemua 4 pilihan jawapan berjaya diterjemahkan oleh Gemini AI!'
-        );
+        setSuccessNotice('✨ Kesemua 4 pilihan jawapan berjaya diterjemahkan oleh Gemini AI!');
       } else {
         soundEffects.playWrong();
         setSuccessNotice(`❌ ${res.error || 'Gagal menterjemahkan pilihan jawapan.'}`);
@@ -1439,6 +1391,14 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                               )}
                             </button>
                             <button
+                              type="button"
+                              onClick={() => startCopyQuestion(q)}
+                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-950 text-slate-300 hover:text-indigo-400 border border-slate-700 hover:border-indigo-500/40 transition-colors"
+                              title="Salin / Duplikasi Soalan Ini (Copy untuk bina soalan baharu yang serupa)"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                            <button
                               onClick={() => startEditQuestion(q)}
                               className="p-1.5 rounded-lg bg-slate-800 hover:bg-emerald-950 text-slate-300 hover:text-emerald-400 border border-slate-700 hover:border-emerald-500/40"
                               title="Sunting Soalan Ini"
@@ -1525,12 +1485,29 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                   </p>
                 </div>
                 {editingQuestion && (
-                  <button
-                    onClick={resetForm}
-                    className="py-1 px-3 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700"
-                  >
-                    Batal Sunting
-                  </button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEffects.playClick();
+                        setEditingQuestion(null);
+                        setFormPositionOption('end');
+                        setSuccessNotice('📋 Borang kini dalam mod "Tambah Soalan Baharu" menggunakan data ini. Sebarang simpanan tidak akan menimpa soalan asal.');
+                        setTimeout(() => setSuccessNotice(null), 5000);
+                      }}
+                      className="py-1 px-2.5 rounded-lg bg-indigo-950/70 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      title="Salin butiran ini menjadi soalan baharu (tidak akan menimpa soalan asal)"
+                    >
+                      <Copy className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Salin Jadi Soalan Baharu</span>
+                    </button>
+                    <button
+                      onClick={resetForm}
+                      className="py-1 px-3 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700"
+                    >
+                      Batal Sunting
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -1840,7 +1817,7 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                         type="button"
                         onClick={handleGeminiTranslateQuestion}
                         disabled={isTranslatingQuestion}
-                        className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                        className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
                         title="Terjemahkan teks soalan menggunakan Gemini AI"
                       >
                         {isTranslatingQuestion ? (
@@ -1849,15 +1826,6 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                           <Bot className="w-3 h-3 text-amber-300" />
                         )}
                         <span>✨ Terjemah Soalan (Gemini AI)</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleAutoTranslateQuestion}
-                        className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-[11px] font-medium flex items-center gap-1 transition-all"
-                        title="Isi terjemahan soalan daripada glosari STAM luar talian"
-                      >
-                        <Sparkles className="w-2.5 h-2.5 text-teal-400" />
-                        <span>Glosari Asas</span>
                       </button>
                     </div>
                   </div>
@@ -2044,16 +2012,6 @@ export const TeacherQuestionManagerModal: React.FC<TeacherQuestionManagerModalPr
                           <Bot className="w-3.5 h-3.5 text-amber-300" />
                         )}
                         <span>✨ Terjemah 4 Pilihan (Gemini AI)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleAutoTranslateOptions}
-                        className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-750 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm"
-                        title="Isi terjemahan Bahasa Melayu bagi 4 pilihan jawapan daripada Glosari STAM luar talian"
-                      >
-                        <Sparkles className="w-3 h-3 text-teal-300" />
-                        <span>Glosari Asas</span>
                       </button>
                     </div>
                   </div>

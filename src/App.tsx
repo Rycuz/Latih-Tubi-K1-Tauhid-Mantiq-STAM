@@ -1254,6 +1254,7 @@ export default function App() {
           onClose={() => setActiveQuizQuestions(null)}
           onFinishQuiz={handleFinishQuiz}
           languageMode={languageMode}
+          onChangeLanguageMode={setLanguageMode}
           bookmarkedIds={stats.bookmarkedQuestionIds}
           onToggleBookmark={handleToggleBookmark}
           studentProfile={studentProfile}

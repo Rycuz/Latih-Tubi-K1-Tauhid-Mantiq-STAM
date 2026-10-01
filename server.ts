@@ -6,13 +6,7 @@ import { fileURLToPath } from 'url';
 import { WebSocketServer } from 'ws';
 import { GoogleGenAI, Type } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
-import {
-  translateArabicToMalaySmart,
-  translateMalayToArabicSmart,
-  translateQuestionFullOffline,
-  autoTranslateArabicOption,
-  ensureCleanMalayTranslation,
-} from './src/utils/bilingualTranslator.ts';
+import { ensureCleanMalayTranslation } from './src/utils/bilingualTranslator.ts';
 import { setupLiveRoomEndpoints, setupLiveWebSocketServer } from './src/lib/liveServer.ts';
 
 dotenv.config();
@@ -157,24 +151,13 @@ app.post('/api/translate/text', async (req: Request, res: Response) => {
       res.json({ translatedText, fallback: false });
       return;
     }
+
+    res.status(500).json({ error: 'Gemini AI tidak mengembalikan teks terjemahan. Sila cuba lagi.' });
   } catch (error: any) {
-    console.warn('[Translate /api/translate/text] Gemini API unavailable or rate-limited. Activating STAM offline translator.');
+    console.error('[Translate /api/translate/text] Gemini API error:', error?.message);
+    const friendlyMsg = formatGeminiError(error, 'Gagal menterjemah teks dengan Gemini AI. Sila semak sambungan internet anda atau cuba sebentar lagi.');
+    res.status(500).json({ error: friendlyMsg });
   }
-
-  // Graceful offline fallback
-  let fallbackText = isToMalay
-    ? translateArabicToMalaySmart(text)
-    : translateMalayToArabicSmart(text);
-
-  if (isToMalay && fallbackText) {
-    fallbackText = ensureCleanMalayTranslation(fallbackText);
-  }
-
-  res.json({
-    translatedText: fallbackText || text,
-    fallback: true,
-    notice: 'Terjemahan dijana melalui Glosari Pintar STAM (Mod Sandaran Lengkap).',
-  });
 });
 
 // Full Question & 4 Options translation endpoint
@@ -275,26 +258,13 @@ Sila kembalikan hasil terjemahan dalam format JSON berstruktur yang ditetapkan.`
       res.json({ ...parsedData, fallback: false });
       return;
     }
+
+    res.status(500).json({ error: 'Format respons Gemini AI tidak lengkap. Sila cuba lagi.' });
   } catch (error: any) {
-    console.warn('[Translate /api/translate/question-full] Gemini API unavailable or rate-limited. Activating STAM offline translator.');
+    console.error('[Translate /api/translate/question-full] Gemini API error:', error?.message);
+    const friendlyMsg = formatGeminiError(error, 'Gagal menterjemahkan soalan penuh dengan Gemini AI. Sila cuba sebentar lagi.');
+    res.status(500).json({ error: friendlyMsg });
   }
-
-  // Graceful offline fallback using rich STAM question & options bank
-  const offlineData = translateQuestionFullOffline({
-    questionArabic,
-    questionMalay,
-    options,
-    explanationArabic,
-    explanationMalay,
-    diagramArabic,
-    targetLanguage,
-  });
-
-  res.json({
-    ...offlineData,
-    fallback: true,
-    notice: 'Terjemahan dijana melalui Glosari Pintar STAM (Mod Sandaran Lengkap).',
-  });
 });
 
 // Options-only batch translation endpoint
@@ -363,34 +333,13 @@ Semua istilah teknikal subjek STAM (Tauhid, Firaq, Mantiq) mesti dieja dalam tul
       res.json({ ...parsedData, fallback: false });
       return;
     }
+
+    res.status(500).json({ error: 'Format respons pilihan jawapan Gemini AI tidak lengkap. Sila cuba lagi.' });
   } catch (error: any) {
-    console.warn('[Translate /api/translate/options-batch] Gemini API unavailable or rate-limited. Activating STAM offline translator.');
+    console.error('[Translate /api/translate/options-batch] Gemini API error:', error?.message);
+    const friendlyMsg = formatGeminiError(error, 'Gagal menterjemah pilihan jawapan dengan Gemini AI. Sila cuba sebentar lagi.');
+    res.status(500).json({ error: friendlyMsg });
   }
-
-  // Graceful offline fallback
-  const translatedOptions = options.map((opt: any) => {
-    let text = isToMalay
-      ? autoTranslateArabicOption(opt.textArabic || '') ||
-        translateArabicToMalaySmart(opt.textArabic || '') ||
-        ''
-      : translateMalayToArabicSmart(opt.textMalay || '') ||
-        opt.textMalay ||
-        '';
-
-    if (isToMalay && text) {
-      text = ensureCleanMalayTranslation(text);
-    }
-    return {
-      id: opt.id,
-      translatedText: text || (isToMalay ? `Pilihan ${opt.id.toUpperCase()}` : opt.textArabic || ''),
-    };
-  });
-
-  res.json({
-    translatedOptions,
-    fallback: true,
-    notice: 'Pilihan jawapan diterjemahkan menggunakan Glosari Pintar STAM (Mod Sandaran Lengkap).',
-  });
 });
 
 // Setup Live Room REST Endpoints (WebRTC/Real-Time engine with 0 Firebase quota)

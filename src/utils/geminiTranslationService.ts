@@ -1,11 +1,3 @@
-import { 
-  autoTranslateArabicOption, 
-  autoTranslateArabicQuestion,
-  translateArabicToMalaySmart,
-  translateMalayToArabicSmart,
-  translateQuestionFullOffline
-} from './bilingualTranslator';
-
 export interface TranslateQuestionFullParams {
   questionArabic?: string;
   questionMalay?: string;
@@ -34,15 +26,16 @@ export async function checkGeminiStatus(): Promise<{ available: boolean; model: 
   }
 }
 
+/**
+ * Translates a single text string using Gemini AI (no glossary fallback).
+ */
 export async function translateTextWithGemini(
   text: string,
   to: 'ms' | 'ar' = 'ms'
-): Promise<{ success: boolean; translatedText?: string; error?: string; usedFallback?: boolean }> {
+): Promise<{ success: boolean; translatedText?: string; error?: string }> {
   if (!text || !text.trim()) {
-    return { success: false, error: 'Teks kosong.' };
+    return { success: false, error: 'Teks untuk diterjemahkan adalah kosong.' };
   }
-
-  const isToMalay = to !== 'ar';
 
   try {
     const res = await fetch('/api/translate/text', {
@@ -51,27 +44,22 @@ export async function translateTextWithGemini(
       body: JSON.stringify({ text, to }),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.translatedText) {
-        return { success: true, translatedText: data.translatedText, usedFallback: Boolean(data.fallback) };
-      }
+    const data = await res.json();
+    if (res.ok && data && data.translatedText) {
+      return { success: true, translatedText: data.translatedText };
     }
-  } catch {
-    // Proceed to client offline fallback
+    return { success: false, error: data?.error || 'Gagal menterjemah teks dengan Gemini AI.' };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Ralat sambungan ke pelayan terjemahan Gemini AI.' };
   }
-
-  // Graceful offline STAM fallback
-  const fallbackText = isToMalay
-    ? translateArabicToMalaySmart(text) || autoTranslateArabicOption(text) || autoTranslateArabicQuestion(text)
-    : translateMalayToArabicSmart(text);
-
-  return { success: true, translatedText: fallbackText || text, usedFallback: true };
 }
 
+/**
+ * Translates a full question (stem, diagram, 4 options, explanation) using Gemini AI (no glossary fallback).
+ */
 export async function translateQuestionFullWithGemini(
   params: TranslateQuestionFullParams
-): Promise<{ success: boolean; data?: TranslateQuestionFullResult; error?: string; fallback?: boolean; notice?: string }> {
+): Promise<{ success: boolean; data?: TranslateQuestionFullResult; error?: string }> {
   try {
     const res = await fetch('/api/translate/question-full', {
       method: 'POST',
@@ -79,42 +67,31 @@ export async function translateQuestionFullWithGemini(
       body: JSON.stringify(params),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.translatedQuestion) {
-        return {
-          success: true,
-          data: {
-            translatedQuestion: data.translatedQuestion,
-            translatedDiagram: data.translatedDiagram,
-            translatedOptions: data.translatedOptions || [],
-            translatedExplanation: data.translatedExplanation,
-          },
-          fallback: data.fallback,
-          notice: data.notice,
-        };
-      }
+    const data = await res.json();
+    if (res.ok && data && data.translatedQuestion) {
+      return {
+        success: true,
+        data: {
+          translatedQuestion: data.translatedQuestion,
+          translatedDiagram: data.translatedDiagram,
+          translatedOptions: data.translatedOptions || [],
+          translatedExplanation: data.translatedExplanation,
+        },
+      };
     }
-  } catch {
-    // Proceed to client offline fallback
+    return { success: false, error: data?.error || 'Gagal menterjemahkan soalan penuh dengan Gemini AI.' };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Ralat sambungan ke pelayan terjemahan Gemini AI.' };
   }
-
-  // Resilient offline fallback guarantee
-  const offlineData = translateQuestionFullOffline(params);
-  return {
-    success: true,
-    data: offlineData,
-    fallback: true,
-    notice: 'Terjemahan dijana melalui Glosari Pintar STAM (Mod Sandaran).',
-  };
 }
 
+/**
+ * Translates an array of MCQ options using Gemini AI (no glossary fallback).
+ */
 export async function translateOptionsBatchWithGemini(
   options: Array<{ id: string; textArabic?: string; textMalay?: string }>,
   targetLanguage: 'ms' | 'ar' = 'ms'
-): Promise<{ success: boolean; translatedOptions?: Array<{ id: string; translatedText: string }>; error?: string; fallback?: boolean }> {
-  const isToMalay = targetLanguage !== 'ar';
-
+): Promise<{ success: boolean; translatedOptions?: Array<{ id: string; translatedText: string }>; error?: string }> {
   try {
     const res = await fetch('/api/translate/options-batch', {
       method: 'POST',
@@ -122,31 +99,12 @@ export async function translateOptionsBatchWithGemini(
       body: JSON.stringify({ options, targetLanguage }),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data && Array.isArray(data.translatedOptions)) {
-        return { success: true, translatedOptions: data.translatedOptions, fallback: data.fallback };
-      }
+    const data = await res.json();
+    if (res.ok && data && Array.isArray(data.translatedOptions)) {
+      return { success: true, translatedOptions: data.translatedOptions };
     }
-  } catch {
-    // Proceed to client offline fallback
+    return { success: false, error: data?.error || 'Gagal menterjemah pilihan jawapan dengan Gemini AI.' };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Ralat sambungan ke pelayan terjemahan Gemini AI.' };
   }
-
-  // Resilient offline fallback guarantee
-  const translatedOptions = options.map((opt) => {
-    const text = isToMalay
-      ? autoTranslateArabicOption(opt.textArabic || '') ||
-        translateArabicToMalaySmart(opt.textArabic || '') ||
-        opt.textArabic ||
-        ''
-      : translateMalayToArabicSmart(opt.textMalay || '') ||
-        opt.textMalay ||
-        '';
-    return {
-      id: opt.id,
-      translatedText: text,
-    };
-  });
-
-  return { success: true, translatedOptions, fallback: true };
 }

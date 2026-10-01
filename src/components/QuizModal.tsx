@@ -25,7 +25,8 @@ import {
   Check,
   Clock,
   AlertTriangle,
-  Edit3
+  Edit3,
+  Globe
 } from 'lucide-react';
 import { Question, QuestionAttempt, SubjectId } from '../types';
 import { soundEffects } from '../utils/audio';
@@ -51,6 +52,7 @@ interface QuizModalProps {
     isReviewOnly?: boolean;
   }) => void;
   languageMode: 'bilingual' | 'arabic' | 'malay';
+  onChangeLanguageMode?: (mode: 'bilingual' | 'arabic' | 'malay') => void;
   bookmarkedIds: string[];
   onToggleBookmark: (questionId: string) => void;
   studentProfile?: {
@@ -72,6 +74,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   onClose,
   onFinishQuiz,
   languageMode,
+  onChangeLanguageMode,
   bookmarkedIds,
   onToggleBookmark,
   studentProfile,
@@ -763,6 +766,53 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               {reviewMode ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5 text-slate-400" />}
               <span className="hidden sm:inline">{reviewMode ? 'Skema Aktif' : 'Skema'}</span>
             </button>
+
+            {/* Language Mode Toggle & Visual Badge */}
+            {onChangeLanguageMode && (
+              <button
+                onClick={() => {
+                  soundEffects.playClick();
+                  const nextMode =
+                    languageMode === 'bilingual'
+                      ? 'arabic'
+                      : languageMode === 'arabic'
+                      ? 'malay'
+                      : 'bilingual';
+                  onChangeLanguageMode(nextMode);
+                }}
+                className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95 ${
+                  languageMode === 'bilingual'
+                    ? 'bg-teal-950/70 border-teal-500/50 text-teal-300 hover:bg-teal-900/80'
+                    : languageMode === 'arabic'
+                    ? 'bg-amber-950/70 border-amber-500/50 text-amber-300 hover:bg-amber-900/80'
+                    : 'bg-indigo-950/70 border-indigo-500/50 text-indigo-300 hover:bg-indigo-900/80'
+                }`}
+                title={`Mod Bahasa Soalan: ${
+                  languageMode === 'bilingual'
+                    ? 'Dwi-Bahasa (BM + BA)'
+                    : languageMode === 'arabic'
+                    ? 'Bahasa Arab Sahaja (عربي)'
+                    : 'Bahasa Melayu Sahaja (BM)'
+                } - Klik untuk tukar`}
+              >
+                <Globe
+                  className={`w-3.5 h-3.5 ${
+                    languageMode === 'bilingual'
+                      ? 'text-teal-400'
+                      : languageMode === 'arabic'
+                      ? 'text-amber-400'
+                      : 'text-indigo-400'
+                  }`}
+                />
+                <span className="text-[11px] whitespace-nowrap font-bold">
+                  {languageMode === 'bilingual'
+                    ? 'BM + BA'
+                    : languageMode === 'arabic'
+                    ? 'عربي (BA)'
+                    : 'BM Sahaja'}
+                </span>
+              </button>
+            )}
 
             {/* Bookmark button */}
             <button
