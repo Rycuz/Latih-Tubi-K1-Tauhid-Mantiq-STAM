@@ -267,6 +267,15 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
       setTimeLeft(currentRoom?.timeLimitSeconds || 25);
       setRankAnimStage('initial');
     } else if (currentRoomStatus === 'question_result') {
+      // Auto-scroll to top so students immediately see the animated ranking results without scrolling
+      try {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTop = 0;
+      } catch {}
+
       // Start in initial state showing previous ranking
       setRankAnimStage('initial');
 
@@ -1421,87 +1430,91 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
         </div>
       )}
 
-      {/* Main Question Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
-        <div className="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-800 pb-2">
-          <span className="font-bold uppercase text-emerald-400">{currentQ.subject}</span>
-          <span className="font-arabic">{currentQ.topicTitleArabic}</span>
-        </div>
+      {/* 1. SOALAN AKTIF: Ditunjukkan semasa murid sedang menjawab */}
+      {!isQuestionResult && (
+        <>
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+            <div className="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-800 pb-2">
+              <span className="font-bold uppercase text-emerald-400">{currentQ.subject}</span>
+              <span className="font-arabic">{currentQ.topicTitleArabic}</span>
+            </div>
 
-        {/* Diagram if available */}
-        {currentQ.diagramArabic && (
-          <QuestionDiagramRenderer
-            diagramArabic={currentQ.diagramArabic}
-            diagramType={currentQ.diagramType}
-            reviewMode={isQuestionResult}
-            isAnswerSubmitted={hasSubmittedAnswer || isQuestionResult}
-            correctAnswer={currentQ.correctAnswer}
-          />
-        )}
+            {/* Diagram if available */}
+            {currentQ.diagramArabic && (
+              <QuestionDiagramRenderer
+                diagramArabic={currentQ.diagramArabic}
+                diagramType={currentQ.diagramType}
+                reviewMode={false}
+                isAnswerSubmitted={hasSubmittedAnswer}
+                correctAnswer={currentQ.correctAnswer}
+              />
+            )}
 
-        {/* Group challenge strictly in Arabic (no Malay translation for questions/options) */}
-        <FormattedQuestionStem
-          questionArabic={currentQ.questionArabic}
-          questionMalay=""
-          showArabic={true}
-          showMalay={false}
-          fontSizeClass="text-lg sm:text-xl"
-        />
-      </div>
+            {/* Group challenge strictly in Arabic (no Malay translation for questions/options) */}
+            <FormattedQuestionStem
+              questionArabic={currentQ.questionArabic}
+              questionMalay=""
+              showArabic={true}
+              showMalay={false}
+              fontSizeClass="text-lg sm:text-xl"
+            />
+          </div>
 
-      {/* Options Grid (Arabic only for Group Challenge) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        {currentQ.options.map((opt) => {
-          const isSelected = selectedOption === opt.id;
-          const isCorrect = opt.id === currentQ.correctAnswer;
+          {/* Options Grid (Arabic only for Group Challenge) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {currentQ.options.map((opt) => {
+              const isSelected = selectedOption === opt.id;
+              let btnColor = 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200';
+              if (hasSubmittedAnswer) {
+                if (isSelected) btnColor = 'bg-indigo-950 border-indigo-500 text-indigo-200 ring-2 ring-indigo-500/50';
+                else btnColor = 'bg-slate-900/40 border-slate-800/40 text-slate-600 opacity-50';
+              }
 
-          let btnColor = 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200';
-          if (hasSubmittedAnswer && !isQuestionResult) {
-            if (isSelected) btnColor = 'bg-indigo-950 border-indigo-500 text-indigo-200 ring-2 ring-indigo-500/50';
-            else btnColor = 'bg-slate-900/40 border-slate-800/40 text-slate-600 opacity-50';
-          } else if (isQuestionResult) {
-            if (isCorrect) btnColor = 'bg-emerald-950/90 border-emerald-500 text-emerald-200 ring-2 ring-emerald-500/50';
-            else if (isSelected && !isCorrect) btnColor = 'bg-rose-950/90 border-rose-500 text-rose-200';
-            else btnColor = 'bg-slate-900/40 border-slate-800/40 text-slate-600 opacity-50';
-          }
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => handleAnswerSubmit(opt.id)}
+                  disabled={hasSubmittedAnswer}
+                  className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all active:scale-[0.98] ${btnColor}`}
+                >
+                  <span className="w-7 h-7 rounded-xl bg-slate-800 border border-slate-700 text-xs font-black flex items-center justify-center shrink-0">
+                    {opt.id.toUpperCase()}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-arabic text-lg font-bold text-right dir-rtl leading-relaxed" dir="rtl">
+                      {opt.textArabic}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
 
-          return (
-            <button
-              key={opt.id}
-              onClick={() => handleAnswerSubmit(opt.id)}
-              disabled={hasSubmittedAnswer || isQuestionResult}
-              className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all active:scale-[0.98] ${btnColor}`}
-            >
-              <span className="w-7 h-7 rounded-xl bg-slate-800 border border-slate-700 text-xs font-black flex items-center justify-center shrink-0">
-                {opt.id.toUpperCase()}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="font-arabic text-lg font-bold text-right dir-rtl leading-relaxed" dir="rtl">
-                  {opt.textArabic}
-                </p>
-              </div>
-              {isQuestionResult && isCorrect && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
-              {isQuestionResult && isSelected && !isCorrect && <XCircle className="w-5 h-5 text-rose-400 shrink-0" />}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Answer Submitted Feedback Notice for Player */}
-      {hasSubmittedAnswer && !isQuestionResult && (
-        <div className="p-3 bg-emerald-950/60 border border-emerald-500/40 rounded-2xl text-center space-y-1">
-          <p className="text-xs font-bold text-emerald-300 flex items-center justify-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Jawapan anda telah dihantar!
-          </p>
-          <p className="text-[11px] text-slate-400">
-            Masa direkodkan. Markah kelajuan akan dikira sebaik sahaja pemasa tamat.
-          </p>
-        </div>
+          {/* Answer Submitted Feedback Notice for Player */}
+          {hasSubmittedAnswer && (
+            <div className="p-3 bg-emerald-950/60 border border-emerald-500/40 rounded-2xl text-center space-y-1 animate-fade-in">
+              <p className="text-xs font-bold text-emerald-300 flex items-center justify-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Jawapan anda telah dihantar!
+              </p>
+              <p className="text-[11px] text-slate-400">
+                Masa direkodkan. Markah kelajuan dan perubahan kedudukan akan dikira sebaik sahaja pemasa tamat atau guru mengunci jawapan.
+              </p>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Question Result Discussion & Live Ranking Shift */}
+      {/* 2. KEPUTUSAN PUSINGAN & PERUBAHAN KEDUDUKAN (Dipaparkan DAHULU kepada murid) */}
       {isQuestionResult && (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in">
+          {/* Header Banner Keputusan & Perubahan Kedudukan */}
+          <div className="bg-gradient-to-r from-amber-500/20 via-indigo-950/80 to-emerald-500/20 border border-amber-500/40 rounded-2xl p-3 text-center shadow-lg">
+            <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center justify-center gap-2">
+              <Trophy className="w-4 h-4 text-amber-400 animate-bounce" />
+              KEPUTUSAN PUSINGAN & PERUBAHAN KEDUDUKAN
+            </span>
+          </div>
+
           {/* 1. Student Personal Feedback Card */}
           {myPlayerRecord && (
             <div className={`p-4 rounded-3xl border shadow-xl relative overflow-hidden transition-all duration-500 ${
@@ -1786,15 +1799,95 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                 )}
               </div>
             </div>
+          </div>
+
+          {/* 4. SEMAKAN SOALAN, JAWAPAN & HURAIAN (DI BAWAH KEPUTUSAN) */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-emerald-400" />
+                <h3 className="font-bold text-white text-xs sm:text-sm">
+                  Semakan Jawapan & Huraian Soalan
+                </h3>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold font-mono">
+                Jawapan Betul: ({currentQ.correctAnswer.toUpperCase()})
+              </span>
+            </div>
+
+            {/* Subject and Topic tag */}
+            <div className="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-800/60 pb-1.5">
+              <span className="font-bold uppercase text-emerald-400">{currentQ.subject}</span>
+              <span className="font-arabic">{currentQ.topicTitleArabic}</span>
+            </div>
+
+            {/* Diagram */}
+            {currentQ.diagramArabic && (
+              <QuestionDiagramRenderer
+                diagramArabic={currentQ.diagramArabic}
+                diagramType={currentQ.diagramType}
+                reviewMode={true}
+                isAnswerSubmitted={true}
+                correctAnswer={currentQ.correctAnswer}
+              />
+            )}
+
+            {/* Question Stem */}
+            <FormattedQuestionStem
+              questionArabic={currentQ.questionArabic}
+              questionMalay=""
+              showArabic={true}
+              showMalay={false}
+              fontSizeClass="text-lg sm:text-xl"
+            />
+
+            {/* Options Review Grid (Showing Green for Correct, Red for Wrong Selected) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+              {currentQ.options.map((opt) => {
+                const isSelected = selectedOption === opt.id;
+                const isCorrect = opt.id === currentQ.correctAnswer;
+
+                let btnColor = 'bg-slate-950/40 border-slate-800/40 text-slate-500 opacity-60';
+                if (isCorrect) {
+                  btnColor = 'bg-emerald-950/90 border-emerald-500 text-emerald-200 ring-2 ring-emerald-500/50 shadow-emerald-950/50';
+                } else if (isSelected && !isCorrect) {
+                  btnColor = 'bg-rose-950/90 border-rose-500 text-rose-200 ring-1 ring-rose-500/50';
+                }
+
+                return (
+                  <div
+                    key={opt.id}
+                    className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all ${btnColor}`}
+                  >
+                    <span className={`w-7 h-7 rounded-xl text-xs font-black flex items-center justify-center shrink-0 border ${
+                      isCorrect 
+                        ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-black' 
+                        : isSelected 
+                        ? 'bg-rose-500 text-white border-rose-400' 
+                        : 'bg-slate-800 border-slate-700 text-slate-400'
+                    }`}>
+                      {opt.id.toUpperCase()}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-arabic text-lg font-bold text-right dir-rtl leading-relaxed" dir="rtl">
+                        {opt.textArabic}
+                      </p>
+                    </div>
+                    {isCorrect && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
+                    {isSelected && !isCorrect && <XCircle className="w-5 h-5 text-rose-400 shrink-0" />}
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Dalil & Explanation */}
             {currentQ.explanationArabic && (
-              <div className="pt-2 border-t border-slate-800 space-y-1.5">
+              <div className="pt-3 border-t border-slate-800 space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
                   <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Huraian Dalil & Jawapan:</span>
                 </div>
-                <div className="font-arabic text-sm text-slate-100 text-right dir-rtl bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 leading-relaxed" dir="rtl">
+                <div className="font-arabic text-sm text-slate-100 text-right dir-rtl bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 leading-relaxed" dir="rtl">
                   {currentQ.explanationArabic}
                 </div>
               </div>

@@ -19,7 +19,8 @@ import {
   Lock,
   Edit3,
   Shuffle,
-  Dices
+  Dices,
+  Globe
 } from 'lucide-react';
 import { SubjectId, TopicInfo, UserStats, Question } from '../types';
 import { TOPICS_DATA, QUESTIONS_DATA } from '../data/questions';
@@ -39,6 +40,8 @@ interface SubjectPracticeViewProps {
   stats: UserStats;
   questions?: Question[];
   topics?: TopicInfo[];
+  languageMode?: 'bilingual' | 'arabic' | 'malay';
+  onChangeLanguageMode?: (mode: 'bilingual' | 'arabic' | 'malay') => void;
   onStartQuiz: (
     topicId?: string,
     subjectId?: SubjectId,
@@ -61,6 +64,8 @@ export const SubjectPracticeView: React.FC<SubjectPracticeViewProps> = ({
   stats,
   questions = QUESTIONS_DATA,
   topics = TOPICS_DATA,
+  languageMode = 'bilingual',
+  onChangeLanguageMode,
   onStartQuiz,
   onOpenBookmarkedQuiz,
   onOpenTeacherModal,
@@ -243,7 +248,103 @@ export const SubjectPracticeView: React.FC<SubjectPracticeViewProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-4 space-y-5 pb-28">
+    <div className="max-w-2xl mx-auto px-4 py-4 space-y-4 pb-28">
+      {/* Active Language Mode Status Bar - Sentiasa Jelas & Mudah Dilihat */}
+      <div className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md ${
+        languageMode === 'bilingual'
+          ? 'bg-teal-950/70 border-teal-500/40 text-teal-200'
+          : languageMode === 'arabic'
+          ? 'bg-amber-950/70 border-amber-500/40 text-amber-200'
+          : 'bg-indigo-950/70 border-indigo-500/40 text-indigo-200'
+      }`}>
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+            languageMode === 'bilingual'
+              ? 'bg-teal-500/20 text-teal-300 border-teal-500/30'
+              : languageMode === 'arabic'
+              ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+              : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+          }`}>
+            <Globe className="w-5 h-5 animate-pulse" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Mod Paparan Soalan Semasa:
+              </span>
+              <span className={`text-xs font-black px-2.5 py-0.5 rounded-full border shadow-sm ${
+                languageMode === 'bilingual'
+                  ? 'bg-teal-500 text-slate-950 border-teal-400'
+                  : languageMode === 'arabic'
+                  ? 'bg-amber-500 text-slate-950 border-amber-400'
+                  : 'bg-indigo-500 text-slate-950 border-indigo-400'
+              }`}>
+                {languageMode === 'bilingual'
+                  ? '🌐 BM + BA (Dwi-Bahasa)'
+                  : languageMode === 'arabic'
+                  ? '🌐 عربي (Bahasa Arab Sahaja)'
+                  : '🌐 BM Sahaja (Bahasa Melayu)'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-300 mt-1 leading-tight">
+              {languageMode === 'bilingual'
+                ? 'Soalan dipaparkan dalam teks Bahasa Arab beserta terjemahan Bahasa Melayu di bawahnya.'
+                : languageMode === 'arabic'
+                ? 'Format peperiksaan sebenar: Soalan dan pilihan dipaparkan dalam Bahasa Arab sepenuhnya.'
+                : 'Soalan dan pilihan jawapan diterjemahkan ke Bahasa Melayu Rumi sepenuhnya.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Quick Switch Buttons */}
+        {onChangeLanguageMode && (
+          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center bg-slate-950/70 p-1 rounded-xl border border-slate-800">
+            <button
+              onClick={() => {
+                soundEffects.playClick();
+                onChangeLanguageMode('bilingual');
+              }}
+              className={`px-2 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
+                languageMode === 'bilingual'
+                  ? 'bg-teal-500 text-slate-950 shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+              title="Tukar ke mod Dwi-Bahasa (BM + BA)"
+            >
+              BM+BA
+            </button>
+            <button
+              onClick={() => {
+                soundEffects.playClick();
+                onChangeLanguageMode('arabic');
+              }}
+              className={`px-2 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
+                languageMode === 'arabic'
+                  ? 'bg-amber-500 text-slate-950 shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+              title="Tukar ke mod Bahasa Arab Sahaja"
+            >
+              عربي BA
+            </button>
+            <button
+              onClick={() => {
+                soundEffects.playClick();
+                onChangeLanguageMode('malay');
+              }}
+              className={`px-2 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
+                languageMode === 'malay'
+                  ? 'bg-indigo-500 text-slate-950 shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+              title="Tukar ke mod Bahasa Melayu Sahaja"
+            >
+              BM Sahaja
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Hero Action Card */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-800/80 via-teal-900/70 to-slate-900 border border-emerald-500/30 p-5 shadow-2xl">
         <div className="relative z-10">

@@ -1186,6 +1186,8 @@ export default function App() {
             stats={stats}
             questions={allQuestions}
             topics={topics}
+            languageMode={languageMode}
+            onChangeLanguageMode={setLanguageMode}
             onStartQuiz={handleStartQuiz}
             onOpenBookmarkedQuiz={handleOpenBookmarkedQuiz}
             onOpenTeacherModal={() => setIsTeacherModalOpen(true)}

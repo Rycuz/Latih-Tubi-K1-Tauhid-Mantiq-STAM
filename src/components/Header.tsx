@@ -171,10 +171,10 @@ export const Header: React.FC<HeaderProps> = ({
               }}
               className={`p-1.5 px-2.5 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-sm active:scale-95 ${
                 languageMode === 'bilingual'
-                  ? 'bg-teal-950/70 hover:bg-teal-900/80 border-teal-500/50 text-teal-200 shadow-teal-950/40'
+                  ? 'bg-teal-950/80 hover:bg-teal-900 border-teal-500/60 text-teal-200 shadow-teal-950/40 ring-1 ring-teal-500/30'
                   : languageMode === 'arabic'
-                  ? 'bg-amber-950/70 hover:bg-amber-900/80 border-amber-500/50 text-amber-200 shadow-amber-950/40'
-                  : 'bg-indigo-950/70 hover:bg-indigo-900/80 border-indigo-500/50 text-indigo-200 shadow-indigo-950/40'
+                  ? 'bg-amber-950/80 hover:bg-amber-900 border-amber-500/60 text-amber-200 shadow-amber-950/40 ring-1 ring-amber-500/30'
+                  : 'bg-indigo-950/80 hover:bg-indigo-900 border-indigo-500/60 text-indigo-200 shadow-indigo-950/40 ring-1 ring-indigo-500/30'
               }`}
               title={`Mod Soalan Semasa: ${
                 languageMode === 'bilingual'
@@ -194,8 +194,19 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               />
 
+              {/* Glowing active indicator dot */}
+              <span
+                className={`h-2 w-2 rounded-full shrink-0 animate-pulse ${
+                  languageMode === 'bilingual'
+                    ? 'bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.9)]'
+                    : languageMode === 'arabic'
+                    ? 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]'
+                    : 'bg-indigo-400 shadow-[0_0_6px_rgba(129,140,248,0.9)]'
+                }`}
+              />
+
               {/* Distinctive, always-visible text badge */}
-              <span className="text-[11px] font-bold tracking-wide whitespace-nowrap">
+              <span className="text-[11px] font-black tracking-wide whitespace-nowrap">
                 {languageMode === 'bilingual'
                   ? 'BM + BA'
                   : languageMode === 'arabic'
