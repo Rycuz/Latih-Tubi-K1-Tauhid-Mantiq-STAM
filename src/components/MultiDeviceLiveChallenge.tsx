@@ -255,6 +255,10 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   const currentQuestionIdx = currentRoom?.currentQuestionIndex ?? 0;
   const currentRoomStatus = currentRoom?.status;
 
+  // Track exact ranks from before this round to guarantee accurate rank changes
+  const lastSettledRanksRef = useRef<Map<string, number>>(new Map());
+  const settledRanksFromPrevResultRef = useRef<Map<string, number>>(new Map());
+
   // Animated ranking stage after each question: 'initial' (suspense / old rank) -> 'transitioning' (smooth glide) -> 'settled'
   const [rankAnimStage, setRankAnimStage] = useState<'initial' | 'transitioning' | 'settled'>('settled');
 
@@ -266,6 +270,20 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
       questionStartTimeRef.current = Date.now();
       setTimeLeft(currentRoom?.timeLimitSeconds || 25);
       setRankAnimStage('initial');
+
+      // Populate settled ranks for this round authoritatively
+      if (currentRoom?.settledRanks && Object.keys(currentRoom.settledRanks).length > 0) {
+        const map = new Map<string, number>();
+        Object.entries(currentRoom.settledRanks).forEach(([pId, info]) => {
+          const rankNum = Number((info as any)?.rank);
+          if (rankNum > 0) {
+            map.set(pId, rankNum);
+          }
+        });
+        lastSettledRanksRef.current = map;
+      } else if (settledRanksFromPrevResultRef.current.size > 0) {
+        lastSettledRanksRef.current = new Map(settledRanksFromPrevResultRef.current);
+      }
     } else if (currentRoomStatus === 'question_result') {
       // Auto-scroll to top so students immediately see the animated ranking results without scrolling
       try {
@@ -297,7 +315,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
         clearTimeout(t2);
       };
     }
-  }, [currentQuestionIdx, currentRoomStatus, currentRoom?.timeLimitSeconds]);
+  }, [currentQuestionIdx, currentRoomStatus, currentRoom?.timeLimitSeconds, currentRoom?.settledRanks]);
 
   // Question timer tick
   useEffect(() => {
@@ -524,10 +542,18 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
 
     const nextIndex = currentRoom.currentQuestionIndex + 1;
     if (nextIndex < currentRoom.totalQuestions) {
+      // Snapshot current settled ranks based on current player scores so all devices know exact ranks entering next question
+      const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0) || a.name.localeCompare(b.name));
+      const settledRanks: Record<string, { rank: number; score: number }> = {};
+      sorted.forEach((p, idx) => {
+        settledRanks[p.id] = { rank: idx + 1, score: p.score || 0 };
+      });
+
       await updateChallengeRoomStatus(roomCode, {
         status: 'active',
         currentQuestionIndex: nextIndex,
         questionStartTime: Date.now(),
+        settledRanks,
       });
     } else {
       await updateChallengeRoomStatus(roomCode, {
@@ -1182,45 +1208,115 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
   const isGameFinished = currentRoom.status === 'finished';
 
   // Answers received for this specific question
-  const currentAnswers = answers.filter((a) => a.questionIndex === currentRoom.currentQuestionIndex);
+  const currentQIndex = currentRoom.currentQuestionIndex;
+  const currentAnswers = answers.filter((a) => a.questionIndex === currentQIndex);
   const correctAnswersCount = currentAnswers.filter((a) => a.isCorrect).length;
 
   // Calculate scores before this question vs after to find exact rank delta
   const playersWithStats = players.map((p) => {
+    // 1. Look up answer for this current question
     const roundAnswer = currentAnswers.find((a) => a.playerId === p.id);
-    const roundPoints = roundAnswer?.scoreEarned || 0;
-    const prevScore = Math.max(0, p.score - roundPoints);
+    const roundPoints = roundAnswer != null
+      ? (Number(roundAnswer.scoreEarned) || 0)
+      : (Number(p.lastPointsEarned) || 0);
+
+    // 2. Compute accurate previous score before this question
+    let prevScore = 0;
+    if (currentQIndex === 0) {
+      prevScore = 0;
+    } else if (currentRoom?.settledRanks && currentRoom.settledRanks[p.id]) {
+      prevScore = Number(currentRoom.settledRanks[p.id].score) || 0;
+    } else {
+      // Historical score strictly before current question
+      const historicalPrevScore = answers
+        .filter((a) => a.playerId === p.id && a.questionIndex < currentQIndex)
+        .reduce((sum, a) => sum + (Number(a.scoreEarned) || 0), 0);
+
+      if (historicalPrevScore > 0) {
+        prevScore = historicalPrevScore;
+      } else {
+        prevScore = Math.max(0, (p.score || 0) - roundPoints);
+      }
+    }
+
+    // 3. Computed total score
+    const computedScore = prevScore + roundPoints;
+    const finalScore = Math.max(p.score || 0, computedScore);
+
     return {
       ...p,
+      score: finalScore,
       roundPoints,
       prevScore,
-      isCorrectThisRound: roundAnswer?.isCorrect ?? false,
+      isCorrectThisRound: roundAnswer ? roundAnswer.isCorrect : (roundPoints > 0),
       roundSpeed: roundAnswer?.timeTakenSeconds,
-      selectedOptionThisRound: roundAnswer?.selectedOption,
+      selectedOptionThisRound: roundAnswer?.selectedOption || p.lastAnswerOption,
     };
   });
 
   // Calculate previous rank (before current question points)
-  const prevRankSorted = [...playersWithStats].sort((a, b) => b.prevScore - a.prevScore);
+  const prevRankSorted = [...playersWithStats].sort((a, b) => {
+    if (b.prevScore !== a.prevScore) {
+      return b.prevScore - a.prevScore;
+    }
+    return a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+  });
+
   // Calculate current rank (after current question points)
-  const sortedPlayers = [...playersWithStats].sort((a, b) => b.score - a.score);
+  const sortedPlayers = [...playersWithStats].sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+    const aSpeed = a.roundSpeed !== undefined ? Number(a.roundSpeed) : 999;
+    const bSpeed = b.roundSpeed !== undefined ? Number(b.roundSpeed) : 999;
+    if (aSpeed !== bSpeed) {
+      return aSpeed - bSpeed;
+    }
+    return a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+  });
+
+  // Keep latest settled rankings in ref when result is active
+  useEffect(() => {
+    if (currentRoomStatus === 'question_result' && sortedPlayers.length > 0) {
+      const map = new Map<string, number>();
+      sortedPlayers.forEach((p, idx) => map.set(p.id, idx + 1));
+      settledRanksFromPrevResultRef.current = map;
+    }
+  }, [currentRoomStatus, currentQuestionIdx, sortedPlayers]);
 
   const playersWithDelta = sortedPlayers.map((p, idx) => {
     const currentRank = idx + 1;
-    const prevIdx = prevRankSorted.findIndex((x) => x.id === p.id);
-    const prevRank = prevIdx >= 0 ? prevIdx + 1 : currentRank;
-    const rankDelta = prevRank - currentRank; // > 0 means climbed up (e.g. was 4th, now 2nd -> +2)
+    let prevRank: number;
+
+    if (currentQIndex === 0) {
+      // First round: no previous rank
+      prevRank = 0;
+    } else if (currentRoom?.settledRanks && currentRoom.settledRanks[p.id]) {
+      prevRank = currentRoom.settledRanks[p.id].rank;
+    } else if (lastSettledRanksRef.current.has(p.id)) {
+      prevRank = lastSettledRanksRef.current.get(p.id)!;
+    } else {
+      const prevIdx = prevRankSorted.findIndex((x) => x.id === p.id);
+      prevRank = prevIdx >= 0 ? prevIdx + 1 : currentRank;
+    }
+
+    const isOpeningLeader = currentQIndex === 0 && currentRank === 1 && p.score > 0;
+    const rankDelta = currentQIndex === 0
+      ? (isOpeningLeader ? 1 : 0)
+      : (prevRank - currentRank);
+
     return {
       ...p,
       currentRank,
-      prevRank,
+      prevRank: prevRank > 0 ? prevRank : currentRank,
       rankDelta,
+      isOpeningLeader,
     };
   });
 
-  // Find highest climber this round (if climbed at least 1 spot)
+  // Find highest climber this round (if climbed at least 1 spot, not just initial opening leader)
   const highestClimber = [...playersWithDelta]
-    .filter((p) => p.rankDelta > 0)
+    .filter((p) => p.rankDelta > 0 && !p.isOpeningLeader)
     .sort((a, b) => b.rankDelta - a.rankDelta)[0];
 
   const myPlayerRecord = playersWithDelta.find((p) => p.id === playerId);
@@ -1520,6 +1616,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             <div className={`p-4 rounded-3xl border shadow-xl relative overflow-hidden transition-all duration-500 ${
               rankAnimStage === 'initial'
                 ? 'bg-slate-900 border-indigo-500/30'
+                : myPlayerRecord.isOpeningLeader
+                ? 'bg-gradient-to-r from-amber-950/80 via-slate-900 to-indigo-950/90 border-amber-500/50 shadow-amber-950/50'
                 : myPlayerRecord.rankDelta > 0
                 ? 'bg-gradient-to-r from-emerald-950/90 via-slate-900 to-indigo-950/90 border-emerald-500/50 shadow-emerald-950/50'
                 : myPlayerRecord.rankDelta < 0
@@ -1531,6 +1629,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shadow-inner transition-all duration-500 ${
                     rankAnimStage === 'initial'
                       ? 'bg-slate-800 border-slate-700 text-indigo-300'
+                      : myPlayerRecord.isOpeningLeader
+                      ? 'bg-amber-500/20 border-amber-500/60 text-amber-300 shadow-md'
                       : myPlayerRecord.rankDelta > 0
                       ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
                       : myPlayerRecord.rankDelta < 0
@@ -1539,6 +1639,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                   }`}>
                     {rankAnimStage === 'initial' ? (
                       <Sparkles className="w-6 h-6 text-amber-400 animate-spin" />
+                    ) : myPlayerRecord.isOpeningLeader ? (
+                      <Crown className="w-6 h-6 text-amber-400 animate-bounce" />
                     ) : myPlayerRecord.rankDelta > 0 ? (
                       <TrendingUp className="w-6 h-6 animate-bounce" />
                     ) : myPlayerRecord.rankDelta < 0 ? (
@@ -1551,12 +1653,16 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                     <div className="flex items-center gap-2">
                       <span className="text-xl shrink-0">{myPlayerRecord.avatar || selectedAvatar}</span>
                       <span className="text-sm font-black text-white">
-                        Kedudukan #{rankAnimStage === 'initial' ? myPlayerRecord.prevRank : myPlayerRecord.currentRank}
+                        Kedudukan #{rankAnimStage === 'initial' ? (currentQIndex === 0 ? '-' : myPlayerRecord.prevRank) : myPlayerRecord.currentRank}
                       </span>
                       {/* Rank Delta Pill */}
                       {rankAnimStage === 'initial' ? (
                         <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold animate-pulse">
                           Mengira Kedudukan...
+                        </span>
+                      ) : myPlayerRecord.isOpeningLeader ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-500/50 text-[11px] font-black flex items-center gap-1 animate-pulse shadow-sm">
+                          👑 Mendahului (#1)
                         </span>
                       ) : myPlayerRecord.rankDelta > 0 ? (
                         <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-black flex items-center gap-0.5 animate-pulse">
@@ -1568,18 +1674,20 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                         </span>
                       ) : (
                         <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[11px] font-bold">
-                          Kekal
+                          Kekal (#{myPlayerRecord.currentRank})
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-slate-300 mt-0.5">
                       {rankAnimStage === 'initial'
                         ? 'Menyemak kelajuan dan ketepatan jawapan pusingan ini...'
+                        : myPlayerRecord.isOpeningLeader
+                        ? 'Syabas! Anda mendahului di Tempat Pertama pusingan pembukaan!'
                         : myPlayerRecord.rankDelta > 0
-                        ? `Syabas! Anda melonjak naik dengan kutipan pantas!`
+                        ? `Syabas! Anda melonjak naik +${myPlayerRecord.rankDelta} tangga ke Tempat #${myPlayerRecord.currentRank}!`
                         : myPlayerRecord.rankDelta < 0
                         ? `Rakan lain memotong laju. Soalan seterusnya ada peluang pintas kembali!`
-                        : `Kedudukan anda stabil. Teruskan momentum!`}
+                        : `Kedudukan anda stabil di Tempat #${myPlayerRecord.currentRank}. Teruskan momentum!`}
                     </p>
                   </div>
                 </div>
@@ -1599,8 +1707,8 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
             </div>
           )}
 
-          {/* 2. Highest Climber Spotlight (if someone jumped up) */}
-          {rankAnimStage !== 'initial' && highestClimber && highestClimber.rankDelta > 0 && (
+          {/* 2. Highest Climber Spotlight (if someone jumped up, not just initial opening round) */}
+          {rankAnimStage !== 'initial' && highestClimber && highestClimber.rankDelta > 0 && !highestClimber.isOpeningLeader && (
             <div className="p-3 bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/10 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-3 text-xs animate-fade-in">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-inner">
@@ -1656,10 +1764,11 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                 // If isInitial, position card at its previous rank position
                 // When transitioning to revealed, translateY smoothly goes to 0px
                 const ROW_HEIGHT = 64;
-                const slotDelta = p.prevRank - p.currentRank;
+                const prevRankNum = typeof p.prevRank === 'number' && p.prevRank > 0 ? p.prevRank : p.currentRank;
+                const slotDelta = currentQIndex === 0 ? 0 : (prevRankNum - p.currentRank);
                 const clampedDelta = Math.max(-5, Math.min(5, slotDelta));
                 const translateY = isInitial ? clampedDelta * ROW_HEIGHT : 0;
-                const displayRank = isInitial ? p.prevRank : p.currentRank;
+                const displayRank = isInitial ? (currentQIndex === 0 ? '-' : prevRankNum) : p.currentRank;
                 const displayScore = isInitial ? p.prevScore : p.score;
 
                 return (
@@ -1668,7 +1777,7 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                     style={{
                       transform: `translateY(${translateY}px)`,
                       transition: isInitial ? 'none' : 'transform 850ms cubic-bezier(0.2, 0.9, 0.3, 1.2), box-shadow 500ms ease, border-color 500ms ease',
-                      zIndex: isInitial ? (10 - Math.min(9, p.prevRank)) : (p.rankDelta > 0 ? 10 : 2),
+                      zIndex: isInitial ? (10 - Math.min(9, prevRankNum)) : (p.rankDelta > 0 ? 10 : 2),
                     }}
                     className={`relative p-3 rounded-2xl border ${
                       isMe
@@ -1701,10 +1810,14 @@ export const MultiDeviceLiveChallenge: React.FC<MultiDeviceLiveChallengeProps> =
                         </div>
 
                         {/* Rank Shift Indicator */}
-                        <div className="w-14 shrink-0 text-center">
+                        <div className="w-16 shrink-0 text-center">
                           {isInitial ? (
                             <span className="inline-flex items-center text-[10px] text-slate-500 font-mono animate-pulse bg-slate-900/80 px-1.5 py-0.5 rounded-md">
                               -
+                            </span>
+                          ) : p.isOpeningLeader ? (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-amber-300 bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.5 rounded-md animate-pulse">
+                              👑 #1
                             </span>
                           ) : p.rankDelta > 0 ? (
                             <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-md animate-bounce shadow-sm">

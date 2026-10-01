@@ -161,6 +161,8 @@ export interface MultiDevicePlayer {
   joinedAt: string;
   score: number;
   streak: number;
+  previousRank?: number;
+  previousScore?: number;
   lastAnswerOption?: 'a' | 'b' | 'c' | 'd';
   lastAnswerTimeMs?: number;
   lastPointsEarned?: number;
@@ -191,5 +193,6 @@ export interface MultiDeviceRoom {
   questions: Question[];
   createdAt: string;
   totalQuestions: number;
+  settledRanks?: Record<string, { rank: number; score: number }>;
 }
 

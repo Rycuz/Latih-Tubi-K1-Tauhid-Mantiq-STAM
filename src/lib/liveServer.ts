@@ -40,6 +40,7 @@ export interface LiveRoom {
   createdAt: string;
   totalQuestions: number;
   lastActive: number;
+  settledRanks?: Record<string, { rank: number; score: number }>;
 }
 
 interface RoomData {
@@ -229,7 +230,7 @@ export function setupLiveRoomEndpoints(app: express.Express) {
   // UPDATE STATUS
   app.post('/api/live/rooms/status', (req: Request, res: Response) => {
     try {
-      const { roomCode, status, currentQuestionIndex, questionStartTime } = req.body;
+      const { roomCode, status, currentQuestionIndex, questionStartTime, settledRanks } = req.body;
       const cleanCode = (roomCode || '').trim().toUpperCase();
       const roomData = activeRooms.get(cleanCode);
 
@@ -241,6 +242,9 @@ export function setupLiveRoomEndpoints(app: express.Express) {
       if (status) roomData.room.status = status;
       if (typeof currentQuestionIndex === 'number') roomData.room.currentQuestionIndex = currentQuestionIndex;
       if (typeof questionStartTime === 'number') roomData.room.questionStartTime = questionStartTime;
+      if (settledRanks && typeof settledRanks === 'object') {
+        roomData.room.settledRanks = settledRanks;
+      }
       roomData.room.lastActive = Date.now();
 
       // If moved to a new question, optionally clear current answers pool for the new question
@@ -290,6 +294,17 @@ export function setupLiveRoomEndpoints(app: express.Express) {
       }
 
       const answerId = `${questionIndex}_${playerId}`;
+      if (roomData.answers.has(answerId)) {
+        const existing = roomData.answers.get(answerId)!;
+        res.json({
+          success: true,
+          pointsEarned: existing.scoreEarned,
+          newStreak: roomData.players.get(playerId)?.streak || 0,
+          answer: existing,
+        });
+        return;
+      }
+
       const answerData: LiveAnswer = {
         playerId,
         playerName,
@@ -303,10 +318,16 @@ export function setupLiveRoomEndpoints(app: express.Express) {
 
       roomData.answers.set(answerId, answerData);
 
-      // Update player score
+      // Update player score authoritatively by summing all answers for this player
       const player = roomData.players.get(playerId);
       if (player) {
-        player.score = (player.score || 0) + pointsEarned;
+        let totalPlayerScore = 0;
+        for (const ans of roomData.answers.values()) {
+          if (ans.playerId === playerId) {
+            totalPlayerScore += (ans.scoreEarned || 0);
+          }
+        }
+        player.score = totalPlayerScore;
         player.streak = newStreak;
         player.lastAnswerOption = selectedOption;
         player.lastPointsEarned = pointsEarned;
@@ -413,6 +434,10 @@ export function setupLiveWebSocketServer(wss: WebSocketServer) {
             }
 
             const answerId = `${payload.questionIndex}_${payload.playerId}`;
+            if (roomData.answers.has(answerId)) {
+              return;
+            }
+
             const answerData: LiveAnswer = {
               playerId: payload.playerId,
               playerName: payload.playerName,
@@ -428,7 +453,13 @@ export function setupLiveWebSocketServer(wss: WebSocketServer) {
 
             const player = roomData.players.get(payload.playerId);
             if (player) {
-              player.score = (player.score || 0) + pointsEarned;
+              let totalPlayerScore = 0;
+              for (const ans of roomData.answers.values()) {
+                if (ans.playerId === payload.playerId) {
+                  totalPlayerScore += (ans.scoreEarned || 0);
+                }
+              }
+              player.score = totalPlayerScore;
               player.streak = newStreak;
               player.lastAnswerOption = payload.selectedOption;
               player.lastPointsEarned = pointsEarned;
